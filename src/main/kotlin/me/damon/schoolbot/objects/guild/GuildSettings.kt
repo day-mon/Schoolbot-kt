@@ -1,0 +1,1 @@
+package me.damon.schoolbot.objects.guild
