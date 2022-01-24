@@ -1,12 +1,18 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.6.10"
+    kotlin("plugin.spring") version "1.6.0"
+
     `maven-publish`
     application
     `java-library`
+
+
+    id("org.jetbrains.kotlin.plugin.noarg") version ("1.6.10")
     id("com.github.johnrengelman.shadow") version("6.0.0")
     id("org.jetbrains.kotlin.plugin.serialization") version("1.4.30")
+    id("org.springframework.boot") version "2.6.3"
+    id("io.spring.dependency-management") version "1.0.11.RELEASE"
 }
 
 
@@ -17,7 +23,15 @@ repositories {
     mavenCentral()
     maven("https://m2.dv8tion.net/releases")
     maven("https://jitpack.io")
+    maven("https://repo.spring.io/milestone")
+    maven("https://repo.spring.io/snapshot")
 
+}
+
+noArg {
+    annotation("javax.persistence.Embeddable")
+    annotation("javax.persistence.Entity")
+    annotation("javax.persistence.MappedSuperclass")
 }
 
 /**
@@ -51,4 +65,9 @@ dependencies {
     // Misc
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.1")
     implementation("ch.qos.logback:logback-classic:1.2.10")
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }

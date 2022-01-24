@@ -1,27 +1,75 @@
 package me.damon.schoolbot.objects.school
 
-import java.sql.Date
-import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
+import javax.persistence.*
 
-class Classroom(
-    val id: Int,
+@Table(name = "classrooms")
+@Entity(name = "classroom")
+
+data class Classroom(
+    @Id
+    @Column(name = "id", updatable = false, unique = true)
+    val id: UUID = UUID.randomUUID(),
+
+    @Column(name = "name", nullable = false)
+    val name: String,
+
+    @Column(name = "description")
     val description: String,
+
+    @Column(name = "prerequisite")
     val prerequisite: String,
 
+    @OneToMany(mappedBy = "id", cascade = [CascadeType.ALL])
+    val professors: Set<Professor>,
 
+    @OneToMany(mappedBy = "id", cascade = [CascadeType.ALL])
+    val assignments: Set<Assignment>,
+
+    @Column(name = "startDate", nullable = false)
     val startDate: LocalDateTime,
 
+    @Column(name = "endDate", nullable = false)
+    val endDate: LocalDateTime,
 
+    @Column(name = "term")
+    val term: ClassTerm,
 
+    @Column(name = "url")
+    val url: String,
 
-    val autoFilled: Boolean = false
+    @Column(name = "number")
+    val number: Long,
 
-)
+    @Column(name = "subjectAndIdentifier", nullable = true)
+    val subjectAndIdentifier: String,
+
+    @Column(name = "roleId", nullable = true,)
+    val roleId: Long,
+
+    @Column(name = "channelId", nullable = true)
+    val channelId: Long,
+
+    @Column(name = "guildId", nullable = false)
+    val guildId: Long,
+
+    @Column(name = "autoFilled")
+    /**
+     * A class that was autopopulated via api
+     */
+    val autoFilled: Boolean = false,
+
+    @OneToOne(mappedBy = "id", cascade = [(CascadeType.ALL)])
+    val school: School
+
+    )
+
 {
-    fun setStartDate(startDate: Date)
-    {
-
-    }
+    enum class ClassTerm { SPRING, WINTER, FALL, SUMMER  }
+    // TODO: 2022-01-24: Figure out relations for all of the object classes
 }
+
+
+
+

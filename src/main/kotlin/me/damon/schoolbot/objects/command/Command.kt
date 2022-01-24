@@ -1,7 +1,5 @@
 package me.damon.schoolbot.objects.command
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.Permission
 
 abstract class Command(
@@ -25,8 +23,5 @@ abstract class Command(
 
     open suspend fun onExecuteSuspend(event: CommandEvent)
     {
-
     }
-
-
 }

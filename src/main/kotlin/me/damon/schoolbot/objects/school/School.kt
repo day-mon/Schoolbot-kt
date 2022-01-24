@@ -1,53 +1,40 @@
 package me.damon.schoolbot.objects.school
 
-class School(
-    var name: String,
-    var url: String,
-    var emailSuffix: String,
-    var isPittSchool: Boolean,
-    var guildId: Long = -1L,
-    var roleId: Long = -1L,
-    var id: Long = -1L,
+import java.util.*
+import javax.persistence.*
 
-    var classroomList: ArrayList<Classroom> = arrayListOf(),
-    var professorList: ArrayList<Professor> = arrayListOf()
-)
-{
+@Entity(name = "School")
+@Table(name = "schools")
+data class School constructor(
+    @Id
+    @Column(name = "id", unique = true, updatable = false)
+    val id: UUID = UUID.randomUUID(),
+
+    @Column(name = "name", nullable = false)
+    val name: String,
+
+    @Column(name = "url", nullable = true)
+    val url: String,
+
+    @Column(name = "emailSuffix", nullable = false)
+    val emailSuffix: String,
+
+    @Column(name = "isPittSchool", nullable = false)
+    val isPittSchool: Boolean,
+
+    @Column(name = "guildId", nullable = false)
+    val guildId: Long = -1L,
+
+    @Column(name = "roleId", nullable = false)
+    val roleId: Long = -1L,
+
+    @ManyToMany(mappedBy = "id", cascade = [CascadeType.ALL])
+    val professor: Set<Professor>,
+
+    @OneToMany(mappedBy = "id", cascade = [CascadeType.ALL])
+    val classes: Set<Classroom>,
+
+    )
+{}
 
 
-    fun addProfessor(professor: Professor)
-    {
-        professorList.add(professor)
-    }
-
-
-
-    fun getProfessorById(id: Int): Professor?
-    {
-        return professorList
-            .stream()
-            .filter { it.id == id }
-            .findFirst()
-            .orElse(null)
-    }
-
-    fun getClassroomById(id: Int): Classroom?
-    {
-        return classroomList
-            .stream()
-            .filter { it.id == id }
-            .findFirst()
-            .orElse(null)
-    }
-
-    fun hasProfessors(): Boolean
-    {
-        return professorList.isNotEmpty()
-    }
-
-    fun hasClassrooms(): Boolean
-    {
-        return classroomList.isNotEmpty()
-    }
-
-}

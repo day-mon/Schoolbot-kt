@@ -1,7 +1,6 @@
 package me.damon.schoolbot
 
 import me.damon.schoolbot.handler.ConfigHandler
-import me.damon.schoolbot.handler.DatabaseHandler
 import me.damon.schoolbot.listener.GuildListeners
 import me.damon.schoolbot.listener.SlashListener
 import net.dv8tion.jda.api.JDA
@@ -29,7 +28,7 @@ class Schoolbot : ListenerAdapter()
     private val logger = LoggerFactory.getLogger(Schoolbot::class.java)
     // handlers
     val configHandler  = ConfigHandler()
-    val databaseHandler = DatabaseHandler(this)
+  //  val databaseHandler = DatabaseHandler(this)
 
     // jda
     val jda = build()
