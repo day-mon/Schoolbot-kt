@@ -55,6 +55,13 @@ dependencies {
     // Discord
     implementation("net.dv8tion:JDA:4.4.0_352")
 
+    // Spring
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+
     // Database
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("org.postgresql:postgresql:42.3.1")
@@ -65,9 +72,5 @@ dependencies {
     // Misc
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.1")
     implementation("ch.qos.logback:logback-classic:1.2.10")
-    implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+
 }
