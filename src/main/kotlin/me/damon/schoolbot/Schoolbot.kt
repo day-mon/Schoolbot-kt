@@ -63,7 +63,11 @@ class Schoolbot : ListenerAdapter()
                     // doesn't cache members on start up
                 .setChunkingFilter(ChunkingFilter.NONE)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                .addEventListeners(SlashListener(), GuildListeners())
+                .addEventListeners(
+                    SlashListener(),
+                    GuildListeners(),
+
+                )
                 .setActivity(Activity.playing("building...."))
                 .build()
         }

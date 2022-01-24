@@ -1,5 +1,7 @@
 package me.damon.schoolbot.objects.school
 
+import me.damon.schoolbot.objects.misc.Pagintable
+import java.time.Instant
 import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
@@ -21,14 +23,14 @@ data class Assignment (
     val points: Int,
 
     @Column(name = "dueDate")
-    val dueDate: LocalDateTime,
+    val dueDate: Instant,
 
     @OneToOne(mappedBy = "id", cascade = [CascadeType.ALL])
     val classroom: Classroom
 
 
 
-) : Comparable<Assignment>
+) : Comparable<Assignment>, Pagintable
 {
     override fun compareTo(other: Assignment): Int
     {

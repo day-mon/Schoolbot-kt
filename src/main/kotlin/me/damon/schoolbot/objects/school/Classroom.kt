@@ -1,5 +1,7 @@
 package me.damon.schoolbot.objects.school
 
+import me.damon.schoolbot.objects.misc.Pagintable
+import java.time.Instant
 import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
@@ -28,10 +30,10 @@ data class Classroom(
     val assignments: Set<Assignment>,
 
     @Column(name = "startDate", nullable = false)
-    val startDate: LocalDateTime,
+    val startDate: Instant,
 
     @Column(name = "endDate", nullable = false)
-    val endDate: LocalDateTime,
+    val endDate: Instant,
 
     @Column(name = "term")
     val term: ClassTerm,
@@ -63,7 +65,7 @@ data class Classroom(
     @OneToOne(mappedBy = "id", cascade = [(CascadeType.ALL)])
     val school: School
 
-    )
+    ) : Pagintable
 
 {
     enum class ClassTerm { SPRING, WINTER, FALL, SUMMER  }

@@ -5,6 +5,5 @@ import me.damon.schoolbot.Schoolbot
 class Cache(val schoolbot: Schoolbot)
 {
     val messageCache: MessageCache = MessageCache()
-    val schoolCache: SchoolCache = SchoolCache(schoolbot)
 
 }

@@ -1,5 +1,7 @@
 package me.damon.schoolbot.objects.school
 
+import me.damon.schoolbot.objects.misc.Pagintable
+import java.time.ZoneId
 import java.util.*
 import javax.persistence.*
 
@@ -34,7 +36,9 @@ data class School constructor(
     @OneToMany(mappedBy = "id", cascade = [CascadeType.ALL])
     val classes: Set<Classroom>,
 
-    )
-{}
+    @Column(name = "timeZone", nullable = false, updatable = true)
+    val timeZone: ZoneId
+
+    ) : Pagintable
 
 
