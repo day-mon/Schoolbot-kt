@@ -2,26 +2,34 @@ package me.damon.schoolbot.objects.command
 
 import net.dv8tion.jda.api.Permission
 
+private val splitRegex = Regex(pattern = "\\.")
+
 abstract class Command(
-    val name: String, // can't use reflection here
-    val description: String,
-    val syntax: String,
-    val usageExample: String = "N/A",
-    val commandPrerequisites: String = "[none]",
-
-    val coolDown: Long = 1000L,
-
-    val memberPermissions: List<Permission> = emptyList(),
-    val selfPermission: List<Permission> = emptyList(),
-
-    val children: List<Command> = emptyList(),
-    val calls: List<String> = emptyList(),
-
-    val parent: Command?,
-    )
+    override val name: String,
+    override val category: CommandCategory,
+    override val description: String,
+    override val commandPrerequisites: String = "",
+    override val coolDown: Long = 1000L,
+    override val memberPermissions: List<Permission> = listOf(),
+    override val selfPermission: List<Permission> = listOf(),
+    override val children: List<SubCommand> = listOf(),
+) : AbstractCommand()
 {
-
-    open suspend fun onExecuteSuspend(event: CommandEvent)
+    suspend fun process(event: CommandEvent)
     {
+        if (!event.hasSelfPermissions(selfPermission))
+        {
+
+        }
+        else if (!event.hasMemberPermissions(memberPermissions))
+        {
+
+        }
+        else
+        {
+            logger.info("${event.user.asTag} has executed $name")
+            onExecuteSuspend(event)
+        }
     }
+    abstract suspend fun onExecuteSuspend(event: CommandEvent)
 }

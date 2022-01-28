@@ -3,23 +3,15 @@ package me.damon.schoolbot.objects.command
 import net.dv8tion.jda.api.Permission
 
 abstract class SubCommand(
-    val parent: Command,
-    syntax: String,
-    name: String,
-    description: String,
-    memberPermissions: List<Permission> = emptyList(),
-    selfPermission: List<Permission> = emptyList()
-) : Command (
-    name = name,
-    syntax = syntax,
-    description = description,
-    calls = emptyList(),
-    memberPermissions = memberPermissions,
-    selfPermission = selfPermission
-)
+    override val name: String,
+    override val category: CommandCategory,
+    override val description: String,
+    override val commandPrerequisites: String,
+    override val coolDown: Long,
+    override val memberPermissions: List<Permission>,
+    override val selfPermission: List<Permission>,
+    override val children: List<SubCommand>,
+) : AbstractCommand()
 {
-    override suspend fun onExecuteSuspend(event: CommandEvent)
-    {
-
-    }
+    abstract suspend fun onExecuteSuspend(event: CommandEvent)
 }

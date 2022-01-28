@@ -1,7 +1,9 @@
 package me.damon.schoolbot
 
+import me.damon.schoolbot.handler.CommandHandler
 import me.damon.schoolbot.handler.ConfigHandler
 import me.damon.schoolbot.listener.GuildListeners
+import me.damon.schoolbot.listener.MessageListeners
 import me.damon.schoolbot.listener.SlashListener
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
@@ -14,6 +16,7 @@ import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import org.slf4j.LoggerFactory
+import java.time.Instant
 import javax.security.auth.login.LoginException
 import kotlin.system.exitProcess
 
@@ -28,10 +31,11 @@ class Schoolbot : ListenerAdapter()
     private val logger = LoggerFactory.getLogger(Schoolbot::class.java)
     // handlers
     val configHandler  = ConfigHandler()
-  //  val databaseHandler = DatabaseHandler(this)
 
     // jda
     val jda = build()
+    val startUpTime = Instant.now()
+    val cmd = CommandHandler(this)
 
     private fun build(): JDA
     {
@@ -45,7 +49,7 @@ class Schoolbot : ListenerAdapter()
              * createDefault - creates jda builder with recommended default settings (default settings may be subject to change)
              *               - caches all members
              *
-             * Member cache is only relevant if you are accessing the member object outside of an event
+             * Member cache is only relevant if you are accessing the member object outside an event
              */
             return JDABuilder.create(configHandler.config.token,
                 GatewayIntent.GUILD_MESSAGES,
@@ -64,7 +68,8 @@ class Schoolbot : ListenerAdapter()
                 .setChunkingFilter(ChunkingFilter.NONE)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .addEventListeners(
-                    SlashListener(),
+                    SlashListener(this),
+                    MessageListeners(this),
                     GuildListeners(),
 
                 )
@@ -81,6 +86,7 @@ class Schoolbot : ListenerAdapter()
     override fun onReady(event: ReadyEvent)
     {
         logger.info("Ready.")
+        jda.presence.setPresence( OnlineStatus.ONLINE, Activity.watching("Your mom"))
     }
 
 

@@ -6,7 +6,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.util.*
 import kotlin.system.exitProcess
 
 
@@ -36,7 +35,6 @@ class ConfigHandler
                 Config(
                     token = "token",
                     developerIds = listOf("-1".repeat(3)),
-                    timeZone = "timezone",
 
                     databaseConfig = DatabaseConfig(
                         dbUser = "",
@@ -57,22 +55,13 @@ class ConfigHandler
     {
         try
         {
-            val config =  Json.decodeFromString<Config>(
-                    File(CONFIG_NAME)
-                        .readLines()
-                        .joinToString(separator = "\n")
-                )
+            return Json.decodeFromString(
+                File(CONFIG_NAME)
+                    .readLines()
+                    .joinToString(separator = "\n")
+            )
 
-            val timeZoneCheck = TimeZone.getTimeZone(config.timeZone)
-                ?: {
-                logger.info("{} is not a valid timezone. Please use a correct timezone", config.timeZone)
-                exitProcess(1)
-            }
-
-            return config
-
-        }
-        catch (e: Exception)
+        } catch (e: Exception)
         {
             logger.error("An error has occurred while attempting to decode json", e)
             exitProcess(1)
@@ -84,7 +73,6 @@ class ConfigHandler
     data class Config(
         val developerIds: List<String>,
         val token: String,
-        val timeZone: String,
         val databaseConfig: DatabaseConfig
     )
 
