@@ -9,6 +9,7 @@ abstract class AbstractCommand
     val logger: Logger = LoggerFactory.getLogger(javaClass)
     abstract val name: String
     abstract val category: CommandCategory
+    abstract val deferredEnabled: Boolean
     abstract val description: String
     abstract val commandPrerequisites: String
     abstract val coolDown: Long

@@ -73,6 +73,9 @@ class CommandHandler(private val schoolbot: Schoolbot)
     {
         val cmdName = event.name
         val command = commands[cmdName] ?: return
+
+        if (command.deferredEnabled) event.deferReply().queue()
+
         scope.launch {
             command.process(
                 CommandEvent(
@@ -82,7 +85,5 @@ class CommandHandler(private val schoolbot: Schoolbot)
                 )
             )
         }
-        logger.info("after block")
     }
-
 }

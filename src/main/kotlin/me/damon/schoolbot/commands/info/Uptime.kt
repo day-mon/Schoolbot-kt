@@ -16,7 +16,6 @@ class Uptime : Command(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        logger.info("here")
         val time = Duration.between(event.schoolbot.startUpTime, Instant.now())
         event.replyEmbed(
             EmbedBuilder()

@@ -13,17 +13,17 @@ class Format : Command(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        event.sendEmbed(
+        event.replyEmbed(
             EmbedBuilder()
                 .setTitle("How to format!")
                 .setDescription("""
                      Surround code with:
-                             \`\`\` language
+                             \`\`\` kt
                             val p = Person() \`\`\`
                             This should display:
                             ```kt
                      val p = Person() ```
-                     Replace 'language' with the alphabetic character (in lower case) of another language. For example: C++ -> cpp, Python -> python or  py
+                     Replace 'kt' with the alphabetic character (in lower case) of another language. For example: C++ -> cpp, Python -> python or  py
                                                     
                      This character can be found at the top left of your keyboard!
                 """.trimIndent()

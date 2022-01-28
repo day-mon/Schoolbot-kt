@@ -20,12 +20,24 @@ class CommandEvent(
     val channel = slashEvent.channel
     val guild = slashEvent.guild
     val member = slashEvent.member
+    val hook = slashEvent.hook
 
-    fun replyEmbed(embed: MessageEmbed) = slashEvent.replyEmbeds(embed).queue({ }) {
-        logger.error(
-            "Error has occurred while attempting to send embeds for command ${command.name}",
-            it
-        )
+    fun replyEmbed(embed: MessageEmbed) = when {
+        command.deferredEnabled -> hook.editOriginalEmbeds(embed).queue({ }) {
+            logger.error(
+                "Error has occurred while attempting to send embeds for command ${command.name}", it
+            )
+        }
+        else -> slashEvent.replyEmbeds(embed).queue({ }) {
+            logger.error(
+                "Error has occurred while attempting to send embeds for command ${command.name}", it
+            )
+        }
+    }
+
+    fun replyMessage(message: String) = when {
+        command.deferredEnabled -> hook.editOriginal(message).queue()
+        else -> slashEvent.reply(message).queue()
     }
     fun sendEmbed(embed: MessageEmbed) = channel.sendMessageEmbeds(embed).queue()
     fun sendMessage(message: String) = channel.sendMessage(message).queue()
