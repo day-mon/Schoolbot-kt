@@ -1,29 +1,23 @@
 package me.damon.schoolbot.handler
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.SubCommand
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
-import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 import java.util.*
-import java.util.concurrent.Executors
-import kotlin.concurrent.thread
 
 
 private const val COMMANDS_PACKAGE = "me.damon.schoolbot.commands"
 private val logger = LoggerFactory.getLogger(CommandHandler::class.java)
-private val pool = Executors.newScheduledThreadPool(20) {
-    thread(start = false, name = "Schoolbot Command-Thread", isDaemon = true, block = it::run)
-}
 private val supervisor = SupervisorJob()
-private val scope = CoroutineScope(pool.asCoroutineDispatcher() + supervisor)
+private val scope = CoroutineScope(Dispatchers.Default + supervisor)
 
 
 class CommandHandler(private val schoolbot: Schoolbot)
@@ -56,13 +50,13 @@ class CommandHandler(private val schoolbot: Schoolbot)
 
             if (instance !is Command)
             {
-                // not a command
+                logger.warn("Non command found in the commands package {}", instance.javaClass.packageName)
                 continue
             }
 
             val name = instance.name.lowercase()
             map[name] = instance
-            commandsUpdate.addCommands(CommandData(name, instance.description))
+            commandsUpdate.addCommands(instance.commandData)
         }
         commandsUpdate.queue()
         logger.info("${map.count()} have been loaded successfully")

@@ -1,8 +1,7 @@
 package me.damon.schoolbot.objects.command
 
 import net.dv8tion.jda.api.Permission
-
-private val splitRegex = Regex(pattern = "\\.")
+import net.dv8tion.jda.api.interactions.commands.build.OptionData
 
 abstract class Command(
     override val name: String,
@@ -14,6 +13,7 @@ abstract class Command(
     override val memberPermissions: List<Permission> = listOf(),
     override val selfPermission: List<Permission> = listOf(),
     override val children: List<SubCommand> = listOf(),
+    override val options: List<OptionData> = listOf()
 ) : AbstractCommand()
 {
     suspend fun process(event: CommandEvent)

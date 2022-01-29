@@ -1,6 +1,8 @@
 package me.damon.schoolbot.objects.command
 
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.interactions.commands.build.CommandData
+import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -16,4 +18,8 @@ abstract class AbstractCommand
     abstract val memberPermissions: List<Permission>
     abstract val selfPermission: List<Permission>
     abstract val children: List<SubCommand>
+    abstract val options: List<OptionData>
+    val commandData: CommandData
+    get() = CommandData(name.lowercase(), description)
+        .addOptions(options)
 }

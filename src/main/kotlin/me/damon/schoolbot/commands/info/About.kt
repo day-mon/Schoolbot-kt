@@ -1,40 +1,59 @@
 package me.damon.schoolbot.commands.info
 
-import jdk.jfr.Category
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.Permission
-import net.dv8tion.jda.api.entities.Role
-import java.util.stream.Collectors
+import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.MessageEmbed
+import net.dv8tion.jda.api.interactions.commands.OptionType
+import net.dv8tion.jda.api.interactions.commands.build.OptionData
 
 class About : Command(
     name = "About",
     category = CommandCategory.INFO,
-    description = "Gives info on the user who called command"
+    description = "Gives info on the user who called command",
+    options = listOf(
+        OptionData(OptionType.USER, "user", "Shows info about target user", false)
+    )
 )
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val member = event.member ?: return run {
-            event.replyMessage("Member is null. Cannot continue")
+        val member = when
+        {
+            event.sentWithOption("user") ->
+            {
+                event.getOption("user")!!.asMember!!
+            }
+            else ->
+            {
+                event.member ?: return run {
+                    event.replyMessage("Member is null.. Cannot continue")
+                    // make a better error message
+                }
+            }
         }
 
-
         event.replyEmbed(
-            EmbedBuilder()
-                .setTitle("Information on **${event.user.asTag}**")
-                .addField("Account creation date", "${member.timeCreated}", false)
-                .addField("Join date", "${member.timeJoined}", false)
-                .addField("Boosting Since", "${member.timeBoosted ?: "Not boosting"}", false)
-                .addField("User Id", member.id, false)
-                .addField("Roles", event.member.roles.stream().map(Role::getAsMention).collect(Collectors.joining(", ")), false)
-                .addField("Permissions", event.member.permissions.stream().map(Permission::getName).collect(Collectors.joining(", ")), false)
-                .setThumbnail(event.user.avatarUrl)
-                .build()
+            generateEmbed(member)
         )
 
-        TODO("Fix stream use internal kotlin mapping")
+    }
+
+    private fun generateEmbed(member: Member): MessageEmbed
+    {
+        // inline function looks hideous here
+       return  EmbedBuilder()
+            .setTitle("Information on **${member.user.asTag}**")
+            .addField("Account creation date", "${member.timeCreated}", false)
+            .addField("Join date", "${member.timeJoined}", false)
+            .addField("Is Bot", "${member.user.isBot}", false)
+            .addField("Boosting Since", "${member.timeBoosted ?: "Not boosting"}", false)
+            .addField("User Id", member.id, false).addField("Roles", member.roles.joinToString { it.asMention }, false)
+            // function call due to the fact that it.name return uppercase and underscores
+            .addField("Permissions", member.permissions.joinToString { it.getName() }, false)
+            .setThumbnail(member.user.avatarUrl)
+           .build()
     }
 }

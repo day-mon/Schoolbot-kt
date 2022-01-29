@@ -1,6 +1,7 @@
 package me.damon.schoolbot.objects.command
 
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.interactions.commands.build.OptionData
 
 abstract class SubCommand(
     override val name: String,
@@ -11,6 +12,7 @@ abstract class SubCommand(
     override val memberPermissions: List<Permission>,
     override val selfPermission: List<Permission>,
     override val children: List<SubCommand>,
+    override val options: List<OptionData>
 ) : AbstractCommand()
 {
     abstract suspend fun onExecuteSuspend(event: CommandEvent)
