@@ -1,4 +1,10 @@
 
+
+application {
+    mainClass.set("me.damon.schoolbot.Schoolbot")
+}
+
+
 plugins {
     kotlin("jvm") version "1.6.10"
     kotlin("plugin.spring") version "1.6.0"
@@ -8,6 +14,7 @@ plugins {
     `java-library`
 
 
+
     id("org.jetbrains.kotlin.plugin.noarg") version ("1.6.10")
     id("com.github.johnrengelman.shadow") version("6.0.0")
     id("org.jetbrains.kotlin.plugin.serialization") version("1.4.30")
@@ -15,7 +22,7 @@ plugins {
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
 }
 
-
+project.setProperty("mainClassName", "me.damon.schoolbot.Schoolbot")
 group = "com.github.day-mon"
 version = "1.0"
 
@@ -61,7 +68,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-    // Database
+    // Database remove soon
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("org.postgresql:postgresql:42.3.1")
 
