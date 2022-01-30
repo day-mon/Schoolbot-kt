@@ -1,8 +1,8 @@
 package me.damon.schoolbot.handler
 
+import dev.minn.jda.ktx.SLF4J
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.objects.command.Command
@@ -10,18 +10,16 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.SubCommand
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
 import org.reflections.Reflections
-import org.slf4j.LoggerFactory
 import java.util.*
 
 
 private const val COMMANDS_PACKAGE = "me.damon.schoolbot.commands"
-private val logger = LoggerFactory.getLogger(CommandHandler::class.java)
-private val supervisor = SupervisorJob()
-private val scope = CoroutineScope(Dispatchers.Default + supervisor)
+private val scope = CoroutineScope(Dispatchers.Default)
 
 
 class CommandHandler(private val schoolbot: Schoolbot)
 {
+    private val logger by SLF4J
     private val reflections = Reflections(COMMANDS_PACKAGE)
     private val commands: Map<String, Command> = initCommands()
 
@@ -31,6 +29,7 @@ class CommandHandler(private val schoolbot: Schoolbot)
         val jda = schoolbot.jda
         val classes = reflections.getSubTypesOf(Command::class.java)
         val commandsUpdate = jda.updateCommands()
+
 
         for (cls in classes)
         {
@@ -75,7 +74,8 @@ class CommandHandler(private val schoolbot: Schoolbot)
                 CommandEvent(
                     schoolbot = schoolbot,
                     slashEvent = event,
-                    command = command
+                    command = command,
+                    scope = scope
                 )
             )
         }

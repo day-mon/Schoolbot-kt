@@ -49,7 +49,7 @@ noArg {
 implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
 implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-this platform has org.jetbrains.kotlin:kotlin-stdlib-jdk8 within it and a specified verion
+this platform has org.jetbrains.kotlin:kotlin-stdlib-jdk8 within it and a specified version
  */
 
 dependencies {
@@ -62,6 +62,7 @@ dependencies {
 
     // Discord
     implementation("net.dv8tion:JDA:4.4.0_352")
+    implementation("com.github.minndevelopment:jda-ktx:d3c6b4d")
 
     // Spring
     implementation("org.springframework.boot:spring-boot-starter")
@@ -76,7 +77,7 @@ dependencies {
     implementation("org.reflections:reflections:0.10.2")
 
     // Misc
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.1")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.1")
     implementation("ch.qos.logback:logback-classic:1.2.10")
 
 }

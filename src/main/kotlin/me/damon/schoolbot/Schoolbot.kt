@@ -1,5 +1,6 @@
 package me.damon.schoolbot
 
+import dev.minn.jda.ktx.SLF4J
 import me.damon.schoolbot.handler.CommandHandler
 import me.damon.schoolbot.handler.ConfigHandler
 import me.damon.schoolbot.listener.GuildListeners
@@ -15,7 +16,6 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
-import org.slf4j.LoggerFactory
 import java.time.Instant
 import javax.security.auth.login.LoginException
 import kotlin.system.exitProcess
@@ -28,13 +28,16 @@ fun main()
 class Schoolbot : ListenerAdapter()
 {
 
-    private val logger = LoggerFactory.getLogger(Schoolbot::class.java)
+    private val logger by SLF4J
     // handlers
     val configHandler  = ConfigHandler()
+    val startUpTime = Instant.now()
+
 
     // jda
     val jda = build()
-    val startUpTime = Instant.now()
+
+    // after loading
     val cmd = CommandHandler(this)
 
     private fun build(): JDA
@@ -69,7 +72,7 @@ class Schoolbot : ListenerAdapter()
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .addEventListeners(
                     SlashListener(this),
-                    MessageListeners(this),
+                    MessageListeners(),
                     GuildListeners(),
 
                 )

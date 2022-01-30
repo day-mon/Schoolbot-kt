@@ -1,8 +1,8 @@
 package me.damon.schoolbot.objects.school
 
 import me.damon.schoolbot.objects.misc.Pagintable
+import net.dv8tion.jda.api.entities.MessageEmbed
 import java.time.Instant
-import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
 
@@ -69,6 +69,11 @@ data class Classroom(
 
 {
     enum class ClassTerm { SPRING, WINTER, FALL, SUMMER  }
+
+    override fun getAsEmbed(): MessageEmbed
+    {
+        TODO("Not yet implemented")
+    }
     // TODO: 2022-01-24: Figure out relations for all of the object classes
 }
 

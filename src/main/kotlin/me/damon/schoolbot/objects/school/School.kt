@@ -1,6 +1,7 @@
 package me.damon.schoolbot.objects.school
 
 import me.damon.schoolbot.objects.misc.Pagintable
+import net.dv8tion.jda.api.entities.MessageEmbed
 import java.time.ZoneId
 import java.util.*
 import javax.persistence.*
@@ -40,5 +41,12 @@ data class School(
     val timeZone: ZoneId
 
     ) : Pagintable
+{
+    override fun getAsEmbed(): MessageEmbed
+    {
+        TODO("Not yet implemented")
+
+    }
+}
 
 

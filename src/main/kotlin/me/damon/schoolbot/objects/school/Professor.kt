@@ -1,6 +1,7 @@
 package me.damon.schoolbot.objects.school
 
 import me.damon.schoolbot.objects.misc.Pagintable
+import net.dv8tion.jda.api.entities.MessageEmbed
 import java.util.*
 import javax.persistence.*
 
@@ -23,3 +24,9 @@ data class Professor(
     @ManyToMany(mappedBy = "id", cascade = [(CascadeType.ALL)])
     val classes: Set<Classroom>
     ) : Pagintable
+{
+    override fun getAsEmbed(): MessageEmbed
+    {
+        TODO("Not yet implemented")
+    }
+}

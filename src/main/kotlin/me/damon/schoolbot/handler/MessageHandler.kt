@@ -1,12 +1,11 @@
 package me.damon.schoolbot.handler
 
-import me.damon.schoolbot.Schoolbot
+import dev.minn.jda.ktx.SLF4J
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
-import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
@@ -15,7 +14,7 @@ import kotlin.concurrent.thread
 private val FILE_EXTENSIONS = listOf(
     "txt", "java", "cpp", "xml", "csharp", "asm", "js", "php", "r", "py", "go", "python", "ts", "html", "css", "scss"
 )
-private val logger = LoggerFactory.getLogger(MessageHandler::class.java)
+private val logger by SLF4J
 private val pool = Executors.newScheduledThreadPool(5) {
     thread(start = false, name = "Schoolbot Upload-Thread", isDaemon = true, block = it::run)
 }
@@ -23,7 +22,7 @@ private val pool = Executors.newScheduledThreadPool(5) {
 private val client = OkHttpClient()
 
 
-class MessageHandler(schoolbot: Schoolbot)
+class MessageHandler()
 {
     fun handle(event: MessageReceivedEvent)
     {
@@ -77,6 +76,6 @@ class MessageHandler(schoolbot: Schoolbot)
                     ""
                 )
             ).build()
-
+        //todo fix
     }
 }

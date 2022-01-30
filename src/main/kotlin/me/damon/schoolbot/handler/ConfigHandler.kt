@@ -1,10 +1,10 @@
 package me.damon.schoolbot.handler
 
+import dev.minn.jda.ktx.SLF4J
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.slf4j.LoggerFactory
 import java.io.File
 import kotlin.system.exitProcess
 
@@ -19,7 +19,7 @@ private const val CONFIG_NAME = "schoolbot_cfg.json"
 class ConfigHandler
 {
     private val formatter = Json { prettyPrint = true; isLenient = true }
-    private val logger = LoggerFactory.getLogger(ConfigHandler::class.java)
+    private val logger by SLF4J
     val config = initConfig()
 
     private fun initConfig(): Config

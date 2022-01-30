@@ -1,8 +1,8 @@
 package me.damon.schoolbot.objects.school
 
 import me.damon.schoolbot.objects.misc.Pagintable
+import net.dv8tion.jda.api.entities.MessageEmbed
 import java.time.Instant
-import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
 
@@ -35,5 +35,10 @@ data class Assignment (
     override fun compareTo(other: Assignment): Int
     {
         return dueDate.compareTo(other.dueDate)
+    }
+
+    override fun getAsEmbed(): MessageEmbed
+    {
+        TODO("Not yet implemented")
     }
 }
