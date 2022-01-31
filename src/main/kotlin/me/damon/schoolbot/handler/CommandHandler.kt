@@ -3,6 +3,7 @@ package me.damon.schoolbot.handler
 import dev.minn.jda.ktx.SLF4J
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.objects.command.Command
@@ -14,8 +15,10 @@ import java.util.*
 
 
 private const val COMMANDS_PACKAGE = "me.damon.schoolbot.commands"
-private val scope = CoroutineScope(Dispatchers.Default)
+private val supervisor = SupervisorJob()
+private val scope = CoroutineScope(Dispatchers.Default + supervisor)
 
+// todo consider a thread pool??!
 
 class CommandHandler(private val schoolbot: Schoolbot)
 {

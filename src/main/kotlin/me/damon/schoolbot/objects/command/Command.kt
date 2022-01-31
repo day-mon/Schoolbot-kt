@@ -20,11 +20,17 @@ abstract class Command(
     {
         if (!event.hasSelfPermissions(selfPermission))
         {
-
+            val correct = "I do not have the correct permissions to run this command"
+            if (deferredEnabled) event.hook.editOriginal(correct).queue()
+            else event.slashEvent.reply(correct).queue()
+            // TODO: Tell user what is needed to run the command
+            return
         }
         else if (!event.hasMemberPermissions(memberPermissions))
         {
-
+            val correct = "You not have the correct permissions to run this command"
+            if (deferredEnabled) event.hook.editOriginal(correct).queue()
+            else event.slashEvent.reply(correct).queue()
         }
         else
         {

@@ -3,6 +3,7 @@ package me.damon.schoolbot
 import dev.minn.jda.ktx.SLF4J
 import me.damon.schoolbot.handler.CommandHandler
 import me.damon.schoolbot.handler.ConfigHandler
+import me.damon.schoolbot.handler.MessageHandler
 import me.damon.schoolbot.listener.GuildListeners
 import me.damon.schoolbot.listener.MessageListeners
 import me.damon.schoolbot.listener.SlashListener
@@ -29,10 +30,12 @@ class Schoolbot : ListenerAdapter()
 {
 
     private val logger by SLF4J
-    // handlers
-    val configHandler  = ConfigHandler()
-    val startUpTime = Instant.now()
 
+
+    // handlers
+    val startUpTime = Instant.now()
+    val configHandler  = ConfigHandler()
+    val messageHandler  = MessageHandler()
 
     // jda
     val jda = build()
@@ -72,9 +75,8 @@ class Schoolbot : ListenerAdapter()
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .addEventListeners(
                     SlashListener(this),
-                    MessageListeners(),
+                    MessageListeners(this),
                     GuildListeners(),
-
                 )
                 .setActivity(Activity.playing("building...."))
                 .build()

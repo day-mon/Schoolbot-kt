@@ -1,9 +1,17 @@
 package me.damon.schoolbot.handler
 
+import dev.minn.jda.ktx.Embed
 import dev.minn.jda.ktx.SLF4J
+import dev.minn.jda.ktx.messages.edit
+import kotlinx.coroutines.*
+import me.damon.schoolbot.objects.misc.string
+import me.damon.schoolbot.web.asException
+import me.damon.schoolbot.web.await
+import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.exceptions.ErrorHandler
+import net.dv8tion.jda.api.requests.ErrorResponse
 import okhttp3.MediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import java.io.InputStream
@@ -14,16 +22,19 @@ import kotlin.concurrent.thread
 private val FILE_EXTENSIONS = listOf(
     "txt", "java", "cpp", "xml", "csharp", "asm", "js", "php", "r", "py", "go", "python", "ts", "html", "css", "scss"
 )
-private val logger by SLF4J
 private val pool = Executors.newScheduledThreadPool(5) {
     thread(start = false, name = "Schoolbot Upload-Thread", isDaemon = true, block = it::run)
 }
+// wont cancel the scope if jobs fail
+private val supervisor = SupervisorJob()
+private val context =  CoroutineScope(pool.asCoroutineDispatcher() + supervisor)
 
-private val client = OkHttpClient()
 
 
-class MessageHandler()
+class MessageHandler
 {
+    private val logger by SLF4J
+
     fun handle(event: MessageReceivedEvent)
     {
         val message = event.message
@@ -41,6 +52,7 @@ class MessageHandler()
         val attachments = message.attachments
 
 
+
         attachments.stream().filter { it.fileExtension in FILE_EXTENSIONS }
             .map {
                 val messageFuture = event.channel.sendMessage("Uploading to pastecord...").submit()
@@ -56,26 +68,86 @@ class MessageHandler()
                         return@whenCompleteAsync
                     }
 
-                    val sentMessage = it.first.getNow(null) ?: throw IllegalStateException("Message is not present")
-                    val inputStream =
-                        it.second.getNow(null) ?: throw IllegalStateException("Inputstream was not present")
-                    val urlToSend = "https://pastecord.com/${doUpload(inputStream)}"
-                    sentMessage.editMessage("Successfully uploaded ${event.author.asTag}'s message [$urlToSend]")
-                        .queue()
+                    context.launch {
+                        doUpload(it, event)
+                    }
                 }
             }
     }
 
-    private fun doUpload(stream: InputStream)
+    private suspend fun doUpload(triple: Triple<CompletableFuture<Message>, CompletableFuture<InputStream>, CompletableFuture<Void>>, event: MessageReceivedEvent)
     {
-        
-        val request = Request.Builder().url("https://pastecord.com/documents")
-            .addHeader("User-Agent", "School bot (https://github.com/tykoooo/School-Bot-Remastered)").post(
+        val split = Regex("\"")
+        val client = event.jda.httpClient
+        val message = triple.first.getNow(null) ?: return run {
+            event.channel.sendMessage("Upload Failed. Reason: **Message is not available to edit**").queue()
+        }
+        val stream = triple.second.getNow(null) ?: return run {
+            message.editMessage("Upload Failed. Reason: **Input stream is not available to upload**").queue()
+        }
+
+
+        val request =  Request.Builder().url("https://pastecord.com/documents")
+            .addHeader("User-Agent", "School bot (https://github.com/tykoooo/School-Bot-Remastered)")
+            .post(
                 RequestBody.create(
                     MediaType.parse("application/json"),
-                    ""
+                    stream.string()
                 )
             ).build()
-        //todo fix
+
+        withContext(Dispatchers.IO) {
+            stream.close()
+        }
+
+        client.newCall(request).await(scope = context) { response ->
+             when
+             {
+                 response.isSuccessful ->
+                 {
+                     val pastecordEnding = response.body()?.string()?.split(split)?.get(3) ?: return@await run {
+                         logger.error("Response body is null")
+                         message.editMessage("Upload Failed. Reason: **Response body is null**").queue()
+                     }
+
+                     logger.debug("Pastecord Response: {}", pastecordEnding)
+
+                     val urlToSend = "https://pastecord.com/${pastecordEnding}"
+                     message.editMessage("Successfully uploaded ${event.author.asMention}'s message [$urlToSend]")
+                         .queue()
+                     event.message.delete().queue(null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))
+                 }
+
+                 response.code() > 500 ->
+                 {
+                     logger.error("Internal server returned error code: {}", response.code(), response.asException())
+                     sendErrorEmbed(message, response.asException())
+                 }
+
+                 else ->
+                 {
+                     logger.error("Strange error has occurred", response.asException())
+                     sendErrorEmbed(message, response.asException())
+                 }
+
+             }
+        }
     }
+
+    private fun sendErrorEmbed(message: Message, e: Exception)
+    {
+       message.edit("",
+                Embed {
+                    title = "Error occurred. Send this message to a developer if it constantly occurs"
+                    field {
+                        title = "Cause"
+                        value = e.cause.toString()
+                        inline = true
+                    }
+                    description = """```kt
+                            ${e.stackTraceToString()}
+                        ```""".trimIndent()
+                }).queue()
+    }
+
 }

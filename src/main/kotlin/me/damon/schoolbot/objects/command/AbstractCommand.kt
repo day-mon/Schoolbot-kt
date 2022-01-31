@@ -1,14 +1,13 @@
 package me.damon.schoolbot.objects.command
 
+import dev.minn.jda.ktx.SLF4J
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 abstract class AbstractCommand
 {
-    val logger: Logger = LoggerFactory.getLogger(javaClass)
+    val logger by SLF4J
     abstract val name: String
     abstract val category: CommandCategory
     abstract val deferredEnabled: Boolean

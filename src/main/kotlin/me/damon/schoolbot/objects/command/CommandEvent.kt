@@ -106,23 +106,18 @@ class CommandEvent(
         {
             hook.sendPaginator(
                 pages = embeds,
-                expireAfter = Duration.INFINITE
+                expireAfter = Duration.parse("5m")
             ) {
-
                 it.user.idLong == slashEvent.user.idLong
-                // TODO FIX PAGE SWITCHING
-
             }.queue()
 
         }
         else
         {
             slashEvent.replyPaginator(
-                pages = embeds, expireAfter = Duration.INFINITE
+                pages = embeds, expireAfter = Duration.parse("5m")
             ) {
-
                 it.user.idLong == slashEvent.user.idLong
-                // TODO FIX PAGE SWITCHING
             }.queue()
         }
     }

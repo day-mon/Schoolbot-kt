@@ -11,7 +11,6 @@ import me.damon.schoolbot.web.await
 import me.damon.schoolbot.web.get
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
-import okhttp3.OkHttpClient
 
 class Laundry : Command(
     name = "Laundry",
@@ -25,13 +24,13 @@ class Laundry : Command(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
 
-        val http = OkHttpClient()
-        val dorm = event.getOption("dormitory")!!.asString
+        val client = event.jda.httpClient
+        val dorm = event.getOption("dormitory")?.asString
         val request = get("https://johnstown.schoolbot.dev/api/Laundry/${dorm}")
 
 
 
-        http.newCall(request).await(event.scope) { response ->
+        client.newCall(request).await(event.scope) { response ->
             when
             {
                 response.isSuccessful ->
@@ -47,8 +46,6 @@ class Laundry : Command(
                     event.sendPaginator(*models.map { it.getAsEmbed() }.toTypedArray())
 
                     // add error checking here
-
-
                 }
 
                 response.code() == 404 ->
@@ -61,14 +58,13 @@ class Laundry : Command(
                     event.replyMessage("API returned internal server error")
                 }
 
-
-
                 else ->
                 {
                     logger.error("Error has occurred", response.asException() )
                     event.replyMessageWithErrorEmbed("Error occurred in while fetching data from API", response.asException())
                 }
             }
+
         }
     }
 }
