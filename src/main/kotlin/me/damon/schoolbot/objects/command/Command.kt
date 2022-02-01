@@ -1,7 +1,6 @@
 package me.damon.schoolbot.objects.command
 
 import net.dv8tion.jda.api.Permission
-import net.dv8tion.jda.api.interactions.commands.build.OptionData
 
 abstract class Command(
     override val name: String,
@@ -13,7 +12,7 @@ abstract class Command(
     override val memberPermissions: List<Permission> = listOf(),
     override val selfPermission: List<Permission> = listOf(),
     override val children: List<SubCommand> = listOf(),
-    override val options: List<OptionData> = listOf()
+    override val options: List<CommandOptionData<*>> = listOf()
 ) : AbstractCommand()
 {
     suspend fun process(event: CommandEvent)
@@ -32,11 +31,22 @@ abstract class Command(
             if (deferredEnabled) event.hook.editOriginal(correct).queue()
             else event.slashEvent.reply(correct).queue()
         }
-        else
+
+
+        val validationFailed = event.getSentOptions().stream().map { it.validate }.anyMatch { it.equals(false) }
+
+        if (validationFailed)
         {
-            logger.info("${event.user.asTag} has executed $name")
-            onExecuteSuspend(event)
+            // yea yea fart guy
+            event.replyMessage("Validation failed.. sorry");
+            return
         }
+
+        logger.info("${event.user.asTag} has executed $name")
+        onExecuteSuspend(event)
+
+
     }
+
     abstract suspend fun onExecuteSuspend(event: CommandEvent)
 }

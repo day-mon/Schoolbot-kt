@@ -27,6 +27,7 @@ class CommandEvent(
     val guild = slashEvent.guild
     val member = slashEvent.member
     val hook = slashEvent.hook
+    val options = slashEvent.options
 
     fun replyEmbed(embed: MessageEmbed) = when {
         command.deferredEnabled -> hook.editOriginalEmbeds(embed).queue({ }) {
@@ -125,6 +126,9 @@ class CommandEvent(
     fun hasMemberPermissions(permissions: List<Permission>) = command.memberPermissions.containsAll(permissions)
     fun sentWithOption(option: String) = slashEvent.getOption(option) != null
     fun getOption(option: String) = slashEvent.getOption(option)
+    fun sentWithAnyOptions() = slashEvent.options.isNotEmpty()
+    fun getSentOptions() = command.options.filter { commandOptionData -> commandOptionData.name in slashEvent.options.map { it.name } }
+
 
 
 

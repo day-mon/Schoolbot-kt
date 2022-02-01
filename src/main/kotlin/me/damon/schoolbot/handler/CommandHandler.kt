@@ -65,7 +65,7 @@ class CommandHandler(private val schoolbot: Schoolbot)
         return Collections.unmodifiableMap(map)
     }
 
-    fun hande(event: SlashCommandEvent)
+    fun handle(event: SlashCommandEvent)
     {
         val cmdName = event.name
         val command = commands[cmdName] ?: return

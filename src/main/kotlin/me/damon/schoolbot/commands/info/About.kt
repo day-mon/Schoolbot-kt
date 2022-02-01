@@ -3,18 +3,19 @@ package me.damon.schoolbot.commands.info
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
+import me.damon.schoolbot.objects.command.CommandOptionData
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageEmbed
+import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.interactions.commands.OptionType
-import net.dv8tion.jda.api.interactions.commands.build.OptionData
 
 class About : Command(
     name = "About",
     category = CommandCategory.INFO,
     description = "Gives info on the user who called command",
     options = listOf(
-        OptionData(OptionType.USER, "user", "Shows info about target user", false)
+        CommandOptionData<User>(OptionType.USER, "user", "Shows info about target user", false)
     )
 )
 {

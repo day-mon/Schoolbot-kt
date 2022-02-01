@@ -1,6 +1,7 @@
 package me.damon.schoolbot
 
 import dev.minn.jda.ktx.SLF4J
+import dev.minn.jda.ktx.injectKTX
 import me.damon.schoolbot.handler.CommandHandler
 import me.damon.schoolbot.handler.ConfigHandler
 import me.damon.schoolbot.handler.MessageHandler
@@ -30,6 +31,16 @@ class Schoolbot : ListenerAdapter()
 {
 
     private val logger by SLF4J
+
+    /*
+    val okhttp = OkHttpClient.Builder()
+        .readTimeout()
+            // The write timeout is applied for individual write IO operations. The default value is 10 secon
+        .writeTimeout()
+            // The connect timeout is applied when connecting a TCP socket to the target host. The default value is 10 seconds.
+        .connectTimeout()
+
+     */
 
 
     // handlers
@@ -68,17 +79,18 @@ class Schoolbot : ListenerAdapter()
                     CacheFlag.CLIENT_STATUS,
                     CacheFlag.ONLINE_STATUS
                 )
-                .addEventListeners(this)
                 .setMemberCachePolicy(MemberCachePolicy.NONE)
                     // doesn't cache members on start up
                 .setChunkingFilter(ChunkingFilter.NONE)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .addEventListeners(
+                    this,
                     SlashListener(this),
                     MessageListeners(this),
                     GuildListeners(),
                 )
                 .setActivity(Activity.playing("building...."))
+                .injectKTX()
                 .build()
         }
         catch (e: LoginException)

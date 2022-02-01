@@ -5,25 +5,24 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
+import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.models.LaundryModel
 import me.damon.schoolbot.web.asException
 import me.damon.schoolbot.web.await
 import me.damon.schoolbot.web.get
 import net.dv8tion.jda.api.interactions.commands.OptionType
-import net.dv8tion.jda.api.interactions.commands.build.OptionData
 
 class Laundry : Command(
     name = "Laundry",
     category = CommandCategory.SCHOOL,
     description = "Displays laundry availability in a given dormitory",
     options = listOf(
-        OptionData(OptionType.STRING, "dormitory", "Target dormitory you want to check", true)
+        CommandOptionData<String>(OptionType.STRING, "dormitory", "Target dormitory you want to check", true)
     )
 )
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-
         val client = event.jda.httpClient
         val dorm = event.getOption("dormitory")?.asString
         val request = get("https://johnstown.schoolbot.dev/api/Laundry/${dorm}")
