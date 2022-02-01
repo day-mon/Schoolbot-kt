@@ -14,7 +14,11 @@ class LetMeGoogleThat : Command(
     description = "Let Me Google That For You (lmgtfy) will send a lmgtfy you link with the args you specify",
     category = CommandCategory.FUN,
     options = listOf(
-        CommandOptionData<String>(OptionType.STRING, "search_results", "Injects search results into LMGTFY link", true)
+        CommandOptionData<String>(
+            type = OptionType.STRING,
+            name = "search_results",
+            description = "Injects search results into LMGTFY link",
+            isRequired = false)
     )
 )
 {

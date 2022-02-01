@@ -16,18 +16,23 @@ import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 
 
-class Clear : Command(name = "Clear",
+class Clear : Command(
+    name = "Clear",
     category = CommandCategory.ADMIN,
     deferredEnabled = false,
     description = "Clears messages in the text channel that the command was executed in",
     selfPermission = listOf(Permission.MESSAGE_MANAGE),
     memberPermissions = listOf(Permission.ADMINISTRATOR),
-    options = listOf(CommandOptionData<Int>(
-        type = OptionType.INTEGER,
-        name = "amount_of_messages",
-        description = "Amount of messages to clear",
-        isRequired = false,
-        validate = { it in 1..100 })))
+    options = listOf(
+        CommandOptionData<Int>(
+            type = OptionType.INTEGER,
+            name = "amount_of_messages",
+            description = "Amount of messages to clear",
+            isRequired = false,
+            validate = { it in 1..100 }
+        )
+    )
+)
 {
     private val defaultClearAmount = 25L
 
@@ -56,7 +61,6 @@ class Clear : Command(name = "Clear",
                         list.stream().filter { it.timeCreated.isBefore(OffsetDateTime.now().plusWeeks(2)) }.toList()
 
                     val subList = messages.subList(2, messages.size)
-                    println(subList.size)
 
                     channel.purgeMessages(subList)
                     return@thenApplyAsync subList.size
