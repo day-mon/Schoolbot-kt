@@ -1,27 +1,57 @@
 package me.damon.schoolbot.objects.command
 
+import dev.minn.jda.ktx.Embed
+import dev.minn.jda.ktx.SLF4J
+import me.damon.schoolbot.objects.misc.Pagintable
+import net.dv8tion.jda.api.entities.MessageEmbed
+import net.dv8tion.jda.api.entities.Role
+import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
+import kotlin.math.log
 
 
-inline fun <reified T> CommandOptionData(type: OptionType, name: String, description: String, isRequired: Boolean = false, noinline validate: (T) -> Boolean = { true })
-        = CommandOptionData(T::class.java, type, name, description, isRequired, validate)
+inline fun <reified T> CommandOptionData(type: Any, name: String, description: String, isRequired: Boolean = false, noinline validate: (T) -> Boolean = { true }, failedValidation: String = "")
+        = CommandOptionData(T::class.java, type, name, description, isRequired, validate, failedValidation)
 
-class CommandOptionData<T>(
+
+
+data class CommandOptionData<T>(
      val type: Class<T>,
-     val optionType: OptionType,
-    val name: String,
+     val optionType: Any,
+     val name: String,
      val description: String,
      val isRequired: Boolean = false,
-    val validate: (T) -> Boolean = {true},
+     val validate: (T) -> Boolean = { true },
+     val validationFailed: String
 )
 {
 
-    fun asOptionData(): OptionData = OptionData(optionType, name, description, isRequired)
+    private val logger by SLF4J
 
+    fun validate(mapping: OptionMapping): Boolean
+    {
+        val split = type.name.split(".")
+        val size = split.size - 1
 
+        return when (split[size]) {
+            "Long" -> isValid(mapping.asLong)
+            "Boolean" -> isValid(mapping.asBoolean)
+            "User" -> isValid(mapping.asUser)
+            "String" -> isValid(mapping.asString)
+            "Role" -> isValid(mapping.asRole)
+            "IMentionable" -> isValid(mapping.asMentionable)
+            else ->
+            {
+                logger.warn("$name is not a valid mapping for ${mapping.type}")
+                false
+            }
+        }
+    }
 
+    private fun isValid(any: Any) =  validate(type.cast(any))
 
+    fun asOptionData(): OptionData = OptionData(optionType as OptionType, name, description, isRequired)
 
 }
 

@@ -24,12 +24,13 @@ class Clear : Command(
     selfPermission = listOf(Permission.MESSAGE_MANAGE),
     memberPermissions = listOf(Permission.ADMINISTRATOR),
     options = listOf(
-        CommandOptionData<Int>(
+        CommandOptionData<Long>(
             type = OptionType.INTEGER,
             name = "amount_of_messages",
             description = "Amount of messages to clear",
             isRequired = false,
-            validate = { it in 1..100 }
+            validate = { it in 1..100 },
+            failedValidation = "Number must be between 1 and 100"
         )
     )
 )

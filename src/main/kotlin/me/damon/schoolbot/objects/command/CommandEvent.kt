@@ -24,8 +24,8 @@ class CommandEvent(
     val jda = slashEvent.jda
     val user = slashEvent.user
     val channel = slashEvent.channel
-    val guild = slashEvent.guild
-    val member = slashEvent.member
+    val guild = slashEvent.guild!!
+    val member = slashEvent.member!!
     val hook = slashEvent.hook
     val options = slashEvent.options
 
@@ -122,8 +122,8 @@ class CommandEvent(
             }.queue()
         }
     }
-    fun hasSelfPermissions(permissions: List<Permission>) = command.selfPermission.containsAll(permissions)
-    fun hasMemberPermissions(permissions: List<Permission>) = command.memberPermissions.containsAll(permissions)
+    fun hasSelfPermissions(permissions: List<Permission>) = guild!!.selfMember.hasPermission(permissions)
+    fun hasMemberPermissions(permissions: List<Permission>) = member!!.hasPermission(permissions)
     fun sentWithOption(option: String) = slashEvent.getOption(option) != null
     fun getOption(option: String) = slashEvent.getOption(option)
     fun sentWithAnyOptions() = slashEvent.options.isNotEmpty()
