@@ -30,9 +30,9 @@ suspend inline fun <T> Call.await(scope: CoroutineScope, crossinline callback: s
                 }
             }
         })
-
-
     }
+
+
 
 class HttpException(
     route: String, status: Int, meaning: String
@@ -55,3 +55,5 @@ fun get(url: String): Request
 {
     return Request.Builder().url(url).method("GET", null).build()
 }
+
+fun Response.bodyAsString() = this.body()?.string()

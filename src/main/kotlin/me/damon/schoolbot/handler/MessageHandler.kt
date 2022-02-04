@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.requests.ErrorResponse
+import net.dv8tion.jda.api.utils.data.DataObject
 import okhttp3.MediaType
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -77,7 +78,6 @@ class MessageHandler
 
     private suspend fun doUpload(triple: Triple<CompletableFuture<Message>, CompletableFuture<InputStream>, CompletableFuture<Void>>, event: MessageReceivedEvent)
     {
-        val split = Regex("\"")
         val client = event.jda.httpClient
         val message = triple.first.getNow(null) ?: return run {
             event.channel.sendMessage("Upload Failed. Reason: **Message is not available to edit**").queue()
@@ -105,17 +105,26 @@ class MessageHandler
              {
                  response.isSuccessful ->
                  {
-                     val pastecordEnding = response.body()?.string()?.split(split)?.get(3) ?: return@await run {
+
+                     val body = response.body()?.string() ?: return@await run {
                          logger.error("Response body is null")
                          message.editMessage("Upload Failed. Reason: **Response body is null**").queue()
                      }
 
-                     logger.debug("Pastecord Response: {}", pastecordEnding)
+                     val responseJson = DataObject.fromJson(body)
 
-                     val urlToSend = "https://pastecord.com/${pastecordEnding}"
+                     if (!responseJson.hasKey("key")) return@await run {
+                         logger.error("Body is either malformed or body responded with an unexpected response \n Body: {}", body)
+                         message.editMessage("Body returned unexpected response").queue()
+                     }
+
+                     val pastecordEnding = responseJson.get("key")
+
+                     val urlToSend = "https://pasdtecord.com/${pastecordEnding}"
                      message.editMessage("Successfully uploaded ${event.author.asMention}'s message [$urlToSend]")
                          .queue()
                      event.message.delete().queue(null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))
+
                  }
 
                  response.code() > 500 ->
