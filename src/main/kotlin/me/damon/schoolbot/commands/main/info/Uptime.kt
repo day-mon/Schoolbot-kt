@@ -1,4 +1,4 @@
-package me.damon.schoolbot.commands.info
+package me.damon.schoolbot.commands.main.info
 
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
