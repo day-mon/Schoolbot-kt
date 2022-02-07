@@ -21,16 +21,13 @@ abstract class Command(
 {
     suspend fun process(event: CommandEvent)
     {
-        for (i in event.getSentOptions())
-        {
+        event.getSentOptions().forEach { i ->
             if (!i.validate(event.getOption(i.name)!!))
             {
-                event.replyEmbed(Embed {
-                    title = "Not a valid option"
-                    field {
-                        name = "Issue"
-                        value = "```${i.validationFailed}```"
-                    }
+                event.replyEmbed(
+                    Embed {
+                        title = "Validation failed on field ```${i.asOptionData().name}```"
+                        description = "```${i.validationFailed}```"
                 })
                 return
             }

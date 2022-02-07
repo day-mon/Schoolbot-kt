@@ -12,6 +12,7 @@ import me.damon.schoolbot.objects.command.SubCommand
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
 import org.reflections.Reflections
 import java.util.*
+import kotlin.math.log
 
 
 private const val COMMANDS_PACKAGE = "me.damon.schoolbot.commands"
@@ -45,11 +46,6 @@ class CommandHandler(private val schoolbot: Schoolbot)
 
             val instance = constructors[0].newInstance()
 
-            if (instance is SubCommand)
-            {
-                continue
-            }
-
             if (instance !is Command)
             {
                 logger.warn("Non command found in the commands package {}", instance.javaClass.packageName)
@@ -68,19 +64,38 @@ class CommandHandler(private val schoolbot: Schoolbot)
     fun handle(event: SlashCommandEvent)
     {
         val cmdName = event.name
+        val subCommand = event.subcommandName
         val command = commands[cmdName] ?: return
 
         if (command.deferredEnabled) event.deferReply().queue()
 
-        scope.launch {
-            command.process(
-                CommandEvent(
-                    schoolbot = schoolbot,
-                    slashEvent = event,
-                    command = command,
-                    scope = scope
+        if (subCommand != null)
+        {
+           val subC =  command.children
+               .find { it.name == event.subcommandName }!!
+
+            scope.launch {
+                subC.onExecuteSuspend(
+                    CommandEvent(
+                        scope = scope,
+                        schoolbot = schoolbot,
+                        command = subC,
+                        slashEvent = event
+                    )
                 )
-            )
+
+            }
+        }
+        else
+        {
+
+            scope.launch {
+                command.process(
+                    CommandEvent(
+                        schoolbot = schoolbot, slashEvent = event, command = command, scope = scope
+                    )
+                )
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-package me.damon.schoolbot.commands.school
+package me.damon.schoolbot.commands.main.school
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -43,7 +43,6 @@ class Laundry : Command(
                     val om = jacksonObjectMapper()
                     val models: List<LaundryModel> = om.readValue(json)
                     event.sendPaginator(*models.map { it.getAsEmbed() }.toTypedArray())
-
                     // add error checking here
                 }
 

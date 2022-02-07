@@ -79,5 +79,5 @@ dependencies {
     // Misc
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.1")
     implementation("ch.qos.logback:logback-classic:1.2.10")
-
+    implementation("com.yahoofinance-api:YahooFinanceAPI:3.15.0")
 }

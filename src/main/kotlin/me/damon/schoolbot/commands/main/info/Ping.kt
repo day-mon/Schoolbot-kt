@@ -1,4 +1,4 @@
-package me.damon.schoolbot.commands.info
+package me.damon.schoolbot.commands.main.info
 
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
@@ -16,11 +16,13 @@ class Ping : Command(
         val jda = event.jda
 
         jda.restPing
-            .queue { event.replyEmbed(
+            .queue {
+                event.replyEmbed(
                     EmbedBuilder()
                         .addField("Gateway Ping", "${jda.gatewayPing} ms", false)
                         .addField("Rest Ping", "$it ms", false)
                         .build()
-            )}
+            )
+            }
     }
 }

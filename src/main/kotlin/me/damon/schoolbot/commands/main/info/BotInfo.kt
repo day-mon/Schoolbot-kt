@@ -1,4 +1,4 @@
-package me.damon.schoolbot.commands.info
+package me.damon.schoolbot.commands.main.info
 
 import dev.minn.jda.ktx.Embed
 import me.damon.schoolbot.objects.command.Command

@@ -1,4 +1,4 @@
-package me.damon.schoolbot.commands.admin
+package me.damon.schoolbot.commands.main.admin
 
 import dev.minn.jda.ktx.interactions.button
 import dev.minn.jda.ktx.messages.reply_
@@ -44,7 +44,6 @@ class Clear : Command(
         val sent = event.sentWithOption("amount_of_messages")
         val amount = if (sent) event.getOption("amount_of_messages")!!.asLong else defaultClearAmount
 
-        if (amount > 100) return // add some validation somehow
 
         slash
             .reply_("You are about to delete `$amount` messages, click the checkmark to continue, click `Exit` to cancel.")

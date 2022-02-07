@@ -3,6 +3,7 @@ package me.damon.schoolbot.objects.command
 import dev.minn.jda.ktx.SLF4J
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 
 abstract class AbstractCommand
 {
@@ -18,7 +19,16 @@ abstract class AbstractCommand
     abstract val children: List<SubCommand>
     abstract val options: List<CommandOptionData<*>>
     val commandData: CommandData
-    get() = CommandData(name.lowercase(), description)
-        .addOptions(*options.map { it.asOptionData() }.toTypedArray())
+    get()
+    {
+        return if (children.isEmpty())
+        {
+            CommandData(name.lowercase(), description).addOptions(*options.map { it.asOptionData() }.toTypedArray())
+        }
+        else
+        {
+            CommandData(name.lowercase(), description).addSubcommands(children.map { it.subCommandData })
+        }
+    }
 }
 

@@ -18,7 +18,9 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
+import okhttp3.OkHttpClient
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 import javax.security.auth.login.LoginException
 import kotlin.system.exitProcess
 
@@ -31,6 +33,11 @@ class Schoolbot : ListenerAdapter()
 {
 
     private val logger by SLF4J
+    val okhttp = OkHttpClient.Builder()
+        .writeTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build()
+    // TIME SET BECAUSE SOME REQUEST TAKE A LONG TIME DEFAULT IS 10 SECONDS
 
     /*
     val okhttp = OkHttpClient.Builder()
@@ -89,6 +96,7 @@ class Schoolbot : ListenerAdapter()
                     MessageListeners(this),
                     GuildListeners(),
                 )
+                .setHttpClient(okhttp)
                 .setActivity(Activity.playing("building...."))
                 .injectKTX()
                 .build()

@@ -1,4 +1,4 @@
-package me.damon.schoolbot.commands.`fun`
+package me.damon.schoolbot.commands.main.`fun`
 
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
