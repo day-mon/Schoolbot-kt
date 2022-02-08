@@ -14,7 +14,10 @@ abstract class SubCommand(
     override val selfPermission: List<Permission> = listOf(),
     override val children: List<SubCommand> = listOf(),
     override val options: List<CommandOptionData<*>> = listOf(),
-    val subCommandData: SubcommandData = SubcommandData(name, description)
+    val subCommandData: SubcommandData
+        = SubcommandData(name, description)
+        .addOptions(options.map { it.asOptionData() })
+
 ) : AbstractCommand()
 {
     abstract suspend fun onExecuteSuspend(event: CommandEvent)

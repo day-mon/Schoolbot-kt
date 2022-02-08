@@ -67,6 +67,7 @@ dependencies {
     // Spring
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.jsoup:jsoup:1.14.3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     // Database remove soon
@@ -77,7 +78,7 @@ dependencies {
     implementation("org.reflections:reflections:0.10.2")
 
     // Misc
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.1")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.1")
     implementation("ch.qos.logback:logback-classic:1.2.10")
     implementation("com.yahoofinance-api:YahooFinanceAPI:3.15.0")
 }

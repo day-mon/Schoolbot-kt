@@ -88,7 +88,6 @@ class CommandHandler(private val schoolbot: Schoolbot)
         }
         else
         {
-
             scope.launch {
                 command.process(
                     CommandEvent(

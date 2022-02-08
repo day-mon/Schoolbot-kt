@@ -21,13 +21,16 @@ abstract class AbstractCommand
     val commandData: CommandData
     get()
     {
-        return if (children.isEmpty())
-        {
-            CommandData(name.lowercase(), description).addOptions(*options.map { it.asOptionData() }.toTypedArray())
-        }
-        else
-        {
-            CommandData(name.lowercase(), description).addSubcommands(children.map { it.subCommandData })
+        return when {
+            children.isEmpty() ->
+            {
+                CommandData(name.lowercase(), description)
+                    .addOptions(*options.map { it.asOptionData() }.toTypedArray())
+            }
+            else ->
+            {
+                CommandData(name.lowercase(), description).addSubcommands(children.map { it.subCommandData })
+            }
         }
     }
 }

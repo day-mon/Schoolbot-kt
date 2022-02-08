@@ -7,39 +7,35 @@ enum class Emoji(val emote: String, val unicode: String? = null, val isAnimated:
 
     PEAR(":pear:", "U+1F350"),
     WATERMELON(":watermelon:", "U+1F349"),
-    PINEAPPLE(
-    ":pineapple:",
-    "U+1F34D"),
+    PINEAPPLE(":pineapple:", "U+1F34D"),
     APPLE(":apple:", "U+1F34E"),
     BANANA(":banana:", "U+1F34C"),
     AVOCADO(":avocado:", "U+1F951"),
-    EGGPLANT(
-    ":eggplant:",
-    "U+1F346"),
+    EGGPLANT(":eggplant:", "U+1F346"),
     KIWI(":kiwi:", "U+1F95D"),
     GRAPES(":grapes:", "U+1F347"),
-    BLUEBERRIES(
-    ":blueberries:",
-    "U+1FAD0"),
+    BLUEBERRIES(":blueberries:", "U+1FAD0"),
     CHERRIES(":cherries:", "U+1F352"),
     ONION(":onion:", "U+1F9C5"),
     PEACH(":peach:", "U+1F351"),
-    LEMON(
-    ":lemon:",
-    "U+1F34B"
-),
+    LEMON(":lemon:", "U+1F34B"),
     TANGERINE(":tangerine:", "U+1F34A"),
     MELON(":melon:", "U+1F348"),
     COCONUT(
     ":coconut:",
     "U+1F965"
 ),
-    GARLIC(":garlic:", "U+1F9C4"), CUCUMBER(":cucumber:", "U+1F952"), SQUID(":squid:", "U+1F991"),
+    GARLIC(":garlic:", "U+1F9C4"),
+    CUCUMBER(":cucumber:", "U+1F952"),
+    SQUID(":squid:", "U+1F991"),
 
-    THUMB_UP(":thumbsup:", "\uD83D\uDC4D"), THUMB_DOWN(":thumbsdown:", "\uD83D\uDC4E"),
+    THUMB_UP(":thumbsup:", "\uD83D\uDC4D"),
+    THUMB_DOWN(":thumbsdown:", "\uD83D\uDC4E"),
 
-    GREEN_TICK(":white_check_mark:", "\u2705"), GREEN_CROSS(":negative_squared_cross_mark:", "\u274E"),
-
+    GREEN_TICK(":white_check_mark:", "\u2705"),
+    GREEN_CROSS(":negative_squared_cross_mark:", "\u274E"),
+    UPWARD_TREND(":chart_with_upwards_trend:", "\uD83D\uDCC8"),
+    DOWNWARD_TREND(":chart_with_downwards_trend:", "\uD83D\uDCC9"),
     ARROW_LEFT(":arrow_left:", "\u2B05\uFE0F"), ARROW_RIGHT(":arrow_right:", "\u27A1\uFE0F"),
 
     STOP_SIGN(":octagonal_sign:", "\uD83D\uDED1"),
