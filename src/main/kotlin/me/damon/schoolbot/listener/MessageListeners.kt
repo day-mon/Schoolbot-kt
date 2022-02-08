@@ -11,36 +11,6 @@ class MessageListeners(private val schoolbot: Schoolbot) : ListenerAdapter()
 {
     override fun onMessageReceived(event: MessageReceivedEvent)
     {
-        /*
-        if (!event.isFromGuild) return
-        val message = event.message
-        val content = message.contentStripped
-        if (content.isBlank()) return
-
-         */
         schoolbot.messageHandler.handle(event)
-
-
-
-
-
-
     }
-
-    override fun onMessageDelete(event: MessageDeleteEvent)
-    {
-        super.onMessageDelete(event)
-    }
-
-    override fun onMessageUpdate(event: MessageUpdateEvent)
-    {
-        super.onMessageUpdate(event)
-    }
-
-    override fun onMessageReactionAdd(event: MessageReactionAddEvent)
-    {
-        // add flag
-    }
-
-
 }
