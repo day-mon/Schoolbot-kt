@@ -9,10 +9,11 @@ import me.damon.schoolbot.objects.command.CommandOptionData
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.commands.OptionType
-import net.dv8tion.jda.api.interactions.components.Button
-import net.dv8tion.jda.api.interactions.components.ButtonStyle
+import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
 import java.time.OffsetDateTime
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 
@@ -45,9 +46,12 @@ class Clear : Command(
         val amount = if (sent) event.getOption("amount_of_messages")!!.asLong else defaultClearAmount
 
 
-        slash
-            .reply_("You are about to delete `$amount` messages, click the checkmark to continue, click `Exit` to cancel.")
-            .addActionRow(getActionRows(event, amount)).queue()
+       slash
+            .reply_("You are about to delete `$amount` messages, click the checkmark to continue, click `Exit` to cancel. (30 seconds to make a choice)")
+            .addActionRow(getActionRows(event, amount))
+            .queue { it.deleteOriginal().queueAfter(30, TimeUnit.SECONDS) }
+
+
     }
 
 
@@ -65,7 +69,9 @@ class Clear : Command(
                     channel.purgeMessages(subList)
                     return@thenApplyAsync subList.size
                 }.thenAcceptAsync { size ->
-                    button.channel.sendMessage("Successfully purged `${size}` messages!").queue {
+                    event.hook.editOriginal("Successfully purged `${size}` messages!")
+                        .setActionRows(Collections.emptyList())
+                        .queue {
                         it.delete()
                             .queueAfter(5, TimeUnit.SECONDS, null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))
                     }
@@ -74,7 +80,9 @@ class Clear : Command(
 
 
         val exit = jda.button(label = "Exit", style = ButtonStyle.DANGER, user = event.user) {
-            it.reply("Operation was successfully cancelled").queue()
+            event.hook.editOriginal("Operation was successfully cancelled")
+                .setActionRows(Collections.emptyList())
+                .queue()
         }
         return listOf(confirm, exit)
 

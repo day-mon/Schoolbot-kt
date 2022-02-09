@@ -18,7 +18,8 @@ class LetMeGoogleThat : Command(
             type = OptionType.STRING,
             name = "search_results",
             description = "Injects search results into LMGTFY link",
-            isRequired = false)
+            isRequired = false
+        )
     )
 )
 {

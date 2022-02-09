@@ -3,12 +3,15 @@ package me.damon.schoolbot.objects.command
 import dev.minn.jda.ktx.SLF4J
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
+import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
+import kotlin.time.Duration
 
 abstract class AbstractCommand
 {
     val logger by SLF4J
     abstract val name: String
+    abstract val timeout: Duration
     abstract val category: CommandCategory
     abstract val deferredEnabled: Boolean
     abstract val description: String
@@ -23,14 +26,21 @@ abstract class AbstractCommand
     {
         return when {
             children.isEmpty() ->
-            {
-                CommandData(name.lowercase(), description)
-                    .addOptions(*options.map { it.asOptionData() }.toTypedArray())
-            }
+                Commands
+                    .slash(
+                        name.lowercase(),
+                        description
+                    )
+                    .addOptions(
+                        *options.map { it.asOptionData() }.toTypedArray()
+                    )
             else ->
-            {
-                CommandData(name.lowercase(), description).addSubcommands(children.map { it.subCommandData })
-            }
+                Commands.slash(
+                    name.lowercase(),
+                    description
+                ).addSubcommands(
+                        children.map { it.subCommandData }
+                    )
         }
     }
 }

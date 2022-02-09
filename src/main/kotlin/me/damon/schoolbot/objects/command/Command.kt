@@ -5,6 +5,7 @@ import me.damon.schoolbot.objects.misc.Pagintable
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.interactions.commands.OptionType
+import kotlin.time.Duration
 
 abstract class Command(
     override val name: String,
@@ -12,6 +13,7 @@ abstract class Command(
     override val description: String,
     override val commandPrerequisites: String = "",
     override val coolDown: Long = 1000L,
+    override val timeout: Duration = Duration.INFINITE,
     override val deferredEnabled: Boolean = true,
     override val memberPermissions: List<Permission> = listOf(),
     override val selfPermission: List<Permission> = listOf(),
@@ -52,9 +54,12 @@ abstract class Command(
         }
     }
 
-    override fun getAsEmbed(): MessageEmbed
-    {
-        TODO("Not yet implemented")
+    override fun getAsEmbed() = Embed {
+        title = name
+        field {
+            name = "Description"
+
+        }
     }
 
     abstract suspend fun onExecuteSuspend(event: CommandEvent)

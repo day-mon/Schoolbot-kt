@@ -1,5 +1,6 @@
 package me.damon.schoolbot.objects.school
 
+import dev.minn.jda.ktx.Embed
 import me.damon.schoolbot.objects.misc.Pagintable
 import net.dv8tion.jda.api.entities.MessageEmbed
 import java.time.ZoneId
@@ -42,10 +43,24 @@ data class School(
 
     ) : Pagintable
 {
-    override fun getAsEmbed(): MessageEmbed
-    {
-        TODO("Not yet implemented")
+    override fun getAsEmbed(): MessageEmbed = Embed {
+        title = name
+        field {
+            name = "Email Suffix"
+            value = emailSuffix
+        }
 
+        field {
+            name = "Classes Count"
+            value = classes.size.toString()
+        }
+
+        field {
+            name = "Professors Count"
+            value  = professor.size.toString()
+        }
+
+        color = Random().nextInt(0xFFFF)
     }
 }
 

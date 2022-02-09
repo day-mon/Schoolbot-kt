@@ -1,19 +1,15 @@
 package me.damon.schoolbot.handler
 
 import dev.minn.jda.ktx.SLF4J
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandEvent
-import me.damon.schoolbot.objects.command.SubCommand
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import org.reflections.Reflections
 import java.util.*
-import kotlin.math.log
 import kotlin.system.measureTimeMillis
+import kotlin.time.ExperimentalTime
 
 
 private const val COMMANDS_PACKAGE = "me.damon.schoolbot.commands"
@@ -27,6 +23,7 @@ class CommandHandler(private val schoolbot: Schoolbot)
     private val logger by SLF4J
     private val reflections = Reflections(COMMANDS_PACKAGE)
     val commands: Map<String, Command> = initCommands()
+
 
     private fun initCommands(): MutableMap<String, Command>
     {
@@ -63,7 +60,8 @@ class CommandHandler(private val schoolbot: Schoolbot)
         return Collections.unmodifiableMap(map)
     }
 
-    fun handle(event: SlashCommandEvent)
+    @OptIn(ExperimentalTime::class)
+    fun handle(event: SlashCommandInteractionEvent)
     {
         val cmdName = event.name
         val subCommand = event.subcommandName
@@ -76,32 +74,28 @@ class CommandHandler(private val schoolbot: Schoolbot)
            val subC =  command.children
                .find { it.name == event.subcommandName }!!
 
-            val time = measureTimeMillis {
-                scope.launch {
-                    subC.onExecuteSuspend(
-                        CommandEvent(
-                            scope = scope, schoolbot = schoolbot, command = subC, slashEvent = event
-                        )
-                    )
-
+                 scope.launch {
+                     withTimeoutOrNull(command.timeout) {
+                         subC.onExecuteSuspend(
+                             CommandEvent(
+                                 scope = scope, schoolbot = schoolbot, command = subC, slashEvent = event
+                             )
+                         )
+                     }
                 }
-            }
-            logger.debug("{} took {} ms  to run", subC.name, time)
         }
         else
         {
-            val time = measureTimeMillis {
+
                 scope.launch {
-                    command.process(
-                        CommandEvent(
-                            schoolbot = schoolbot, slashEvent = event, command = command, scope = scope
+                    withTimeoutOrNull(command.timeout) {
+                        command.process(
+                            CommandEvent(
+                                schoolbot = schoolbot, slashEvent = event, command = command, scope = scope
+                            )
                         )
-                    )
                 }
             }
-
-
-            logger.debug("{} took {} ms  to run", command.name, time)
         }
     }
 }

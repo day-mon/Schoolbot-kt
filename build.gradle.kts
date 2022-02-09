@@ -6,17 +6,12 @@ application {
 
 
 plugins {
+    id("com.github.johnrengelman.shadow") version "7.1.1"
     kotlin("jvm") version "1.6.10"
-    kotlin("plugin.spring") version "1.6.0"
-
-    `maven-publish`
     application
-    `java-library`
-
 
 
     id("org.jetbrains.kotlin.plugin.noarg") version ("1.6.10")
-    id("com.github.johnrengelman.shadow") version("6.0.0")
     id("org.jetbrains.kotlin.plugin.serialization") version("1.4.30")
     id("org.springframework.boot") version "2.6.3"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
@@ -61,8 +56,8 @@ dependencies {
     implementation("ru.gildor.coroutines:kotlin-coroutines-okhttp:1.0")
 
     // Discord
-    implementation("net.dv8tion:JDA:4.4.0_352")
-    implementation("com.github.minndevelopment:jda-ktx:d3c6b4d")
+    implementation("net.dv8tion:JDA:5.0.0-alpha.5")
+    implementation("com.github.minndevelopment:jda-ktx:6f70da7")
 
     // Spring
     implementation("org.springframework.boot:spring-boot-starter")

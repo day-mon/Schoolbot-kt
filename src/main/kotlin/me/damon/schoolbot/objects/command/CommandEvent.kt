@@ -1,20 +1,15 @@
 package me.damon.schoolbot.objects.command
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import dev.minn.jda.ktx.Embed
 import dev.minn.jda.ktx.interactions.replyPaginator
 import dev.minn.jda.ktx.interactions.sendPaginator
-import dev.minn.jda.ktx.messages.Embeds
 import kotlinx.coroutines.CoroutineScope
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.objects.misc.Pagintable
 import net.dv8tion.jda.api.Permission
-import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageEmbed
-import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
-import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
@@ -23,7 +18,7 @@ private val logger = LoggerFactory.getLogger(CommandEvent::class.java)
 
 class CommandEvent(
     val schoolbot: Schoolbot,
-    val slashEvent: SlashCommandEvent,
+    val slashEvent: SlashCommandInteractionEvent,
     val command: AbstractCommand,
     val scope: CoroutineScope
 )
@@ -34,7 +29,7 @@ class CommandEvent(
     val guild = slashEvent.guild!!
     val member = slashEvent.member!!
     val hook = slashEvent.hook
-    val options = slashEvent.options
+    val options: MutableList<OptionMapping> = slashEvent.options
 
     fun replyEmbed(embed: MessageEmbed) = when {
         command.deferredEnabled -> hook.editOriginalEmbeds(embed).queue({ }) {
