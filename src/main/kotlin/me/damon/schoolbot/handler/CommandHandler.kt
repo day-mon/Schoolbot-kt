@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
 import org.reflections.Reflections
 import java.util.*
 import kotlin.math.log
+import kotlin.system.measureTimeMillis
 
 
 private const val COMMANDS_PACKAGE = "me.damon.schoolbot.commands"
@@ -25,7 +26,7 @@ class CommandHandler(private val schoolbot: Schoolbot)
 {
     private val logger by SLF4J
     private val reflections = Reflections(COMMANDS_PACKAGE)
-    private val commands: Map<String, Command> = initCommands()
+    val commands: Map<String, Command> = initCommands()
 
     private fun initCommands(): MutableMap<String, Command>
     {
@@ -58,6 +59,7 @@ class CommandHandler(private val schoolbot: Schoolbot)
         }
         commandsUpdate.queue()
         logger.info("${map.count()} have been loaded successfully")
+        logger.debug("{}", map.toList())
         return Collections.unmodifiableMap(map)
     }
 
@@ -74,27 +76,32 @@ class CommandHandler(private val schoolbot: Schoolbot)
            val subC =  command.children
                .find { it.name == event.subcommandName }!!
 
-            scope.launch {
-                subC.onExecuteSuspend(
-                    CommandEvent(
-                        scope = scope,
-                        schoolbot = schoolbot,
-                        command = subC,
-                        slashEvent = event
+            val time = measureTimeMillis {
+                scope.launch {
+                    subC.onExecuteSuspend(
+                        CommandEvent(
+                            scope = scope, schoolbot = schoolbot, command = subC, slashEvent = event
+                        )
                     )
-                )
 
+                }
             }
+            logger.debug("{} took {} ms  to run", subC.name, time)
         }
         else
         {
-            scope.launch {
-                command.process(
-                    CommandEvent(
-                        schoolbot = schoolbot, slashEvent = event, command = command, scope = scope
+            val time = measureTimeMillis {
+                scope.launch {
+                    command.process(
+                        CommandEvent(
+                            schoolbot = schoolbot, slashEvent = event, command = command, scope = scope
+                        )
                     )
-                )
+                }
             }
+
+
+            logger.debug("{} took {} ms  to run", command.name, time)
         }
     }
 }

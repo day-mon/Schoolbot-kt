@@ -34,6 +34,7 @@ suspend inline fun <T> Call.await(scope: CoroutineScope, crossinline callback: s
 
 
 
+
 class HttpException(
     route: String, status: Int, meaning: String
 ) : Exception("$route > $status: $meaning")

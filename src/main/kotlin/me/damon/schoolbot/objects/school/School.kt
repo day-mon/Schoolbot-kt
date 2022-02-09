@@ -32,10 +32,10 @@ data class School(
     val roleId: Long = -1L,
 
     @ManyToMany(mappedBy = "id", cascade = [CascadeType.ALL])
-    val professor: Set<Professor>,
+    val professor: Set<Professor> = setOf(),
 
     @OneToMany(mappedBy = "id", cascade = [CascadeType.ALL])
-    val classes: Set<Classroom>,
+    val classes: Set<Classroom> = setOf(),
 
     @Column(name = "timeZone", nullable = false, updatable = true)
     val timeZone: ZoneId

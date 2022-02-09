@@ -5,12 +5,16 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import dev.minn.jda.ktx.Embed
 import dev.minn.jda.ktx.interactions.replyPaginator
 import dev.minn.jda.ktx.interactions.sendPaginator
+import dev.minn.jda.ktx.messages.Embeds
 import kotlinx.coroutines.CoroutineScope
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.objects.misc.Pagintable
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageEmbed
+import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
+import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
@@ -104,8 +108,12 @@ class CommandEvent(
         }
     }
 
+    fun <T: Pagintable> sendPaginator(embeds: List<T>) = sendPaginator(*embeds.map { it.getAsEmbed() }.toTypedArray())
+
+
     fun sendPaginator(vararg embeds: MessageEmbed)
     {
+
         if (command.deferredEnabled)
         {
             hook.sendPaginator(
@@ -125,8 +133,8 @@ class CommandEvent(
             }.queue()
         }
     }
-    fun hasSelfPermissions(permissions: List<Permission>) = guild!!.selfMember.hasPermission(permissions)
-    fun hasMemberPermissions(permissions: List<Permission>) = member!!.hasPermission(permissions)
+    fun hasSelfPermissions(permissions: List<Permission>) = guild.selfMember.hasPermission(permissions)
+    fun hasMemberPermissions(permissions: List<Permission>) = member.hasPermission(permissions)
     fun sentWithOption(option: String) = slashEvent.getOption(option) != null
     fun getOption(option: String) = slashEvent.getOption(option)
     fun sentWithAnyOptions() = slashEvent.options.isNotEmpty()

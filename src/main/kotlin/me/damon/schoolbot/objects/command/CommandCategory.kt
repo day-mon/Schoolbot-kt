@@ -1,14 +1,16 @@
 package me.damon.schoolbot.objects.command
 
-enum class CommandCategory(val catName: String)
+import me.damon.schoolbot.objects.misc.Emoji
+
+enum class CommandCategory(val catName: String, val emoji: Emoji)
 {
-    DEV("dev"),
-    ADMIN("admin"),
-    FUN("fun"),
-    INFO("info"),
-    MISC("misc"),
-    SCHOOL("school"),
-    UNLABELED("unlabeled");
+    DEV("dev", Emoji.LAPTOP),
+    ADMIN("admin", Emoji.A),
+    FUN("fun", Emoji.FERRIS_WHEEL),
+    INFO("info", Emoji.TOOLS),
+    MISC("misc", Emoji.WHITE_CIRCLE),
+    SCHOOL("school", Emoji.BOOKS),
+    UNLABELED("unlabeled", Emoji.ERROR);
 
 
 

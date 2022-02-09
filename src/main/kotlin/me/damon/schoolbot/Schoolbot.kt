@@ -32,8 +32,16 @@ fun main()
 class Schoolbot : ListenerAdapter()
 {
 
+    /**
+     * withContext(Disptacher.Main) {
+     *
+     *      // this will run anything on the main thread
+     * }
+     *
+     * withContext scope will run anything inside that block into whatever dispatcher its told to run into
+     */
     private val logger by SLF4J
-    val okhttp = OkHttpClient.Builder()
+    private val okhttp = OkHttpClient.Builder()
         .writeTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
@@ -51,7 +59,7 @@ class Schoolbot : ListenerAdapter()
 
 
     // handlers
-    val startUpTime = Instant.now()
+    val startUpTime = Instant.now()!!
     val configHandler  = ConfigHandler()
     val messageHandler  = MessageHandler()
 

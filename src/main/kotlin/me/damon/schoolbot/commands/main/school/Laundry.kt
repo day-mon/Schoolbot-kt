@@ -7,10 +7,9 @@ import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.models.LaundryModel
-import me.damon.schoolbot.web.asException
-import me.damon.schoolbot.web.await
-import me.damon.schoolbot.web.get
+import me.damon.schoolbot.web.*
 import net.dv8tion.jda.api.interactions.commands.OptionType
+import kotlin.math.log
 
 class Laundry : Command(
     name = "Laundry",
@@ -27,8 +26,6 @@ class Laundry : Command(
         val dorm = event.getOption("dormitory")?.asString
         val request = get("https://johnstown.schoolbot.dev/api/Laundry/${dorm}")
 
-
-
         client.newCall(request).await(event.scope) { response ->
             when
             {
@@ -42,7 +39,7 @@ class Laundry : Command(
 
                     val om = jacksonObjectMapper()
                     val models: List<LaundryModel> = om.readValue(json)
-                    event.sendPaginator(*models.map { it.getAsEmbed() }.toTypedArray())
+                    event.sendPaginator(models)
                     // add error checking here
                 }
 

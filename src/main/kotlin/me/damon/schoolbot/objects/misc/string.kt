@@ -7,3 +7,4 @@ import java.time.format.DateTimeFormatter
 
 fun LocalDateTime.formatDate(): String = this.format(DateTimeFormatter.ofPattern("M/dd/yyyy"))
 fun BigDecimal.parseNumbersWithCommas() = DecimalFormat("#,###.00").format(this).toString()
+fun String.asHyperText(url: String) = "[${this}](${url})"
