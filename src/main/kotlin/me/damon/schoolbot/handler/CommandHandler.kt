@@ -8,7 +8,6 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import org.reflections.Reflections
 import java.util.*
-import kotlin.system.measureTimeMillis
 import kotlin.time.ExperimentalTime
 
 

@@ -1,14 +1,9 @@
 package me.damon.schoolbot.objects.command
 
-import dev.minn.jda.ktx.Embed
 import dev.minn.jda.ktx.SLF4J
-import me.damon.schoolbot.objects.misc.Pagintable
-import net.dv8tion.jda.api.entities.MessageEmbed
-import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
-import kotlin.math.log
 
 
 inline fun <reified T> CommandOptionData(type: Any, name: String, description: String, isRequired: Boolean = false, noinline validate: (T) -> Boolean = { true }, failedValidation: String = "")

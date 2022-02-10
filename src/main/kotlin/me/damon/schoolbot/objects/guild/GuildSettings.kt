@@ -7,7 +7,7 @@ import javax.persistence.Table
 
 @Table(name = "guildSettings")
 @Entity(name = "GuildSettings")
-data class GuildSettings(
+class GuildSettings(
     @Id
     @Column(name = "guildId", updatable = false)
     val guildId: Long,

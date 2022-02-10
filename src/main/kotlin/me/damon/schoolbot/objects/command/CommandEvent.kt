@@ -1,18 +1,24 @@
 package me.damon.schoolbot.objects.command
 
 import dev.minn.jda.ktx.Embed
+import dev.minn.jda.ktx.await
 import dev.minn.jda.ktx.interactions.replyPaginator
 import dev.minn.jda.ktx.interactions.sendPaginator
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.withTimeoutOrNull
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.objects.misc.Pagintable
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
+import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import org.slf4j.LoggerFactory
+import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 
 private val logger = LoggerFactory.getLogger(CommandEvent::class.java)
 
@@ -23,6 +29,9 @@ class CommandEvent(
     val scope: CoroutineScope
 )
 {
+   // @Autowired
+  //  private lateinit var sRepo: SchoolService
+
     val jda = slashEvent.jda
     val user = slashEvent.user
     val channel = slashEvent.channel
@@ -59,6 +68,8 @@ class CommandEvent(
             }
         }
     }
+
+    // fun saveSchool(school: School) = sRepo.saveSchool(school)
 
     fun replyMessage(message: String) = when {
         command.deferredEnabled -> hook.editOriginal(message).queue()
@@ -104,6 +115,22 @@ class CommandEvent(
     }
 
     fun <T: Pagintable> sendPaginator(embeds: List<T>) = sendPaginator(*embeds.map { it.getAsEmbed() }.toTypedArray())
+
+    @OptIn(ExperimentalTime::class)
+    suspend fun <T> sendMenuAndAwait(menu: SelectMenu, message: String, timeoutDuration: Duration, inTimeoutCallback: suspend CoroutineScope.(SelectMenuInteractionEvent) -> T)
+    {
+        hook.editOriginal(message)
+            .setActionRow(menu)
+            .await()
+
+        withTimeoutOrNull(timeoutDuration) {
+            val selectionEvent = jda.await<SelectMenuInteractionEvent>
+            { it.member!!.idLong == member.idLong && it.componentId == menu.id }
+            inTimeoutCallback(selectionEvent)
+        } ?: hook.editOriginal("Command has timed out try again please")
+            .setActionRows(Collections.emptyList())
+            .queue()
+    }
 
 
     fun sendPaginator(vararg embeds: MessageEmbed)

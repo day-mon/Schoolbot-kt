@@ -9,7 +9,7 @@ import javax.persistence.*
 
 @Entity(name = "School")
 @Table(name = "schools")
-data class School(
+class School(
     @Id
     @Column(name = "id", unique = true, updatable = false)
     val id: UUID = UUID.randomUUID(),

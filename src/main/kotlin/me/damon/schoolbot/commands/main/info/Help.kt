@@ -1,6 +1,5 @@
 package me.damon.schoolbot.commands.main.info
 
-import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent

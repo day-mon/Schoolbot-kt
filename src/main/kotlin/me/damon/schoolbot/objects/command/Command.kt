@@ -3,8 +3,6 @@ package me.damon.schoolbot.objects.command
 import dev.minn.jda.ktx.Embed
 import me.damon.schoolbot.objects.misc.Pagintable
 import net.dv8tion.jda.api.Permission
-import net.dv8tion.jda.api.entities.MessageEmbed
-import net.dv8tion.jda.api.interactions.commands.OptionType
 import kotlin.time.Duration
 
 abstract class Command(

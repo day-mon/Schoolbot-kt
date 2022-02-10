@@ -8,7 +8,7 @@ import javax.persistence.*
 
 @Table(name = "assignments")
 @Entity(name = "Assignment")
-data class Assignment (
+class Assignment (
     @Id
     @Column(name = "id", unique = true, nullable = false, updatable = false)
     val id: UUID,

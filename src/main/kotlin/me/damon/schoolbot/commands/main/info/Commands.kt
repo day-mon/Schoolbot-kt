@@ -4,10 +4,7 @@ import dev.minn.jda.ktx.Embed
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
-import net.dv8tion.jda.api.entities.MessageEmbed
-import java.lang.StringBuilder
 import java.time.Instant
-import java.util.stream.Collector
 import java.util.stream.Collectors
 
 class Commands : Command(

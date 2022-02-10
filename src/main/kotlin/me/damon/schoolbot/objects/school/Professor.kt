@@ -7,7 +7,7 @@ import javax.persistence.*
 
 @Entity(name = "Professor")
 @Table(name = "professors")
-data class Professor(
+class Professor(
     @Id
     @Column(name = "id", unique = true, updatable = false)
     val id: UUID = UUID.randomUUID(),

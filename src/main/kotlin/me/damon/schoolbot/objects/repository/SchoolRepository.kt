@@ -1,4 +1,4 @@
-package me.damon.schoolbot.objects.repository;
+package me.damon.schoolbot.objects.repository
 
 import me.damon.schoolbot.objects.school.School
 import org.springframework.data.jpa.repository.JpaRepository

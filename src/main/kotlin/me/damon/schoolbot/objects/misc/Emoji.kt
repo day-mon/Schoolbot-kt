@@ -1,6 +1,6 @@
 package me.damon.schoolbot.objects.misc
 
-enum class Emoji(val emote: String, val unicode: String? = null, val isAnimated: Boolean = false)
+enum class Emoji(private val emote: String, private val unicode: String? = null, private val isAnimated: Boolean = false)
 {
     ERROR("811388299310137354"),
     SUCCESS("811388330889052213"),

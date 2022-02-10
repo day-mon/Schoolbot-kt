@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package me.damon.schoolbot.commands.main.info
 
 import me.damon.schoolbot.objects.command.Command
@@ -10,6 +12,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.interactions.commands.OptionType
 
+@Suppress("unused")
 class About : Command(
     name = "About",
     category = CommandCategory.INFO,
@@ -29,10 +32,7 @@ class About : Command(
             }
             else ->
             {
-                event.member ?: return run {
-                    event.replyMessage("Member is null.. Cannot continue")
-                    // make a better error message
-                }
+                event.member
             }
         }
 

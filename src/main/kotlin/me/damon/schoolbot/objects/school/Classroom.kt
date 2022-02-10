@@ -9,7 +9,7 @@ import javax.persistence.*
 @Table(name = "classrooms")
 @Entity(name = "classroom")
 
-data class Classroom(
+class Classroom(
     @Id
     @Column(name = "id", updatable = false, unique = true)
     val id: UUID = UUID.randomUUID(),
@@ -47,7 +47,7 @@ data class Classroom(
     @Column(name = "subjectAndIdentifier", nullable = true)
     val subjectAndIdentifier: String,
 
-    @Column(name = "roleId", nullable = true,)
+    @Column(name = "roleId", nullable = true)
     val roleId: Long,
 
     @Column(name = "channelId", nullable = true)
@@ -58,7 +58,7 @@ data class Classroom(
 
     @Column(name = "autoFilled")
     /**
-     * A class that was autopopulated via api
+     * A class that was auto populated via api
      */
     val autoFilled: Boolean = false,
 

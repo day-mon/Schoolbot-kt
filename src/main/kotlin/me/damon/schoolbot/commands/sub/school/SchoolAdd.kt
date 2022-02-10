@@ -4,17 +4,16 @@ package me.damon.schoolbot.commands.sub.school
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import dev.minn.jda.ktx.await
 import dev.minn.jda.ktx.interactions.SelectMenu
 import dev.minn.jda.ktx.interactions.button
 import dev.minn.jda.ktx.interactions.option
 import dev.minn.jda.ktx.messages.reply_
-import kotlinx.coroutines.withTimeoutOrNull
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.models.SchoolModel
+import me.damon.schoolbot.objects.school.School
 import me.damon.schoolbot.web.asException
 import me.damon.schoolbot.web.await
 import me.damon.schoolbot.web.bodyAsString
@@ -23,6 +22,7 @@ import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEve
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import java.time.ZoneId
 import java.util.*
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
@@ -41,18 +41,19 @@ class SchoolAdd : SubCommand(
     )
 )
 {
-    private val API_URL = "https://schoolapi.schoolbot.dev/search?name="
-    private val BACKUP_API_URL = "http://universities.hipolabs.com/search?name="
+    private val apiUrl = "https://schoolapi.schoolbot.dev/search?name="
+    private val backupApiUrl = "http://universities.hipolabs.com/search?name="
 
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
 
         val schoolName = event.getOption("school_name")!!.asString
         val client = event.jda.httpClient
-        val request = get(API_URL + schoolName)
+        val request = get(apiUrl + schoolName)
 
 
         event.replyMessage("Searching for `$schoolName`...")
+
 
 
 
@@ -74,18 +75,17 @@ class SchoolAdd : SubCommand(
 
                     val menu = SelectMenu("school:menu") { models.forEachIndexed { index, schoolModel -> option(schoolModel.name, index.toString()) } }
 
-                    event.hook.editOriginal("Select an item from the menu to choose a school \n **Timeout is set to one minute**").setActionRow(menu).await()
-
-                    withTimeoutOrNull(1.minutes) {
-                        val selectionEvent =
-                            event.jda.await<SelectMenuInteractionEvent> { it.member!!.idLong == event.member.idLong && it.componentId == menu.id }
-                        val school = models[selectionEvent.values[0].toInt()]
-                        selectionEvent.reply_("Does this look like the correct school?")
+                    event.sendMenuAndAwait(
+                        menu = menu,
+                        message = "Select an item from the menu to choose a school \n **Timeout is set to one minute**",
+                        timeoutDuration = 1.minutes
+                    ) {
+                        val school = models[it.values[0].toInt()]
+                        it.reply_("Does this look like the correct school?")
                             .addEmbeds(school.getAsEmbed())
-                            .addActionRow(getActionRows(selectionEvent))
+                            .addActionRow(getActionRows(it, event, school.asSchool(ZoneId.systemDefault())))
                             .queue()
-                    } ?: event.hook.editOriginal("Command timed out. Please try again").setActionRows(Collections.emptyList()).queue()
-
+                    }
                 }
                 else -> {
                     logger.error("Unexpected error has occurred",  response.asException())
@@ -97,14 +97,14 @@ class SchoolAdd : SubCommand(
     }
 
 
-    private fun getActionRows(event: SelectMenuInteractionEvent): List<Button>
+    private fun getActionRows(event: SelectMenuInteractionEvent, cmdEvent: CommandEvent, school: School): List<Button>
     {
         val jda = event.jda
-        val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = event.user) { button ->
-            // TODO: Add to database here
+        val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = event.user, expiration = 1.minutes) {
+               // cmdEvent.saveSchool(school)
         }
 
-        val no = jda.button(label = "No", style = ButtonStyle.DANGER, user = event.user) {
+        val no = jda.button(label = "No", style = ButtonStyle.DANGER, user = event.user, expiration = 1.minutes) {
             event.hook.editOriginal("Aborting.. Thank you for using Schoolbot!")
                 .setActionRows(Collections.emptyList())
                 .setEmbeds(Collections.emptyList())

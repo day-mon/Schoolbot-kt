@@ -7,11 +7,11 @@ fun InputStream.string(): String
 {
     val reader = BufferedReader(this.reader())
     val content = StringBuilder()
-    reader.use { reader ->
-        var line = reader.readLine()
+    reader.use { read ->
+        var line = read.readLine()
         while (line != null) {
             content.appendLine(line)
-            line = reader.readLine()
+            line = read.readLine()
         }
     }
     return content.toString()

@@ -4,7 +4,6 @@ import dev.minn.jda.ktx.SLF4J
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.Commands
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 import kotlin.time.Duration
 
 abstract class AbstractCommand

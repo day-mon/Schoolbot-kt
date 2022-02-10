@@ -33,7 +33,7 @@ class Schoolbot : ListenerAdapter()
 {
 
     /**
-     * withContext(Disptacher.Main) {
+     * withContext(Dispatcher.Main) {
      *
      *      // this will run anything on the main thread
      * }
