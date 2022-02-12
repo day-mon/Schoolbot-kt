@@ -35,6 +35,8 @@ data class SchoolModel(
         timeZone = timeZone
     )
 
+
+
     override fun getAsEmbed(): MessageEmbed = Embed {
         title = name
         field {

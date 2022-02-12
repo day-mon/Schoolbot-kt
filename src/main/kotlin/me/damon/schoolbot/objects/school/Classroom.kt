@@ -23,10 +23,16 @@ class Classroom(
     @Column(name = "prerequisite")
     val prerequisite: String,
 
-    @OneToMany(mappedBy = "id", cascade = [CascadeType.ALL])
+    @ManyToMany
+    @JoinTable(
+        name = "professors",
+        joinColumns = [JoinColumn(name = "professor_id")],
+        inverseJoinColumns = [JoinColumn(name = "classroom_id")]
+        // join on classroom id and professor id
+    )
     val professors: Set<Professor>,
 
-    @OneToMany(mappedBy = "id", cascade = [CascadeType.ALL])
+    @OneToMany
     val assignments: Set<Assignment>,
 
     @Column(name = "startDate", nullable = false)

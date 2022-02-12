@@ -25,7 +25,7 @@ class Assignment (
     @Column(name = "dueDate")
     val dueDate: Instant,
 
-    @OneToOne(mappedBy = "id", cascade = [CascadeType.ALL])
+    @ManyToOne
     val classroom: Classroom
 
 

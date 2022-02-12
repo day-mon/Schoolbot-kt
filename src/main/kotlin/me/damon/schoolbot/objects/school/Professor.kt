@@ -21,7 +21,7 @@ class Professor(
     @Column(name = "emailPrefix", nullable = false, columnDefinition = "TEXT")
     val emailPrefix: String,
 
-    @ManyToMany(mappedBy = "id", cascade = [(CascadeType.ALL)])
+    @ManyToMany(mappedBy = "professors", cascade = [(CascadeType.ALL)])
     val classes: Set<Classroom>
     ) : Pagintable
 {

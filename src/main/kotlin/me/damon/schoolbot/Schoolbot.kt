@@ -19,6 +19,9 @@ import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import okhttp3.OkHttpClient
+import org.springframework.boot.SpringApplication
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.context.annotation.Bean
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 import javax.security.auth.login.LoginException
@@ -26,10 +29,11 @@ import kotlin.system.exitProcess
 
 fun main()
 {
-    Schoolbot()
+    SpringApplication.run(Schoolbot::class.java)
 }
 
-class Schoolbot : ListenerAdapter()
+@SpringBootApplication
+open class Schoolbot : ListenerAdapter()
 {
 
     /**
@@ -69,7 +73,8 @@ class Schoolbot : ListenerAdapter()
     // after loading
     val cmd = CommandHandler(this)
 
-    private fun build(): JDA
+    @Bean
+    open fun build(): JDA
     {
         try
         {
@@ -119,7 +124,11 @@ class Schoolbot : ListenerAdapter()
     override fun onReady(event: ReadyEvent)
     {
         logger.info("Ready.")
-        jda.presence.setPresence( OnlineStatus.ONLINE, Activity.watching("Your mom"))
+        jda.presence
+            .setPresence(
+                OnlineStatus.ONLINE,
+            Activity.watching("Your mom")
+        )
     }
 
 
