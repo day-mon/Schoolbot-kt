@@ -1,7 +1,7 @@
 package me.damon.schoolbot.objects.command
 
 import dev.minn.jda.ktx.Embed
-import me.damon.schoolbot.objects.misc.Pagintable
+import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.Permission
 import kotlin.time.Duration
 
@@ -17,7 +17,7 @@ abstract class Command(
     override val selfPermission: List<Permission> = listOf(),
     override val children: List<SubCommand> = listOf(),
     override val options: List<CommandOptionData<*>> = listOf()
-) : AbstractCommand(), Pagintable
+) : AbstractCommand(), Pagable
 {
     suspend fun process(event: CommandEvent)
     {

@@ -120,7 +120,7 @@ class MessageHandler
 
                      val pastecordEnding = responseJson.get("key")
 
-                     val urlToSend = "https://pasdtecord.com/${pastecordEnding}"
+                     val urlToSend = "https://pastecord.com/${pastecordEnding}"
                      message.editMessage("Successfully uploaded ${event.author.asMention}'s message [$urlToSend]")
                          .queue()
                      event.message.delete().queue(null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))

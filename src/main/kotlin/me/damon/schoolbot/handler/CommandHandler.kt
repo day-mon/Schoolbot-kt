@@ -3,10 +3,14 @@ package me.damon.schoolbot.handler
 import dev.minn.jda.ktx.SLF4J
 import kotlinx.coroutines.*
 import me.damon.schoolbot.Schoolbot
+import me.damon.schoolbot.commands.main.service.SchoolService
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import org.reflections.Reflections
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import java.util.*
 import kotlin.time.ExperimentalTime
 
@@ -22,6 +26,9 @@ class CommandHandler(private val schoolbot: Schoolbot)
     private val logger by SLF4J
     private val reflections = Reflections(COMMANDS_PACKAGE)
     val commands: Map<String, Command> = initCommands()
+
+    @Autowired
+    private lateinit var sRepo: SchoolService
 
 
     private fun initCommands(): MutableMap<String, Command>
@@ -77,7 +84,11 @@ class CommandHandler(private val schoolbot: Schoolbot)
                      withTimeoutOrNull(command.timeout) {
                          subC.onExecuteSuspend(
                              CommandEvent(
-                                 scope = scope, schoolbot = schoolbot, command = subC, slashEvent = event
+                                 scope = scope,
+                                 schoolbot = schoolbot,
+                                 command = subC,
+                                 slashEvent = event,
+                                 sRepo = sRepo
                              )
                          )
                      }
@@ -90,7 +101,11 @@ class CommandHandler(private val schoolbot: Schoolbot)
                     withTimeoutOrNull(command.timeout) {
                         command.process(
                             CommandEvent(
-                                schoolbot = schoolbot, slashEvent = event, command = command, scope = scope
+                                schoolbot = schoolbot,
+                                slashEvent = event,
+                                command = command,
+                                scope = scope,
+                                sRepo = sRepo
                             )
                         )
                 }

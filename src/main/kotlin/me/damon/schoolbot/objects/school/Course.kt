@@ -1,15 +1,15 @@
 package me.damon.schoolbot.objects.school
 
-import me.damon.schoolbot.objects.misc.Pagintable
+import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed
 import java.time.Instant
 import java.util.*
 import javax.persistence.*
 
-@Table(name = "classrooms")
-@Entity(name = "classroom")
+@Table(name = "Courses")
+@Entity(name = "courses")
 
-class Classroom(
+class Course(
     @Id
     @Column(name = "id", updatable = false, unique = true)
     val id: UUID = UUID.randomUUID(),
@@ -23,16 +23,10 @@ class Classroom(
     @Column(name = "prerequisite")
     val prerequisite: String,
 
-    @ManyToMany
-    @JoinTable(
-        name = "professors",
-        joinColumns = [JoinColumn(name = "professor_id")],
-        inverseJoinColumns = [JoinColumn(name = "classroom_id")]
-        // join on classroom id and professor id
-    )
+    @ManyToMany(mappedBy = "courses")
     val professors: Set<Professor>,
 
-    @OneToMany
+    @OneToMany(mappedBy = "id")
     val assignments: Set<Assignment>,
 
     @Column(name = "startDate", nullable = false)
@@ -68,10 +62,11 @@ class Classroom(
      */
     val autoFilled: Boolean = false,
 
-    @OneToOne(mappedBy = "id", cascade = [(CascadeType.ALL)])
+    @ManyToOne
+    @JoinColumn(name = "school_id")
     val school: School
 
-    ) : Pagintable
+    ) : Pagable
 
 {
     enum class ClassTerm { SPRING, WINTER, FALL, SUMMER  }

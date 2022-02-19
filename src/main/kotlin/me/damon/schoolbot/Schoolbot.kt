@@ -33,7 +33,7 @@ fun main()
 }
 
 @SpringBootApplication
-open class Schoolbot : ListenerAdapter()
+open  class Schoolbot : ListenerAdapter()
 {
 
     /**
@@ -73,8 +73,7 @@ open class Schoolbot : ListenerAdapter()
     // after loading
     val cmd = CommandHandler(this)
 
-    @Bean
-    open fun build(): JDA
+     fun build(): JDA
     {
         try
         {

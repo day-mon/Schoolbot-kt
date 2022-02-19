@@ -1,6 +1,6 @@
 package me.damon.schoolbot.objects.school
 
-import me.damon.schoolbot.objects.misc.Pagintable
+import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed
 import java.time.Instant
 import java.util.*
@@ -25,12 +25,14 @@ class Assignment (
     @Column(name = "dueDate")
     val dueDate: Instant,
 
+
     @ManyToOne
-    val classroom: Classroom
+    @JoinColumn(name = "course_id", nullable = false)
+    val course: Course
 
 
 
-) : Comparable<Assignment>, Pagintable
+) : Comparable<Assignment>, Pagable
 {
     override fun compareTo(other: Assignment): Int
     {

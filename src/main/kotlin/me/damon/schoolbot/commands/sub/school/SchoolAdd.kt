@@ -49,7 +49,7 @@ class SchoolAdd : SubCommand(
 
         val schoolName = event.getOption("school_name")!!.asString
         val client = event.jda.httpClient
-        val request = get(apiUrl + schoolName)
+        val request = get(backupApiUrl + schoolName)
 
 
         event.replyMessage("Searching for `$schoolName`...")
@@ -101,7 +101,7 @@ class SchoolAdd : SubCommand(
     {
         val jda = event.jda
         val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = event.user, expiration = 1.minutes) {
-               // cmdEvent.saveSchool(school)
+               cmdEvent.saveSchool(school)
         }
 
         val no = jda.button(label = "No", style = ButtonStyle.DANGER, user = event.user, expiration = 1.minutes) {

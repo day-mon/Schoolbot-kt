@@ -1,6 +1,6 @@
 package me.damon.schoolbot.objects.school
 
-import me.damon.schoolbot.objects.misc.Pagintable
+import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed
 import java.util.*
 import javax.persistence.*
@@ -21,9 +21,22 @@ class Professor(
     @Column(name = "emailPrefix", nullable = false, columnDefinition = "TEXT")
     val emailPrefix: String,
 
-    @ManyToMany(mappedBy = "professors", cascade = [(CascadeType.ALL)])
-    val classes: Set<Classroom>
-    ) : Pagintable
+    @ManyToOne
+    @JoinColumn(name = "school_id")
+    val school: School,
+
+
+    @ManyToMany
+    @JoinTable(
+        name = "professors_courses",
+        joinColumns = [JoinColumn(name = "professor_id", referencedColumnName = "id")],
+        inverseJoinColumns = [JoinColumn(name = "course_id", referencedColumnName = "id")]
+    )
+    val courses: Set<Course>
+
+
+
+    ) : Pagable
 {
     override fun getAsEmbed(): MessageEmbed
     {
