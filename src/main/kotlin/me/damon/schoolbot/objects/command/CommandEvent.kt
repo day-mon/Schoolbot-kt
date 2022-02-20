@@ -7,7 +7,7 @@ import dev.minn.jda.ktx.interactions.sendPaginator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withTimeoutOrNull
 import me.damon.schoolbot.Schoolbot
-import me.damon.schoolbot.commands.main.service.SchoolService
+import me.damon.schoolbot.service.SchoolService
 import me.damon.schoolbot.objects.misc.Pagable
 import me.damon.schoolbot.objects.school.School
 import net.dv8tion.jda.api.Permission
@@ -17,8 +17,6 @@ import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEve
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Bean
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
@@ -31,7 +29,6 @@ class CommandEvent(
     val slashEvent: SlashCommandInteractionEvent,
     val command: AbstractCommand,
     val scope: CoroutineScope,
-    val sRepo: SchoolService
 )
 {
 
@@ -72,7 +69,7 @@ class CommandEvent(
         }
     }
 
-    fun saveSchool(school: School) = sRepo.saveSchool(school)
+    //fun saveSchool(school: School) = sRepo.saveSchool(school)
 
     fun replyMessage(message: String) = when {
         command.deferredEnabled -> hook.editOriginal(message).queue()

@@ -1,4 +1,4 @@
-package me.damon.schoolbot.commands.main.service
+package me.damon.schoolbot.service
 
 import me.damon.schoolbot.objects.repository.SchoolRepository
 import me.damon.schoolbot.objects.school.School

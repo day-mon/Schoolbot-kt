@@ -1,5 +1,3 @@
-
-
 application {
     mainClass.set("me.damon.schoolbot.Schoolbot")
 }
@@ -67,7 +65,7 @@ dependencies {
 
     // Database remove soon
     implementation("com.zaxxer:HikariCP:5.0.1")
-    implementation("org.postgresql:postgresql:42.3.1")
+    runtimeOnly("org.postgresql:postgresql:42.3.1")
 
     // Utils
     implementation("org.reflections:reflections:0.10.2")
