@@ -9,6 +9,8 @@ import me.damon.schoolbot.handler.TaskHandler
 import me.damon.schoolbot.listener.GuildListeners
 import me.damon.schoolbot.listener.MessageListeners
 import me.damon.schoolbot.listener.SlashListener
+import me.damon.schoolbot.objects.repository.SchoolRepository
+import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.OnlineStatus
@@ -20,6 +22,11 @@ import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import okhttp3.OkHttpClient
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.SpringApplication
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.context.annotation.AnnotationConfigApplicationContext
+import org.springframework.context.annotation.Bean
 import java.time.Instant
 import java.util.List
 import java.util.Random
@@ -29,11 +36,15 @@ import kotlin.system.exitProcess
 
 fun main()
 {
-    Schoolbot()
+    SpringApplication.run(Schoolbot::class.java)
 }
 
-class Schoolbot : ListenerAdapter()
+@SpringBootApplication
+open class Schoolbot : ListenerAdapter()
 {
+
+    @Autowired
+    lateinit var schoolRepo: SchoolService
 
     /**
      * withContext(Dispatcher.Main) {
@@ -48,18 +59,7 @@ class Schoolbot : ListenerAdapter()
         .writeTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
-    // TIME SET BECAUSE SOME REQUEST TAKE A LONG TIME DEFAULT IS 10 SECONDS
-
-    /*
-    val okhttp = OkHttpClient.Builder()
-        .readTimeout()
-            // The write timeout is applied for individual write IO operations. The default value is 10 secon
-        .writeTimeout()
-            // The connect timeout is applied when connecting a TCP socket to the target host. The default value is 10 seconds.
-        .connectTimeout()
-
-     */
-
+    // TIME SET BECAUSE SOME REQUESTS TAKE A LONG TIME DEFAULT IS 10 SECONDS
 
     // handlers
     val startUpTime = Instant.now()!!
@@ -73,7 +73,7 @@ class Schoolbot : ListenerAdapter()
     // after loading
     val cmd = CommandHandler(this)
 
-    private fun build(): JDA
+     fun build(): JDA
     {
         try
         {
@@ -124,6 +124,7 @@ class Schoolbot : ListenerAdapter()
     {
         logger.info("Ready.")
 
+
         taskHandler.addRepeatingTask(
             name = "status_switcher",
             timeUnit = TimeUnit.SECONDS,
@@ -140,10 +141,4 @@ class Schoolbot : ListenerAdapter()
             }
         )
     }
-
-
-
-
-
-
 }

@@ -1,7 +1,7 @@
 package me.damon.schoolbot.objects.school
 
 import dev.minn.jda.ktx.Embed
-import me.damon.schoolbot.objects.misc.Pagintable
+import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed
 import java.time.ZoneId
 import java.util.*
@@ -9,7 +9,7 @@ import javax.persistence.*
 
 @Entity(name = "School")
 @Table(name = "schools")
-class School(
+class  School(
     @Id
     @Column(name = "id", unique = true, updatable = false)
     val id: UUID = UUID.randomUUID(),
@@ -24,24 +24,27 @@ class School(
     val emailSuffix: String,
 
     @Column(name = "isPittSchool", nullable = false)
-    val isPittSchool: Boolean,
+    val isPittSchool: Boolean = name.contains("University of Pittsburgh"),
 
     @Column(name = "guildId", nullable = false)
-    val guildId: Long = -1L,
+    var guildId: Long = -1L,
 
     @Column(name = "roleId", nullable = false)
-    val roleId: Long = -1L,
+    var roleId: Long = -1L,
 
-    @ManyToMany(mappedBy = "id", cascade = [CascadeType.ALL])
-    val professor: Set<Professor> = setOf(),
+
+    @OneToMany(mappedBy = "id")
+    val professor: Set<Professor>,
+
 
     @OneToMany(mappedBy = "id", cascade = [CascadeType.ALL])
-    val classes: Set<Classroom> = setOf(),
+    val classes: Set<Course>,
+
 
     @Column(name = "timeZone", nullable = false, updatable = true)
     val timeZone: ZoneId
 
-    ) : Pagintable
+    ) : Pagable
 {
     override fun getAsEmbed(): MessageEmbed = Embed {
         title = name
@@ -50,6 +53,7 @@ class School(
             value = emailSuffix
         }
 
+        /*
         field {
             name = "Classes Count"
             value = classes.size.toString()
@@ -60,6 +64,8 @@ class School(
             value  = professor.size.toString()
         }
 
+
+         */
         color = Random().nextInt(0xFFFF)
     }
 }

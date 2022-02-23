@@ -3,10 +3,12 @@ package me.damon.schoolbot.handler
 import dev.minn.jda.ktx.SLF4J
 import kotlinx.coroutines.*
 import me.damon.schoolbot.Schoolbot
+import me.damon.schoolbot.service.SchoolService
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import org.reflections.Reflections
+import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 import kotlin.time.ExperimentalTime
 
@@ -77,7 +79,10 @@ class CommandHandler(private val schoolbot: Schoolbot)
                      withTimeoutOrNull(command.timeout) {
                          subC.onExecuteSuspend(
                              CommandEvent(
-                                 scope = scope, schoolbot = schoolbot, command = subC, slashEvent = event
+                                 scope = scope,
+                                 schoolbot = schoolbot,
+                                 command = subC,
+                                 slashEvent = event,
                              )
                          )
                      }
@@ -90,7 +95,10 @@ class CommandHandler(private val schoolbot: Schoolbot)
                     withTimeoutOrNull(command.timeout) {
                         command.process(
                             CommandEvent(
-                                schoolbot = schoolbot, slashEvent = event, command = command, scope = scope
+                                schoolbot = schoolbot,
+                                slashEvent = event,
+                                command = command,
+                                scope = scope,
                             )
                         )
                 }

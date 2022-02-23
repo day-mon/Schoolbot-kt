@@ -1,7 +1,7 @@
 package me.damon.schoolbot.objects.command
 
 import dev.minn.jda.ktx.Embed
-import me.damon.schoolbot.objects.misc.Pagintable
+import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.Permission
 import kotlin.time.Duration
 
@@ -17,7 +17,7 @@ abstract class Command(
     override val selfPermission: List<Permission> = listOf(),
     override val children: List<SubCommand> = listOf(),
     override val options: List<CommandOptionData<*>> = listOf()
-) : AbstractCommand(), Pagintable
+) : AbstractCommand(), Pagable
 {
     suspend fun process(event: CommandEvent)
     {
@@ -36,14 +36,22 @@ abstract class Command(
         if (!event.hasSelfPermissions(selfPermission))
         {
             val correct = "I will need ${selfPermission.filter { it !in event.guild.selfMember.permissions}.joinToString { "`${it.getName()}`" } } permission(s) to run this command!"
-            if (deferredEnabled) event.hook.editOriginal(correct).queue()
-            else event.slashEvent.reply(correct).queue()
+            sendMessage(event ,correct)
         }
         else if (!event.hasMemberPermissions(memberPermissions))
         {
             val correct = "You will need ${memberPermissions.filter { it !in event.member.permissions}.joinToString { "`${it.getName()}`" } } permission(s) to run this command!"
-            if (deferredEnabled) event.hook.editOriginal(correct).queue()
-            else event.slashEvent.reply(correct).queue()
+            sendMessage(event, correct)
+        }
+        else if (category == CommandCategory.DEV)
+        {
+            if (event.user.id !in event.schoolbot.configHandler.config.developerIds)
+            {
+                sendMessage(event, "You must be a developer to run this command")
+                return
+            }
+
+            onExecuteSuspend(event)
         }
         else
         {
@@ -58,6 +66,12 @@ abstract class Command(
             name = "Description"
 
         }
+    }
+
+    private fun sendMessage(e: CommandEvent, message: String)
+    {
+        if (deferredEnabled) e.hook.editOriginal(message).queue()
+        else e.slashEvent.reply(message).queue()
     }
 
     abstract suspend fun onExecuteSuspend(event: CommandEvent)

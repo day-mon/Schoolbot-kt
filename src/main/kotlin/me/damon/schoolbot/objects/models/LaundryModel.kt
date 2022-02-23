@@ -1,7 +1,7 @@
 package me.damon.schoolbot.objects.models
 
 import dev.minn.jda.ktx.Embed
-import me.damon.schoolbot.objects.misc.Pagintable
+import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed
 import java.awt.Color
 
@@ -12,7 +12,7 @@ data class LaundryModel(
     val timeRemaining: String,
     val isInUse: Boolean,
     val location: String
-) : Pagintable
+) : Pagable
 {
     override fun getAsEmbed(): MessageEmbed
     {
