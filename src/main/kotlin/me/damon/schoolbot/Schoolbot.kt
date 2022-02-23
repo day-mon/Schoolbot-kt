@@ -5,6 +5,7 @@ import dev.minn.jda.ktx.injectKTX
 import me.damon.schoolbot.handler.CommandHandler
 import me.damon.schoolbot.handler.ConfigHandler
 import me.damon.schoolbot.handler.MessageHandler
+import me.damon.schoolbot.handler.TaskHandler
 import me.damon.schoolbot.listener.GuildListeners
 import me.damon.schoolbot.listener.MessageListeners
 import me.damon.schoolbot.listener.SlashListener
@@ -27,6 +28,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean
 import java.time.Instant
+import java.util.List
+import java.util.Random
 import java.util.concurrent.TimeUnit
 import javax.security.auth.login.LoginException
 import kotlin.system.exitProcess
@@ -61,6 +64,7 @@ open class Schoolbot : ListenerAdapter()
     // handlers
     val startUpTime = Instant.now()!!
     val configHandler  = ConfigHandler()
+    val taskHandler = TaskHandler()
     val messageHandler  = MessageHandler()
 
     // jda
@@ -119,16 +123,22 @@ open class Schoolbot : ListenerAdapter()
     override fun onReady(event: ReadyEvent)
     {
         logger.info("Ready.")
-        jda.presence
-            .setPresence(
-                OnlineStatus.ONLINE,
-            Activity.watching("Your mom")
+
+
+        taskHandler.addRepeatingTask(
+            name = "status_switcher",
+            timeUnit = TimeUnit.SECONDS,
+            duration = 30,
+            block = {
+                val random = Random()
+                val activityList = listOf(
+                    Activity.watching("mark sleep"),
+                    Activity.streaming("warner growing", "https://www.youtube.com/watch?v=PLOPygVcaVE"),
+                    Activity.watching("damon bench joesphs weight"),
+                    Activity.streaming("chakra balancing seminar", "https://www.youtube.com/watch?v=vqklftk89Nw")
+                )
+                jda.presence.setPresence(OnlineStatus.ONLINE, activityList[random.nextInt(activityList.size)])
+            }
         )
     }
-
-
-
-
-
-
 }
