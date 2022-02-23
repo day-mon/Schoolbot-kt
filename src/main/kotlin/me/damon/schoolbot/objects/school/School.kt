@@ -53,7 +53,7 @@ class  School(
             value = emailSuffix
         }
 
-        /*
+
         field {
             name = "Classes Count"
             value = classes.size.toString()
@@ -64,8 +64,6 @@ class  School(
             value  = professor.size.toString()
         }
 
-
-         */
         color = Random().nextInt(0xFFFF)
     }
 }

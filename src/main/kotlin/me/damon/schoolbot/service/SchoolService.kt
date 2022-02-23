@@ -33,4 +33,8 @@ class SchoolService
            schoolRepo.save(school)
        }
     }
+
+    fun getSchoolsByGuildId(guildId: Long) = schoolRepo.querySchoolsByGuildId(guildId)
+
+
 }

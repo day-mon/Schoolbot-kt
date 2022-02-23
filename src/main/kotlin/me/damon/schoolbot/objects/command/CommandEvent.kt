@@ -7,9 +7,7 @@ import dev.minn.jda.ktx.interactions.sendPaginator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withTimeoutOrNull
 import me.damon.schoolbot.Schoolbot
-import me.damon.schoolbot.service.SchoolService
 import me.damon.schoolbot.objects.misc.Pagable
-import me.damon.schoolbot.objects.school.School
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
@@ -20,6 +18,7 @@ import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
 
 private val logger = LoggerFactory.getLogger(CommandEvent::class.java)
@@ -117,7 +116,7 @@ class CommandEvent(
     fun <T: Pagable> sendPaginator(embeds: List<T>) = sendPaginator(*embeds.map { it.getAsEmbed() }.toTypedArray())
 
     @OptIn(ExperimentalTime::class)
-    suspend fun <T> sendMenuAndAwait(menu: SelectMenu, message: String, timeoutDuration: Duration, inTimeoutCallback: suspend CoroutineScope.(SelectMenuInteractionEvent) -> T)
+    suspend fun <T> sendMenuAndAwait(menu: SelectMenu, message: String, timeoutDuration: Duration = 1.minutes, inTimeoutCallback: suspend CoroutineScope.(SelectMenuInteractionEvent) -> T)
     {
         hook.editOriginal(message)
             .setActionRow(menu)
