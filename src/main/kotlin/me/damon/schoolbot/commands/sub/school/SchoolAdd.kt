@@ -24,6 +24,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import java.time.ZoneId
 import java.util.*
+import kotlin.math.log
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
 
@@ -101,13 +102,26 @@ class SchoolAdd : SubCommand(
     {
         val jda = event.jda
         val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = event.user, expiration = 1.minutes) {
-              // cmdEvent.saveSchool(school)
+
+            try
+            {
+                val savedSchool = cmdEvent.schoolbot.schoolRepo.saveSchool(school, cmdEvent)
+                it.reply("School has been saved")
+                    .addEmbeds(savedSchool.getAsEmbed())
+                    .queue()
+            }
+            catch (e: IllegalArgumentException)
+            {
+                logger.error("{} could not be saved", school.name)
+                cmdEvent.replyMessage("${school.name} could not be saved")
+            }
+
         }
 
         val no = jda.button(label = "No", style = ButtonStyle.DANGER, user = event.user, expiration = 1.minutes) {
-            event.hook.editOriginal("Aborting.. Thank you for using Schoolbot!")
-                .setActionRows(Collections.emptyList())
-                .setEmbeds(Collections.emptyList())
+           it.reply("Aborting.. Thank you for using Schoolbot!")
+                .addActionRow(Collections.emptyList())
+                .addEmbeds(Collections.emptyList())
                 .queue()
         }
 

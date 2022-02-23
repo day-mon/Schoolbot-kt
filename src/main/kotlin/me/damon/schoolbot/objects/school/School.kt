@@ -9,7 +9,7 @@ import javax.persistence.*
 
 @Entity(name = "School")
 @Table(name = "schools")
-class School(
+class  School(
     @Id
     @Column(name = "id", unique = true, updatable = false)
     val id: UUID = UUID.randomUUID(),
@@ -24,13 +24,13 @@ class School(
     val emailSuffix: String,
 
     @Column(name = "isPittSchool", nullable = false)
-    val isPittSchool: Boolean,
+    val isPittSchool: Boolean = name.contains("University of Pittsburgh"),
 
     @Column(name = "guildId", nullable = false)
-    val guildId: Long = -1L,
+    var guildId: Long = -1L,
 
     @Column(name = "roleId", nullable = false)
-    val roleId: Long = -1L,
+    var roleId: Long = -1L,
 
 
     @OneToMany(mappedBy = "id")
