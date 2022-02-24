@@ -15,7 +15,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 class LaundryView : SubCommand(
     name = "view",
     category = CommandCategory.SCHOOL,
-    description = "Views ",
+    description = "Views laundry in the target dormitory",
     options = listOf(
         CommandOptionData<String> (
             type = OptionType.STRING,
@@ -47,7 +47,6 @@ class LaundryView : SubCommand(
                     val om = jacksonObjectMapper()
                     val models: List<LaundryModel> = om.readValue(json)
                     event.sendPaginator(models)
-                    // add error checking here
                 }
 
                 response.code() == 404 ->

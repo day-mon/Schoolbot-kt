@@ -28,19 +28,27 @@ data class LaundryModel(
 
             field {
                 name = "Working"
-                value = if (isWorking) "Yes" else "No"
+                value = when {
+                    isWorking -> "Yes"
+                    else -> "No"
+                }
                 inline = false
             }
 
             field {
-                name = if (isInUse) "Time Remaining" else "In Use"
-                value = if (isInUse) timeRemaining else "No"
+                name = when {
+                    isInUse -> "Time Remaining"
+                    else -> "In Use"
+                }
+                value = when {
+                    isInUse -> timeRemaining
+                    else -> "No"
+                }
                 inline = false
             }
 
 
-            //TODO: Fix color
-            color = if(isWorking) Color.green.green else Color.red.red
+            color = if (isWorking) 0x26a29 /* green */ else 0x990f0f /* red */
         }
 
     }

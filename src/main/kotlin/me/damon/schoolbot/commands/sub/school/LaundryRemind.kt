@@ -12,7 +12,10 @@ import me.damon.schoolbot.objects.models.LaundryModel
 import me.damon.schoolbot.web.asException
 import me.damon.schoolbot.web.await
 import me.damon.schoolbot.web.get
+import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.commands.OptionType
+import net.dv8tion.jda.api.requests.ErrorResponse
+import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
 
@@ -61,7 +64,29 @@ class LaundryRemind : SubCommand(
                         message = "Please select the machine you would like to be reminded of",
                         timeoutDuration = 1.minutes
                     ) {
+                        val taskHandler = event.schoolbot.taskHandler
+                        val option = models[it.values[0].toInt()]
+                        val timeLeft = option.timeRemaining.split(Regex("\\s+"))[0].toInt()
+                        val id = "${event.user.idLong}_${option.location}_${option.applianceID}"
 
+                        if (taskHandler.taskExist(id)) return@sendMenuAndAwait run {
+                            event.replyMessage("You already have a reminder for this ${option.location} ${option.applianceID}")
+                        }
+
+                        taskHandler.addTask(
+                            name = id,
+                            timeUnit = TimeUnit.MINUTES,
+                            duration = timeLeft.toLong()
+                        ) {
+                            val message = "${option.type} - ${option.applianceID} at ${option.location} is now ready"
+                            event.user.openPrivateChannel()
+                                .queue { pc ->
+                                    pc.sendMessage(message).queue({}, ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER) {
+                                        event.replyMessage("I could not send you a message but.. $message")
+                                    })
+                                }
+                        }
+                        it.reply("You will be reminded in $timeLeft minutes about your laundry").queue()
                     }
 
                 }

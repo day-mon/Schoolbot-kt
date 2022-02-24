@@ -27,6 +27,19 @@ class TaskHandler
         return job
     }
 
+    fun addTask(name: String, timeUnit: TimeUnit, duration: Long, block: () -> Unit)
+    {
+        val job = scheduler.schedule(
+            block,
+            duration,
+            timeUnit
+        )
+        tasks[name] = job
+    }
+
+    fun taskExist(name: String) = tasks.containsKey(name)
+
+
     fun startOnReadyTask(jda: JDA)
     {
         addRepeatingTask(
