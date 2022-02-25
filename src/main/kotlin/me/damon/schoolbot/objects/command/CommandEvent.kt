@@ -2,19 +2,23 @@ package me.damon.schoolbot.objects.command
 
 import dev.minn.jda.ktx.Embed
 import dev.minn.jda.ktx.await
-import dev.minn.jda.ktx.interactions.replyPaginator
-import dev.minn.jda.ktx.interactions.sendPaginator
+import dev.minn.jda.ktx.interactions.*
+import dev.minn.jda.ktx.messages.reply_
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withTimeoutOrNull
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.objects.misc.Pagable
+import me.damon.schoolbot.objects.school.School
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
+import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import org.slf4j.LoggerFactory
+import java.time.ZoneId
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
@@ -68,8 +72,6 @@ class CommandEvent(
         }
     }
 
-    //fun saveSchool(school: School) = sRepo.saveSchool(school)
-
     fun replyMessage(message: String) = when {
         command.deferredEnabled -> hook.editOriginal(message).queue()
         else -> slashEvent.reply(message).queue()
@@ -115,7 +117,7 @@ class CommandEvent(
 
     fun <T: Pagable> sendPaginator(embeds: List<T>) = sendPaginator(*embeds.map { it.getAsEmbed() }.toTypedArray())
 
-    @OptIn(ExperimentalTime::class)
+    @ExperimentalTime
     suspend fun <T> sendMenuAndAwait(menu: SelectMenu, message: String, timeoutDuration: Duration = 1.minutes, inTimeoutCallback: suspend CoroutineScope.(SelectMenuInteractionEvent) -> T)
     {
         hook.editOriginal(message)
@@ -130,7 +132,6 @@ class CommandEvent(
             .setActionRows(Collections.emptyList())
             .queue()
     }
-
 
     fun sendPaginator(vararg embeds: MessageEmbed)
     {

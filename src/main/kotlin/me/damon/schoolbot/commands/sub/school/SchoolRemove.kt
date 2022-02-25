@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package me.damon.schoolbot.commands.sub.school
 
 import dev.minn.jda.ktx.Embed
@@ -6,6 +8,7 @@ import dev.minn.jda.ktx.interactions.option
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.SubCommand
+import kotlin.time.ExperimentalTime
 
 class SchoolRemove : SubCommand(
     name = "remove",
@@ -16,7 +19,7 @@ class SchoolRemove : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val service = event.schoolbot.schoolRepo
-        val schools = service.getSchoolsByGuildId(event.guild.idLong)
+        val schools = service.getSchoolsByGuildId(event.guild.idLong).filter { it.classes.isEmpty() }
 
         if (schools.isEmpty()) return run {
             event.replyEmbed(
@@ -33,7 +36,7 @@ class SchoolRemove : SubCommand(
             menu = menu,
             message = "What school would you like to delete",
         ) {
-            print("test")
+            it
         }
     }
 }

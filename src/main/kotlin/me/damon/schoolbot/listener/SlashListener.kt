@@ -10,7 +10,6 @@ class SlashListener(private val schoolbot: Schoolbot) : ListenerAdapter()
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent)
     {
         if (event.guild == null) return
-        //todo preprocessing here
         schoolbot.cmd.handle(event)
     }
 

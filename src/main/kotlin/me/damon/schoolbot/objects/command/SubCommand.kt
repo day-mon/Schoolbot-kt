@@ -1,5 +1,6 @@
 package me.damon.schoolbot.objects.command
 
+import me.damon.schoolbot.Schoolbot
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
@@ -24,5 +25,5 @@ abstract class SubCommand(
 ) : AbstractCommand()
 {
     abstract suspend fun onExecuteSuspend(event: CommandEvent)
-    open suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent) {}
+    open suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot) {}
 }

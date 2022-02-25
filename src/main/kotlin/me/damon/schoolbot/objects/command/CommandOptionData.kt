@@ -6,8 +6,8 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 
 
-inline fun <reified T> CommandOptionData(type: Any, name: String, description: String, isRequired: Boolean = false, noinline validate: (T) -> Boolean = { true }, failedValidation: String = "")
-        = CommandOptionData(T::class.java, type, name, description, isRequired, validate, failedValidation)
+inline fun <reified T> CommandOptionData(type: Any, name: String, description: String, isRequired: Boolean = false, noinline validate: (T) -> Boolean = { true }, failedValidation: String = "", autoCompleteEnabled: Boolean = false)
+        = CommandOptionData(T::class.java, type, name, description, autoCompleteEnabled, isRequired, validate, failedValidation)
 
 
 
@@ -16,6 +16,7 @@ data class CommandOptionData<T>(
      val optionType: Any,
      val name: String,
      val description: String,
+     val autoCompleteEnabled: Boolean = false,
      val isRequired: Boolean = false,
      val validate: (T) -> Boolean = { true },
      val validationFailed: String
@@ -46,7 +47,7 @@ data class CommandOptionData<T>(
 
     private fun isValid(any: Any) =  validate(type.cast(any))
 
-    fun asOptionData(): OptionData = OptionData(optionType as OptionType, name, description, isRequired)
+    fun asOptionData(): OptionData = OptionData(optionType as OptionType, name, description, isRequired, autoCompleteEnabled)
 
 }
 

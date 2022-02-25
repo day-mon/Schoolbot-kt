@@ -93,11 +93,11 @@ class CommandHandler(private val schoolbot: Schoolbot)
 
         if (sub != null)  scope.launch {
             val subCommand = commandF.children.find { it.name == event.subcommandName }!!
-            subCommand.onAutoCompleteSuspend(event)
+            subCommand.onAutoCompleteSuspend(event, schoolbot)
         }
 
         else scope.launch {
-            commandF.onAutoCompleteSuspend(event)
+            commandF.onAutoCompleteSuspend(event, schoolbot)
         }
     }
 }
