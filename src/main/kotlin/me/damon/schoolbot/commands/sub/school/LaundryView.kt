@@ -6,10 +6,12 @@ import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
+import me.damon.schoolbot.objects.misc.BasicAutocompletionChoice
 import me.damon.schoolbot.objects.models.LaundryModel
 import me.damon.schoolbot.web.asException
 import me.damon.schoolbot.web.await
 import me.damon.schoolbot.web.get
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
 
 class LaundryView : SubCommand(
@@ -65,7 +67,22 @@ class LaundryView : SubCommand(
                     event.replyMessageWithErrorEmbed("Error occurred in while fetching data from API", response.asException())
                 }
             }
-
         }
+    }
+
+    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
+    {
+        val options = listOf(
+            BasicAutocompletionChoice("willow", "willow"),
+            BasicAutocompletionChoice("hemlock", "hemlock"),
+            BasicAutocompletionChoice("llc", "llc"),
+            BasicAutocompletionChoice("laurel", "laurel"),
+            BasicAutocompletionChoice("oak", "oak"),
+            BasicAutocompletionChoice("cpas", "cpas3"),
+            )
+
+        event.replyChoices(
+            options.map { it.toCommandAutocompleteChoice() }
+        ).queue()
     }
 }

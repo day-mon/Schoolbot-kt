@@ -1,14 +1,16 @@
 package me.damon.schoolbot.handler
 
 import dev.minn.jda.ktx.SLF4J
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import me.damon.schoolbot.Schoolbot
-import me.damon.schoolbot.service.SchoolService
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandEvent
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import org.reflections.Reflections
-import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 import kotlin.time.ExperimentalTime
 
@@ -17,7 +19,6 @@ private const val COMMANDS_PACKAGE = "me.damon.schoolbot.commands"
 private val supervisor = SupervisorJob()
 private val scope = CoroutineScope(Dispatchers.Default + supervisor)
 
-// todo consider a thread pool??!
 
 class CommandHandler(private val schoolbot: Schoolbot)
 {
@@ -70,39 +71,33 @@ class CommandHandler(private val schoolbot: Schoolbot)
 
         if (command.deferredEnabled) event.deferReply().queue()
 
-        if (subCommand != null)
-        {
-           val subC =  command.children
-               .find { it.name == event.subcommandName }!!
-
-                 scope.launch {
-                     withTimeoutOrNull(command.timeout) {
-                         subC.onExecuteSuspend(
-                             CommandEvent(
-                                 scope = scope,
-                                 schoolbot = schoolbot,
-                                 command = subC,
-                                 slashEvent = event,
-                             )
-                         )
-                     }
-                }
+        if (subCommand != null)  scope.launch {
+            val sub = command.children.find { it.name == event.subcommandName }!!
+            sub.onExecuteSuspend(
+                CommandEvent(scope = scope, schoolbot =  schoolbot, command = sub, slashEvent = event)
+            )
         }
-        else
-        {
 
-                scope.launch {
-                    withTimeoutOrNull(command.timeout) {
-                        command.process(
-                            CommandEvent(
-                                schoolbot = schoolbot,
-                                slashEvent = event,
-                                command = command,
-                                scope = scope,
-                            )
-                        )
-                }
-            }
+        else scope.launch {
+            command.process(
+                CommandEvent(scope = scope, schoolbot =  schoolbot, command = command, slashEvent = event)
+            )
+        }
+    }
+
+    fun handleAutoComplete(event: CommandAutoCompleteInteractionEvent)
+    {
+        val command = event.name
+        val sub = event.subcommandName
+        val commandF = commands[command] ?: return
+
+        if (sub != null)  scope.launch {
+            val subCommand = commandF.children.find { it.name == event.subcommandName }!!
+            subCommand.onAutoCompleteSuspend(event)
+        }
+
+        else scope.launch {
+            commandF.onAutoCompleteSuspend(event)
         }
     }
 }
