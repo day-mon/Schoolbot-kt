@@ -6,8 +6,18 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 
 
-inline fun <reified T> CommandOptionData(type: Any, name: String, description: String, isRequired: Boolean = false, noinline validate: (T) -> Boolean = { true }, failedValidation: String = "", autoCompleteEnabled: Boolean = false)
-        = CommandOptionData(T::class.java, type, name, description, autoCompleteEnabled, isRequired, validate, failedValidation)
+inline fun <reified T> CommandOptionData(type: Any, name: String, description: String, isRequired: Boolean = false, noinline validate: (T) -> Boolean = { true }, failedValidation: String = "", autoCompleteEnabled: Boolean = false, choices: List<CommandChoice> = listOf())
+        = CommandOptionData(
+                    type = T::class.java,
+                    optionType = type,
+                    name = name,
+                    description = description,
+                    autoCompleteEnabled = autoCompleteEnabled,
+                    isRequired = isRequired,
+                    validate = validate,
+                    validationFailed = failedValidation,
+                    choices = choices
+                )
 
 
 
@@ -19,8 +29,10 @@ data class CommandOptionData<T>(
      val autoCompleteEnabled: Boolean = false,
      val isRequired: Boolean = false,
      val validate: (T) -> Boolean = { true },
-     val validationFailed: String
-)
+     val validationFailed: String,
+     val choices: List<CommandChoice> = listOf(),
+
+     )
 {
 
     private val logger by SLF4J
@@ -47,7 +59,14 @@ data class CommandOptionData<T>(
 
     private fun isValid(any: Any) =  validate(type.cast(any))
 
-    fun asOptionData(): OptionData = OptionData(optionType as OptionType, name, description, isRequired, autoCompleteEnabled)
+    fun asOptionData(): OptionData = OptionData(/* type = */ optionType as OptionType, /* name = */
+        name, /* description = */
+        description, /* isRequired = */
+        isRequired, /* isAutoComplete = */
+        autoCompleteEnabled
+    )
+        .addChoices(choices.map { it.asCommandChoice() })
+
 
 }
 

@@ -76,6 +76,10 @@ class CommandEvent(
         command.deferredEnabled -> hook.editOriginal(message).queue()
         else -> slashEvent.reply(message).queue()
     }
+    fun replyMessageAndClear(message: String) = when {
+        command.deferredEnabled -> hook.editOriginal(message).setActionRows(Collections.emptyList()).setEmbeds(Collections.emptyList()).queue()
+        else -> slashEvent.reply(message).addActionRows(Collections.emptyList()).addActionRows(Collections.emptyList()).queue()
+    }
 
 
     fun replyMessageWithErrorEmbed(message: String, exception: Exception)

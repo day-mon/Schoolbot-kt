@@ -14,12 +14,14 @@ class LaundryReminderCancel : SubCommand(
     name = "remind-cancel",
     category = CommandCategory.SCHOOL,
     description = "Cancels reminder",
-)
+    )
 {
     @OptIn(ExperimentalTime::class)
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val keys = event.schoolbot.taskHandler.tasks.keys
+        val tHandler = event.schoolbot.taskHandler
+        val task = tHandler.tasks
+        val keys = task.keys
         val reminders = keys.filter { it.contains(event.user.id) }
 
         if (reminders.isEmpty()) return run {
@@ -27,13 +29,25 @@ class LaundryReminderCancel : SubCommand(
         }
 
         val menu = SelectMenu("reminders:menu")
-        { reminders.forEachIndexed { index, s -> option(s, index.toString()) } }
+        { reminders.forEachIndexed { _, s -> option(s.replace(event.user.id, "").replace("_", " "), s) } }
 
         event.sendMenuAndAwait(
             menu = menu,
             message = "Please select a reminder",
         ) {
+            val option = it.values[0]
+            val canceled = tHandler.cancelTask(option) ?: return@sendMenuAndAwait run {
+                event.replyMessage("Some how that reminder does not exist")
+            }
 
+            if (!canceled) return@sendMenuAndAwait run {
+                event.replyMessageAndClear("Task cannot be cancelled. This could be because its completed already")
+            }
+
+            task.remove(option)
+
+            val choice = option.replace(event.user.id, "").replace("_", " ")
+            event.replyMessageAndClear("$choice reminder has successfully been removed.")
         }
     }
 
