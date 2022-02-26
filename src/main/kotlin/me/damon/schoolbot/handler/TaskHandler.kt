@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 class TaskHandler
 {
     private val scheduler = Executors.newScheduledThreadPool(10)
-    private val tasks = mutableMapOf<String, Future<*>>()
+    val tasks = mutableMapOf<String, Future<*>>()
 
     fun addRepeatingTask(name: String, timeUnit: TimeUnit, duration: Long, block: () -> Unit): ScheduledFuture<*>
     {
@@ -44,8 +44,8 @@ class TaskHandler
     {
         addRepeatingTask(
         name = "status_switcher",
-        timeUnit = TimeUnit.SECONDS,
-        duration = 30,
+        timeUnit = TimeUnit.MINUTES,
+        duration = 5,
         block = {
             val random = Random()
             val activityList = listOf(

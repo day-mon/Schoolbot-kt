@@ -1,8 +1,10 @@
 package me.damon.schoolbot.objects.command
 
 import dev.minn.jda.ktx.Embed
+import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import kotlin.time.Duration
 
 abstract class Command(
@@ -75,4 +77,6 @@ abstract class Command(
     }
 
     abstract suspend fun onExecuteSuspend(event: CommandEvent)
+    open suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot){}
+
 }

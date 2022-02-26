@@ -67,7 +67,7 @@ class LaundryRemind : SubCommand(
                         val taskHandler = event.schoolbot.taskHandler
                         val option = models[it.values[0].toInt()]
                         val timeLeft = option.timeRemaining.split(Regex("\\s+"))[0].toInt()
-                        val id = "${event.user.idLong}_${option.location}_${option.applianceID}"
+                        val id = "${event.user.idLong}_${option.location}_${option.type}_${option.applianceID}"
 
                         if (taskHandler.taskExist(id)) return@sendMenuAndAwait run {
                             event.replyMessage("You already have a reminder for this ${option.location} ${option.applianceID}")

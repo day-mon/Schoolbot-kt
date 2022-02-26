@@ -2,14 +2,16 @@ package me.damon.schoolbot.commands.sub.school
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import me.damon.schoolbot.objects.command.CommandCategory
-import me.damon.schoolbot.objects.command.CommandEvent
-import me.damon.schoolbot.objects.command.CommandOptionData
-import me.damon.schoolbot.objects.command.SubCommand
+import me.damon.schoolbot.Schoolbot
+import me.damon.schoolbot.constants
+import me.damon.schoolbot.objects.command.*
+import me.damon.schoolbot.objects.misc.asCommandChoice
 import me.damon.schoolbot.objects.models.LaundryModel
 import me.damon.schoolbot.web.asException
 import me.damon.schoolbot.web.await
 import me.damon.schoolbot.web.get
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
+import net.dv8tion.jda.api.interactions.commands.Command.Choice
 import net.dv8tion.jda.api.interactions.commands.OptionType
 
 class LaundryView : SubCommand(
@@ -17,9 +19,10 @@ class LaundryView : SubCommand(
     category = CommandCategory.SCHOOL,
     description = "Views laundry in the target dormitory",
     options = listOf(
-        CommandOptionData<String> (
+        CommandOptionData<String>(
             type = OptionType.STRING,
             name = "dormitory",
+            choices = constants.dorms.map { it.asCommandChoice() }.toList(),
             description = "Target dormitory you want check",
             isRequired = true
         )
@@ -54,18 +57,19 @@ class LaundryView : SubCommand(
                     event.replyMessage("[**$dorm**] does not exist. Please try again!")
                 }
 
-                response.code() > 500  ->
+                response.code() > 500 ->
                 {
                     event.replyMessage("API returned internal server error")
                 }
 
                 else ->
                 {
-                    logger.error("Error has occurred", response.asException() )
-                    event.replyMessageWithErrorEmbed("Error occurred in while fetching data from API", response.asException())
+                    logger.error("Error has occurred", response.asException())
+                    event.replyMessageWithErrorEmbed(
+                        "Error occurred in while fetching data from API", response.asException()
+                    )
                 }
             }
-
         }
     }
 }
