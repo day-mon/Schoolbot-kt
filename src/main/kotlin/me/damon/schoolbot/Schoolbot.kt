@@ -37,9 +37,8 @@ fun main()
 @SpringBootApplication
 open class Schoolbot : ListenerAdapter()
 {
-
     @Autowired
-    lateinit var schoolRepo: SchoolService
+    lateinit var schoolService: SchoolService
 
     /**
      * withContext(Dispatcher.Main) {
@@ -68,7 +67,7 @@ open class Schoolbot : ListenerAdapter()
     // after loading
     val cmd = CommandHandler(this)
 
-     fun build(): JDA
+    fun build(): JDA
     {
         try
         {
@@ -94,7 +93,7 @@ open class Schoolbot : ListenerAdapter()
                     CacheFlag.ONLINE_STATUS
                 )
                 .setMemberCachePolicy(MemberCachePolicy.NONE)
-                    // doesn't cache members on start up
+                // doesn't cache members on start up
                 .setChunkingFilter(ChunkingFilter.NONE)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .addEventListeners(

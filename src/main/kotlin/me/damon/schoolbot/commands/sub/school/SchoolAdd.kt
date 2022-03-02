@@ -1,4 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
 
 package me.damon.schoolbot.commands.sub.school
 
@@ -15,18 +14,16 @@ import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.models.SchoolModel
 import me.damon.schoolbot.objects.school.School
 import me.damon.schoolbot.web.asException
-import me.damon.schoolbot.web.await
 import me.damon.schoolbot.web.bodyAsString
 import me.damon.schoolbot.web.get
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import ru.gildor.coroutines.okhttp.await
 import java.time.ZoneId
 import java.util.*
-import kotlin.math.log
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.ExperimentalTime
 
 class SchoolAdd : SubCommand(
     name = "add",
@@ -54,47 +51,34 @@ class SchoolAdd : SubCommand(
 
 
         event.replyMessage("Searching for `$schoolName`...")
+        val response = client.newCall(request).await()
 
-
-
-
-        client.newCall(request).await(scope = event.scope) { response ->
-            when
-            {
-                response.isSuccessful -> {
-                    val json = response.bodyAsString() ?: return@await run {
-                        event.replyMessage("Error has occurred while trying to get the response body")
-                    }
-
-                    logger.debug("Json Response: {}", json)
-
-                    val om = jacksonObjectMapper()
-                    val models: List<SchoolModel> = om.readValue(json)
-
-                    if (models.isEmpty()) return@await run { event.replyMessage("There are no schools with the name `$schoolName`") }
-                    if (models.size > 25) return@await run { event.replyMessage("Please attempt to narrow your search down. That search propagated `${models.size}` results") }
-
-                    val menu = SelectMenu("school:menu") { models.forEachIndexed { index, schoolModel -> option(schoolModel.name, index.toString()) } }
-
-                    event.sendMenuAndAwait(
-                        menu = menu,
-                        message = "Select an item from the menu to choose a school \n **Timeout is set to one minute**",
-                        timeoutDuration = 1.minutes
-                    ) {
-                        val school = models[it.values[0].toInt()]
-                        it.reply_("Does this look like the correct school?")
-                            .addEmbeds(school.getAsEmbed())
-                            .addActionRow(getActionRows(it, event, school.asSchool(ZoneId.systemDefault())))
-                            .queue()
-                    }
-                }
-                else -> {
-                    logger.error("Unexpected error has occurred",  response.asException())
-                    event.replyMessage("An unexpected error has occurred!")
-                }
-
-            }
+        if (!response.isSuccessful)
+        {
+            logger.error("Unexpected error has occurred",  response.asException())
+            event.replyMessage("An unexpected error has occurred!")
+            return
         }
+
+        val json = response.bodyAsString() ?: return run {
+            event.replyMessage("Error has occurred while trying to get the response body")
+        }
+
+        val om = jacksonObjectMapper()
+        val models: List<SchoolModel> = om.readValue(json)
+
+        if (models.isEmpty()) return run { event.replyMessage("There are no schools with the name `$schoolName`") }
+        if (models.size > 25) return run { event.replyMessage("Please attempt to narrow your search down. That search propagated `${models.size}` results") }
+
+        val menu = SelectMenu("school:menu") { models.forEachIndexed { index, schoolModel -> option(schoolModel.name, index.toString()) } }
+
+        val selectionEvent = event.sendMenuAndAwait(menu, "Select an item from the menu to choose a school  **Timeout is set to one minute**")
+        val school = models[selectionEvent.values[0].toInt()]
+        selectionEvent.reply_("Does this look like the correct school?")
+            .addEmbeds(school.getAsEmbed())
+            .addActionRow(getActionRows(selectionEvent, event, school.asSchool(ZoneId.systemDefault())))
+            .queue()
+
     }
 
 
@@ -105,7 +89,7 @@ class SchoolAdd : SubCommand(
 
             try
             {
-                val savedSchool = cmdEvent.schoolbot.schoolRepo.saveSchool(school, cmdEvent)
+                val savedSchool = cmdEvent.schoolbot.schoolService.saveSchool(school, cmdEvent)
                 it.reply("School has been saved")
                     .addEmbeds(savedSchool.getAsEmbed())
                     .queue()
@@ -119,7 +103,7 @@ class SchoolAdd : SubCommand(
         }
 
         val no = jda.button(label = "No", style = ButtonStyle.DANGER, user = event.user, expiration = 1.minutes) {
-           it.reply("Aborting.. Thank you for using Schoolbot!")
+            it.reply("Aborting.. Thank you for using Schoolbot!")
                 .addActionRow(Collections.emptyList())
                 .addEmbeds(Collections.emptyList())
                 .queue()
