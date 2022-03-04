@@ -1,8 +1,6 @@
 
 package me.damon.schoolbot.commands.sub.school
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import dev.minn.jda.ktx.interactions.SelectMenu
 import dev.minn.jda.ktx.interactions.button
 import dev.minn.jda.ktx.interactions.option
@@ -11,16 +9,12 @@ import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
-import me.damon.schoolbot.objects.models.SchoolModel
 import me.damon.schoolbot.objects.school.School
 import me.damon.schoolbot.web.asException
-import me.damon.schoolbot.web.bodyAsString
-import me.damon.schoolbot.web.get
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
-import ru.gildor.coroutines.okhttp.await
 import java.time.ZoneId
 import java.util.*
 import kotlin.time.Duration.Companion.minutes
@@ -39,33 +33,25 @@ class SchoolAdd : SubCommand(
     )
 )
 {
-    private val apiUrl = "https://schoolapi.schoolbot.dev/search?name="
-    private val backupApiUrl = "http://universities.hipolabs.com/search?name="
 
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-
         val schoolName = event.getOption("school_name")!!.asString
-        val client = event.jda.httpClient
-        val request = get(backupApiUrl + schoolName)
-
-
         event.replyMessage("Searching for `$schoolName`...")
-        val response = client.newCall(request).await()
+        val response = event.schoolbot.apiHandler.schoolApi.getSchools(schoolName)
+
 
         if (!response.isSuccessful)
         {
-            logger.error("Unexpected error has occurred",  response.asException())
+            logger.error("Unexpected error has occurred",  response.raw().asException())
             event.replyMessage("An unexpected error has occurred!")
             return
         }
 
-        val json = response.bodyAsString() ?: return run {
+        val models = response.body() ?: return run {
             event.replyMessage("Error has occurred while trying to get the response body")
         }
 
-        val om = jacksonObjectMapper()
-        val models: List<SchoolModel> = om.readValue(json)
 
         if (models.isEmpty()) return run { event.replyMessage("There are no schools with the name `$schoolName`") }
         if (models.size > 25) return run { event.replyMessage("Please attempt to narrow your search down. That search propagated `${models.size}` results") }
@@ -78,6 +64,8 @@ class SchoolAdd : SubCommand(
             .addEmbeds(school.getAsEmbed())
             .addActionRow(getActionRows(selectionEvent, event, school.asSchool(ZoneId.systemDefault())))
             .queue()
+
+
 
     }
 

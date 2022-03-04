@@ -1,21 +1,17 @@
 package me.damon.schoolbot.commands.sub.school
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import dev.minn.jda.ktx.interactions.SelectMenu
 import dev.minn.jda.ktx.interactions.option
+import me.damon.schoolbot.constants
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
-import me.damon.schoolbot.objects.models.LaundryModel
+import me.damon.schoolbot.objects.misc.asCommandChoice
 import me.damon.schoolbot.web.asException
-import me.damon.schoolbot.web.bodyAsString
-import me.damon.schoolbot.web.get
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.requests.ErrorResponse
-import ru.gildor.coroutines.okhttp.await
 import java.util.concurrent.TimeUnit
 
 class LaundryRemind : SubCommand(
@@ -26,6 +22,7 @@ class LaundryRemind : SubCommand(
         CommandOptionData<String>(
             type = OptionType.STRING,
             name = "dormitory",
+            choices = constants.dorms.map { it.asCommandChoice() }.toList(),
             description = "Target dormitory you want to choose to get reminded from",
             isRequired = true
         )
@@ -34,27 +31,22 @@ class LaundryRemind : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val client = event.jda.httpClient
         val taskHandler = event.schoolbot.taskHandler
         val dorm = event.getOption("dormitory")?.asString
-        val request = get("https://johnstown.schoolbot.dev/api/Laundry/${dorm}")
+        val response = event.schoolbot.apiHandler.laundryApi.getLaundryItems(dorm!!)
 
-        val response = client.newCall(request).await()
+
         if (response.isSuccessful.not())
         {
-            logger.error("Error has occurred", response.asException() )
-            event.replyMessageWithErrorEmbed("Error occurred in while fetching data from API", response.asException())
+            logger.error("Error has occurred", response.raw().asException() )
+            event.replyMessageWithErrorEmbed("Error occurred in while fetching data from API", response.raw().asException())
             return
         }
 
-        val json = response.bodyAsString() ?: return run {
+        val models = response.body()?.filter { it.isInUse && it.timeRemaining.contains("Ext").not() }?.toList()
+            ?: return run {
             event.replyMessage("Error has occurred while trying to get the response body")
         }
-
-        val om = jacksonObjectMapper()
-        val models: List<LaundryModel> = om.readValue<List<LaundryModel>>(json)
-            .filter { it.isInUse && it.timeRemaining.contains("Ext").not() }
-            .toList()
 
         if (models.isEmpty()) return run { event.replyMessage("There is no machine that is in use for you to be reminded about")}
 

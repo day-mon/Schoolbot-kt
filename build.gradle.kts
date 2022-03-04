@@ -63,9 +63,8 @@ dependencies {
     implementation("org.jsoup:jsoup:1.14.3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-    // Database remove soon
-    implementation("com.zaxxer:HikariCP:5.0.1")
-    runtimeOnly("org.postgresql:postgresql:42.3.1")
+    // Database
+    runtimeOnly("org.postgresql:postgresql:42.3.2")
 
     // Utils
     implementation("org.reflections:reflections:0.10.2")
@@ -74,4 +73,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.1")
     implementation("ch.qos.logback:logback-classic:1.2.10")
     implementation("com.yahoofinance-api:YahooFinanceAPI:3.15.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
 }

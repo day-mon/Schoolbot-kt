@@ -2,10 +2,7 @@ package me.damon.schoolbot
 
 import dev.minn.jda.ktx.SLF4J
 import dev.minn.jda.ktx.injectKTX
-import me.damon.schoolbot.handler.CommandHandler
-import me.damon.schoolbot.handler.ConfigHandler
-import me.damon.schoolbot.handler.MessageHandler
-import me.damon.schoolbot.handler.TaskHandler
+import me.damon.schoolbot.handler.*
 import me.damon.schoolbot.listener.GuildListeners
 import me.damon.schoolbot.listener.MessageListeners
 import me.damon.schoolbot.listener.SlashListener
@@ -60,6 +57,7 @@ open class Schoolbot : ListenerAdapter()
     val configHandler  = ConfigHandler()
     val taskHandler = TaskHandler()
     val messageHandler  = MessageHandler()
+    val apiHandler = ApiHandler()
 
     // jda
     val jda = build()

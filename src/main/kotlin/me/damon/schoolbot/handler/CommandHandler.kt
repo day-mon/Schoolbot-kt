@@ -12,12 +12,11 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import org.reflections.Reflections
 import java.util.*
-import kotlin.time.ExperimentalTime
 
 
 private const val COMMANDS_PACKAGE = "me.damon.schoolbot.commands"
 private val supervisor = SupervisorJob()
-private val scope = CoroutineScope(Dispatchers.Default + supervisor)
+private val scope = CoroutineScope(Dispatchers.IO + supervisor)
 
 
 class CommandHandler(private val schoolbot: Schoolbot)
@@ -62,7 +61,6 @@ class CommandHandler(private val schoolbot: Schoolbot)
         return Collections.unmodifiableMap(map)
     }
 
-    @OptIn(ExperimentalTime::class)
     fun handle(event: SlashCommandInteractionEvent)
     {
         val cmdName = event.name
