@@ -1,16 +1,17 @@
 package me.damon.schoolbot.objects.command
 
+import dev.minn.jda.ktx.Embed
 import dev.minn.jda.ktx.SLF4J
+import me.damon.schoolbot.Schoolbot
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.Commands
-import kotlin.time.Duration
 
 abstract class AbstractCommand
 {
     val logger by SLF4J
     abstract val name: String
-    abstract val timeout: Duration
     abstract val category: CommandCategory
     abstract val deferredEnabled: Boolean
     abstract val description: String
@@ -42,5 +43,60 @@ abstract class AbstractCommand
                     )
         }
     }
+
+
+    suspend fun process(event: CommandEvent)
+    {
+        event.getSentOptions().forEach { i ->
+            if (!i.validate(event.getOption(i.name)!!))
+            {
+                event.replyEmbed(
+                    Embed {
+                        title = "Validation failed on field ```${i.asOptionData().name}```"
+                        description = "```${i.validationFailed}```"
+                    })
+                return
+            }
+        }
+
+        if (!event.hasSelfPermissions(selfPermission))
+        {
+            val correct = "I will need ${selfPermission.filter { it !in event.guild.selfMember.permissions}.joinToString { "`${it.getName()}`" } } permission(s) to run this command!"
+            sendMessage(event ,correct)
+        }
+        else if (!event.hasMemberPermissions(memberPermissions))
+        {
+            val correct = "You will need ${memberPermissions.filter { it !in event.member.permissions}.joinToString { "`${it.getName()}`" } } permission(s) to run this command!"
+            sendMessage(event, correct)
+        }
+        else if (category == CommandCategory.DEV)
+        {
+            if (event.user.id !in event.schoolbot.configHandler.config.developerIds)
+            {
+                sendMessage(event, "You must be a developer to run this command")
+                return
+            }
+
+            onExecuteSuspend(event)
+        }
+        else
+        {
+            logger.info("${event.user.asTag} has executed $name")
+            onExecuteSuspend(event)
+        }
+    }
+
+
+    private fun sendMessage(e: CommandEvent, message: String)
+    {
+        if (deferredEnabled) e.hook.editOriginal(message).queue()
+        else e.slashEvent.reply(message).queue()
+    }
+
+     open suspend fun onExecuteSuspend(event: CommandEvent) {
+        event.replyMessage("This command is not implemented yet.")
+    }
+    open suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot){}
+
 }
 

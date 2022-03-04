@@ -28,7 +28,8 @@ class SchoolAdd : SubCommand(
             type = OptionType.STRING,
             name = "school_name",
             description = "Name of the school you wish to add",
-            isRequired = true
+            isRequired = true,
+            autoCompleteEnabled = true
         )
     )
 )
@@ -64,9 +65,6 @@ class SchoolAdd : SubCommand(
             .addEmbeds(school.getAsEmbed())
             .addActionRow(getActionRows(selectionEvent, event, school.asSchool(ZoneId.systemDefault())))
             .queue()
-
-
-
     }
 
 

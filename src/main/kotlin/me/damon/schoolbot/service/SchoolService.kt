@@ -26,8 +26,10 @@ class SchoolService
             .setName(school.name.replace(regex, "-"))
             .await()
 
-        school.roleId = role.idLong
-        school.guildId = guild.idLong
+        school.apply {
+            roleId = role.idLong
+            guildId = guild.idLong
+        }
 
        return withContext(Dispatchers.IO) {
            schoolRepo.save(school)

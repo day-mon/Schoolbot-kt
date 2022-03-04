@@ -6,8 +6,6 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.requests.ErrorResponse
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.time.Instant
 import kotlin.io.path.Path
 import kotlin.io.path.fileSize
@@ -16,6 +14,8 @@ class ExportErrorLog : Command(
     name = "ExportErrorLog",
     description = "Exports the error log",
     category = CommandCategory.DEV,
+    commandPrerequisites = "Must be a developer",
+
 )
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)

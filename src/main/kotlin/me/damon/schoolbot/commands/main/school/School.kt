@@ -5,7 +5,6 @@ import me.damon.schoolbot.commands.sub.school.SchoolEdit
 import me.damon.schoolbot.commands.sub.school.SchoolRemove
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
-import me.damon.schoolbot.objects.command.CommandEvent
 
 class School : Command(
     name = "School",
@@ -17,6 +16,3 @@ class School : Command(
         SchoolRemove()
     )
 )
-{
-    override suspend fun onExecuteSuspend(event: CommandEvent){}
-}

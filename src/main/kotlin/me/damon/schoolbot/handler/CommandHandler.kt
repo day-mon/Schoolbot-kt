@@ -71,7 +71,7 @@ class CommandHandler(private val schoolbot: Schoolbot)
 
         if (subCommand != null)  scope.launch {
             val sub = command.children.find { it.name == event.subcommandName }!!
-            sub.onExecuteSuspend(
+            sub.process(
                 CommandEvent(scope = scope, schoolbot =  schoolbot, command = sub, slashEvent = event)
             )
         }

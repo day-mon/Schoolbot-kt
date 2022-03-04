@@ -5,7 +5,6 @@ import me.damon.schoolbot.commands.sub.school.LaundryReminderCancel
 import me.damon.schoolbot.commands.sub.school.LaundryView
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
-import me.damon.schoolbot.objects.command.CommandEvent
 
 class Laundry : Command(
     name = "Laundry",
@@ -17,6 +16,3 @@ class Laundry : Command(
     ),
     description = "Displays laundry availability in a given dormitory",
 )
-{
-    override suspend fun onExecuteSuspend(event: CommandEvent){}
-}
