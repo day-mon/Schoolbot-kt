@@ -21,6 +21,7 @@ import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.cache.annotation.EnableCaching
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 import javax.security.auth.login.LoginException
@@ -31,6 +32,7 @@ fun main()
     SpringApplication.run(Schoolbot::class.java)
 }
 
+@EnableCaching
 @SpringBootApplication
 open class Schoolbot : ListenerAdapter()
 {

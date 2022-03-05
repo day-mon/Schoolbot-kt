@@ -25,11 +25,11 @@ data class SchoolModel(
     val stateProvince: String?, // Bangkok
     
     @JsonProperty("web_pages")
-    val webPages: List<String>
+    val webPages: List<String>?
 ) : Pagable {
     fun asSchool(timeZone: ZoneId) = School(
         name = name,
-        url = if (webPages.isEmpty()) "https://schoolbot.dev" else webPages[0],
+        url = if (webPages.isNullOrEmpty()) "https://schoolbot.dev" else webPages[0],
         emailSuffix = if (domains.isEmpty()) "N/A" else domains[0],
         isPittSchool = name.contains("University of Pittsburgh"),
         timeZone = timeZone,
@@ -43,12 +43,12 @@ data class SchoolModel(
         title = name
         field {
             name = "Location"
-            value = "$country, $stateProvince"
+            value = if (stateProvince == null)  country else "$country, $stateProvince"
             inline = false
         }
         field {
             name = "Web Pages"
-            value = if (webPages.isEmpty()) "N/A" else webPages.joinToString { it }
+            value = if (webPages.isNullOrEmpty()) "N/A" else webPages.joinToString { it }
             inline = false
         }
         field {

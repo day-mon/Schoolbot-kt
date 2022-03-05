@@ -33,11 +33,11 @@ class LaundryView : SubCommand(
         if (!response.isSuccessful)
         {
             logger.error("An error has while attempting to get the response", response.raw().asException())
-            event.replyMessage("An error has occurred while getting the response")
+            event.replyErrorEmbed("An error has occurred while getting the response")
             return
         }
         val models = response.body() ?: return run {
-            event.replyMessage("Error has occurred while trying to get the response body")
+            event.replyErrorEmbed("Error has occurred while trying to get the response body")
         }
 
         event.sendPaginator(models)

@@ -16,4 +16,6 @@ object constants
         "larkspur",
         "cpas",
     )
+
+    const val red = 0x990f0f
 }

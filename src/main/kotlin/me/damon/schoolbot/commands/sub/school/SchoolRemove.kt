@@ -20,13 +20,7 @@ class SchoolRemove : SubCommand(
         val schools = service.getSchoolsByGuildId(event.guild.idLong).filter { it.classes.isEmpty() }
 
         if (schools.isEmpty()) return run {
-            event.replyEmbed(
-                Embed {
-                    title = "Error has occurred"
-                    description = "School does not exist"
-                    color = 0
-                }
-            )
+            event.replyErrorEmbed("School does not exist")
         }
 
        // val menu = SelectMenu("schoolDelete:menu") { schools.forEachIndexed { index, school -> option(school.name, index.toString()) } }

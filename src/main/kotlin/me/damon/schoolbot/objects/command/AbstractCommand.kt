@@ -50,11 +50,10 @@ abstract class AbstractCommand
         event.getSentOptions().forEach { i ->
             if (!i.validate(event.getOption(i.name)!!))
             {
-                event.replyEmbed(
-                    Embed {
-                        title = "Validation failed on field ```${i.asOptionData().name}```"
-                        description = "```${i.validationFailed}```"
-                    })
+                event.replyErrorEmbed(
+                    tit = "Validation failed on field ```${i.asOptionData().name}```",
+                    error = "```${i.validationFailed}```"
+                )
                 return
             }
         }
@@ -76,7 +75,6 @@ abstract class AbstractCommand
                 sendMessage(event, "You must be a developer to run this command")
                 return
             }
-
             onExecuteSuspend(event)
         }
         else

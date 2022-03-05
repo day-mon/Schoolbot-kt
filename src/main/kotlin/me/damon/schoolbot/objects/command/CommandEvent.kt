@@ -6,6 +6,7 @@ import dev.minn.jda.ktx.interactions.replyPaginator
 import dev.minn.jda.ktx.interactions.sendPaginator
 import kotlinx.coroutines.CoroutineScope
 import me.damon.schoolbot.Schoolbot
+import me.damon.schoolbot.constants
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.MessageEmbed
@@ -50,6 +51,34 @@ class CommandEvent(
             )
         }
     }
+
+    fun replyErrorEmbed(error: String, tit: String = "Error has occurred") = when {
+        command.deferredEnabled -> hook.editOriginalEmbeds(
+            Embed {
+                title = tit
+                description = error
+                color = constants.red
+            })
+            .setActionRows(Collections.emptyList())
+            .queue({ }) {
+            logger.error(
+                "Error has occurred while attempting to send embeds for command ${command.name}", it
+            )
+        }
+        else -> slashEvent.replyEmbeds(
+            Embed {
+            title = tit
+            description = error
+            color = constants.red
+        })
+            .addActionRows(Collections.emptyList())
+            .queue({ }) {
+            logger.error(
+                "Error has occurred while attempting to send embeds for command ${command.name}", it
+            )
+        }
+    }
+
     fun replyAndEditWithDelay(message: String, delayMessage: String, unit: TimeUnit, time: Long)
     {
         // expression body looks meh
@@ -79,38 +108,28 @@ class CommandEvent(
 
     fun replyMessageWithErrorEmbed(message: String, exception: Exception)
     {
+        val embed =
+            Embed {
+            title = "Error occurred. Send this message to a developer if it constantly occurs"
+            field {
+                title = "Cause"
+                value = exception.cause.toString()
+                inline = true
+            }
+            description = """```kt
+                            ${exception.stackTraceToString()}
+                        ```""".trimIndent()
+        }
         if (command.deferredEnabled)
         {
             hook.editOriginal(message)
-                .setEmbeds(
-                    Embed {
-                        title = "Error occurred. Send this message to a developer if it constantly occurs"
-                        field {
-                            title = "Cause"
-                            value = exception.cause.toString()
-                            inline = true
-                        }
-                        description = """```kt
-                            ${exception.stackTraceToString()}
-                        ```""".trimIndent()
-                    }).queue()
+                .setEmbeds(embed).queue()
 
         }
         else
         {
             slashEvent.reply(message)
-                .addEmbeds(
-                    Embed {
-                        title = "Error occurred. Send this message to a developer if it constantly occurs"
-                        field {
-                            title = "Cause"
-                            value = exception.cause.toString()
-                            inline = true
-                        }
-                        description = """```kt
-                            ${exception.stackTraceToString()}
-                        ```""".trimIndent()
-                    }).queue()
+                .addEmbeds(embed).queue()
         }
     }
 
@@ -120,7 +139,9 @@ class CommandEvent(
 
     suspend fun sendMenuAndAwait(menu: SelectMenu, message: String, timeoutDuration: Long = 60): SelectMenuInteractionEvent
     {
-        hook.editOriginal(message).setActionRow(menu).queue()
+        hook.editOriginal(message)
+            .setActionRow(menu)
+            .queue()
         val job = executors.schedule({ hook.run { editOriginal("Command has timed out try again please").setActionRows(Collections.emptyList()).queue() } }, timeoutDuration, TimeUnit.SECONDS)
         return jda.await<SelectMenuInteractionEvent> { it.member!!.idLong == member.idLong && it.componentId == menu.id }.also {
             if (!job.isCancelled)

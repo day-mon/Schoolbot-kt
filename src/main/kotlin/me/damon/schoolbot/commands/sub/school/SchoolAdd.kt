@@ -45,17 +45,17 @@ class SchoolAdd : SubCommand(
         if (!response.isSuccessful)
         {
             logger.error("Unexpected error has occurred",  response.raw().asException())
-            event.replyMessage("An unexpected error has occurred!")
+            event.replyErrorEmbed("An unexpected error has occurred!")
             return
         }
 
         val models = response.body() ?: return run {
-            event.replyMessage("Error has occurred while trying to get the response body")
+            event.replyErrorEmbed("Error has occurred while trying to get the response body")
         }
 
 
-        if (models.isEmpty()) return run { event.replyMessage("There are no schools with the name `$schoolName`") }
-        if (models.size > 25) return run { event.replyMessage("Please attempt to narrow your search down. That search propagated `${models.size}` results") }
+        if (models.isEmpty()) return run { event.replyErrorEmbed("There are no schools with the name `$schoolName`") }
+        if (models.size > 25) return run { event.replyErrorEmbed("Please attempt to narrow your search down. That search propagated `${models.size}` results") }
 
         val menu = SelectMenu("school:menu") { models.forEachIndexed { index, schoolModel -> option(schoolModel.name, index.toString()) } }
 
@@ -89,9 +89,9 @@ class SchoolAdd : SubCommand(
         }
 
         val no = jda.button(label = "No", style = ButtonStyle.DANGER, user = event.user, expiration = 1.minutes) {
-            it.reply("Aborting.. Thank you for using Schoolbot!")
-                .addActionRow(Collections.emptyList())
-                .addEmbeds(Collections.emptyList())
+            event.hook.editOriginal("Aborting.. Thank you for using Schoolbot!")
+                .setActionRows(Collections.emptyList())
+                .setEmbeds(Collections.emptyList())
                 .queue()
         }
 
