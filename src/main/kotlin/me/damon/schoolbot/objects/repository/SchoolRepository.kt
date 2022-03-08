@@ -9,4 +9,6 @@ import java.util.*
 interface SchoolRepository : JpaRepository<School, UUID>
 {
     fun querySchoolsByGuildId(guildId: Long): List<School>
+    fun findSchoolByNameAndGuildId(name: String, guildId: Long): School?
+    fun findSchoolsByIsPittSchoolAndGuildId(isPittSchool: Boolean = true, guildId: Long): List<School>
 }

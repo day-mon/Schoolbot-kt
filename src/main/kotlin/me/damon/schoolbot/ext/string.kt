@@ -1,4 +1,4 @@
-package me.damon.schoolbot.objects.misc
+package me.damon.schoolbot.ext
 
 import me.damon.schoolbot.objects.command.CommandChoice
 import java.math.BigDecimal

@@ -31,16 +31,13 @@ class  School(
 
     @Column(name = "roleId", nullable = false)
     var roleId: Long = -1L,
-
-
-    @OneToMany(mappedBy = "id")
+    
+    @OneToMany(mappedBy = "id", fetch = FetchType.EAGER)
     val professor: Set<Professor>,
 
-
-    @OneToMany(mappedBy = "id", cascade = [CascadeType.ALL])
+    @OneToMany(mappedBy = "id", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     val classes: Set<Course>,
-
-
+    
     @Column(name = "timeZone", nullable = false, updatable = true)
     val timeZone: ZoneId
 
@@ -52,7 +49,6 @@ class  School(
             name = "Email Suffix"
             value = emailSuffix
         }
-
 
         field {
             name = "Classes Count"

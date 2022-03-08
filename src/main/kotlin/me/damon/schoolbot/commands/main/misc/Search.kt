@@ -1,13 +1,13 @@
 package me.damon.schoolbot.commands.main.misc
 
+import me.damon.schoolbot.ext.asException
+import me.damon.schoolbot.ext.await
+import me.damon.schoolbot.ext.bodyAsString
+import me.damon.schoolbot.ext.post
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
-import me.damon.schoolbot.web.asException
-import me.damon.schoolbot.web.await
-import me.damon.schoolbot.web.bodyAsString
-import me.damon.schoolbot.web.post
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import org.jsoup.Jsoup
 
@@ -17,7 +17,7 @@ class Search : Command (
     category = CommandCategory.MISC,
     options = listOf(
         CommandOptionData<String>(
-            type = OptionType.STRING,
+            optionType = OptionType.STRING,
             name = "search_results",
             description = "Search query",
             isRequired = true,

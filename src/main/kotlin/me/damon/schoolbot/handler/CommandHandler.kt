@@ -64,12 +64,19 @@ class CommandHandler(private val schoolbot: Schoolbot)
     fun handle(event: SlashCommandInteractionEvent)
     {
         val cmdName = event.name
+        val group = event.subcommandGroup
         val subCommand = event.subcommandName
         val command = commands[cmdName] ?: return
 
         if (command.deferredEnabled) event.deferReply().queue()
 
-        if (subCommand != null)  scope.launch {
+        if (group != null) scope.launch {
+            val sub = command.group[group]!!.find { it.name ==  subCommand }!!
+            sub.process(
+                CommandEvent(scope = scope, schoolbot =  schoolbot, command = sub, slashEvent = event)
+            )
+        }
+        else if (subCommand != null)  scope.launch {
             val sub = command.children.find { it.name == event.subcommandName }!!
             sub.process(
                 CommandEvent(scope = scope, schoolbot =  schoolbot, command = sub, slashEvent = event)
@@ -86,10 +93,15 @@ class CommandHandler(private val schoolbot: Schoolbot)
     fun handleAutoComplete(event: CommandAutoCompleteInteractionEvent)
     {
         val command = event.name
+        val group = event.subcommandGroup
         val sub = event.subcommandName
         val commandF = commands[command] ?: return
 
-        if (sub != null)  scope.launch {
+        if (group != null) scope.launch {
+            val subC = commandF.group[group]!!.find { it.name ==  sub }!!
+            subC.onAutoCompleteSuspend(event, schoolbot)
+        }
+        else if (sub != null)  scope.launch {
             val subCommand = commandF.children.find { it.name == event.subcommandName }!!
             subCommand.onAutoCompleteSuspend(event, schoolbot)
         }

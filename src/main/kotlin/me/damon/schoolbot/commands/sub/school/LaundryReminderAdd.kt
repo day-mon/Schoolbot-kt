@@ -3,24 +3,24 @@ package me.damon.schoolbot.commands.sub.school
 import dev.minn.jda.ktx.interactions.SelectMenu
 import dev.minn.jda.ktx.interactions.option
 import me.damon.schoolbot.constants
+import me.damon.schoolbot.ext.asCommandChoice
+import me.damon.schoolbot.ext.asException
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
-import me.damon.schoolbot.objects.misc.asCommandChoice
-import me.damon.schoolbot.web.asException
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.requests.ErrorResponse
 import java.util.concurrent.TimeUnit
 
-class LaundryRemind : SubCommand(
-    name = "remind",
+class LaundryReminderAdd : SubCommand(
+    name = "add",
     description = "Reminds a user when their laundry is done",
     category = CommandCategory.SCHOOL,
     options = listOf(
         CommandOptionData<String>(
-            type = OptionType.STRING,
+            optionType = OptionType.STRING,
             name = "dormitory",
             choices = constants.dorms.map { it.asCommandChoice() }.toList(),
             description = "Target dormitory you want to choose to get reminded from",
@@ -33,7 +33,7 @@ class LaundryRemind : SubCommand(
     {
         val taskHandler = event.schoolbot.taskHandler
         val dorm = event.getOption("dormitory")?.asString
-        val response = event.schoolbot.apiHandler.laundryApi.getLaundryItems(dorm!!)
+        val response = event.schoolbot.apiHandler.johnstownAPI.getLaundryItems(dorm!!)
 
 
         if (response.isSuccessful.not())
@@ -43,7 +43,7 @@ class LaundryRemind : SubCommand(
             return
         }
 
-        val models = response.body()?.filter { it.isInUse && it.timeRemaining.contains("Ext").not() }?.toList()
+        val models = response.body()?.filter { it.isInUse && it.timeRemaining.contains("Ext").not() || it.timeRemaining.contains("Offline").not() }?.toList()
             ?: return run {
             event.replyMessage("Error has occurred while trying to get the response body")
         }

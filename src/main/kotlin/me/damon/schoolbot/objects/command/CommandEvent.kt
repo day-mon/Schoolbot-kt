@@ -12,7 +12,9 @@ import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
+import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -59,6 +61,7 @@ class CommandEvent(
                 description = error
                 color = constants.red
             })
+            .setContent("")
             .setActionRows(Collections.emptyList())
             .queue({ }) {
             logger.error(
@@ -72,6 +75,7 @@ class CommandEvent(
             color = constants.red
         })
             .addActionRows(Collections.emptyList())
+            .setContent("")
             .queue({ }) {
             logger.error(
                 "Error has occurred while attempting to send embeds for command ${command.name}", it
@@ -105,7 +109,6 @@ class CommandEvent(
         else -> slashEvent.reply(message).addActionRows(Collections.emptyList()).addActionRows(Collections.emptyList()).queue()
     }
 
-
     fun replyMessageWithErrorEmbed(message: String, exception: Exception)
     {
         val embed =
@@ -135,15 +138,25 @@ class CommandEvent(
 
     fun <T: Pagable> sendPaginator(embeds: List<T>) = sendPaginator(*embeds.map { it.getAsEmbed() }.toTypedArray())
 
-
-
     suspend fun sendMenuAndAwait(menu: SelectMenu, message: String, timeoutDuration: Long = 60): SelectMenuInteractionEvent
     {
-        hook.editOriginal(message)
+        hook.editOriginal("$message | Time out is set to $timeoutDuration seconds")
             .setActionRow(menu)
             .queue()
         val job = executors.schedule({ hook.run { editOriginal("Command has timed out try again please").setActionRows(Collections.emptyList()).queue() } }, timeoutDuration, TimeUnit.SECONDS)
         return jda.await<SelectMenuInteractionEvent> { it.member!!.idLong == member.idLong && it.componentId == menu.id }.also {
+            if (!job.isCancelled)
+                job.cancel(true)
+        }
+    }
+
+    suspend fun sendMessageAndAwait(message: String, rows: List<ActionRow> = Collections.emptyList(), timeoutDuration: Long = 60): MessageReceivedEvent
+    {
+        hook.editOriginal("$message | Time out is set to $timeoutDuration seconds")
+            .setActionRows(rows)
+            .queue()
+        val job = executors.schedule({ hook.run { editOriginal("Command has timed out try again please").setActionRows(Collections.emptyList()).queue() } }, timeoutDuration, TimeUnit.SECONDS)
+        return jda.await<MessageReceivedEvent> {it.guild != null && it.member!!.idLong == member.idLong }.also {
             if (!job.isCancelled)
                 job.cancel(true)
         }

@@ -4,9 +4,9 @@ import dev.minn.jda.ktx.Embed
 import dev.minn.jda.ktx.SLF4J
 import dev.minn.jda.ktx.messages.edit
 import kotlinx.coroutines.*
-import me.damon.schoolbot.objects.misc.string
-import me.damon.schoolbot.web.asException
-import me.damon.schoolbot.web.await
+import me.damon.schoolbot.ext.asException
+import me.damon.schoolbot.ext.await
+import me.damon.schoolbot.ext.string
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.exceptions.ErrorHandler

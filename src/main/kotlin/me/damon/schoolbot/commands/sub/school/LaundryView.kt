@@ -1,12 +1,12 @@
 package me.damon.schoolbot.commands.sub.school
 
 import me.damon.schoolbot.constants
+import me.damon.schoolbot.ext.asCommandChoice
+import me.damon.schoolbot.ext.asException
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
-import me.damon.schoolbot.objects.misc.asCommandChoice
-import me.damon.schoolbot.web.asException
 import net.dv8tion.jda.api.interactions.commands.OptionType
 
 class LaundryView : SubCommand(
@@ -15,7 +15,7 @@ class LaundryView : SubCommand(
     description = "Views laundry in the target dormitory",
     options = listOf(
         CommandOptionData<String>(
-            type = OptionType.STRING,
+            optionType = OptionType.STRING,
             name = "dormitory",
             choices = constants.dorms.map { it.asCommandChoice() }.toList(),
             description = "Target dormitory you want check",
@@ -28,7 +28,7 @@ class LaundryView : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val dorm = event.getOption("dormitory")?.asString!!
-        val response = event.schoolbot.apiHandler.laundryApi.getLaundryItems(dorm)
+        val response = event.schoolbot.apiHandler.johnstownAPI.getLaundryItems(dorm)
 
         if (!response.isSuccessful)
         {

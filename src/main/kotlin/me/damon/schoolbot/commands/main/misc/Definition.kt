@@ -2,15 +2,15 @@ package me.damon.schoolbot.commands.main.misc
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import me.damon.schoolbot.ext.asException
+import me.damon.schoolbot.ext.await
+import me.damon.schoolbot.ext.bodyAsString
+import me.damon.schoolbot.ext.get
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.models.DefinitionModel
-import me.damon.schoolbot.web.asException
-import me.damon.schoolbot.web.await
-import me.damon.schoolbot.web.bodyAsString
-import me.damon.schoolbot.web.get
 import net.dv8tion.jda.api.interactions.commands.OptionType
 
 class Definition : Command(
@@ -19,7 +19,7 @@ class Definition : Command(
     description = "Gives a definition of a word that is specified",
     options = listOf(
             CommandOptionData<String>(
-            type = OptionType.STRING,
+            optionType = OptionType.STRING,
             name = "word",
             description = "The word you are looking for a definition of",
             isRequired = true,

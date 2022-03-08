@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.requests.ErrorResponse
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.streams.toList
 
 
 class Clear : Command(
@@ -27,7 +26,7 @@ class Clear : Command(
     memberPermissions = listOf(Permission.ADMINISTRATOR),
     options = listOf(
         CommandOptionData<Long>(
-            type = OptionType.INTEGER,
+            optionType = OptionType.INTEGER,
             name = "amount_of_messages",
             description = "Amount of messages to clear",
             isRequired = false,

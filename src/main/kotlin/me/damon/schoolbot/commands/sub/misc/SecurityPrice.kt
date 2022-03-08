@@ -14,7 +14,7 @@ class SecurityPrice : SubCommand(
     description = "Gives a price of a given security",
     options = listOf(
      CommandOptionData<String>(
-         type = OptionType.STRING,
+         optionType = OptionType.STRING,
          name = "security_symbol",
          description = "Security you want to get a price of",
          isRequired = true

@@ -15,7 +15,7 @@ class LetMeGoogleThat : Command(
     category = CommandCategory.FUN,
     options = listOf(
         CommandOptionData<String>(
-            type = OptionType.STRING,
+            optionType = OptionType.STRING,
             name = "search_results",
             description = "Injects search results into LMGTFY link",
             isRequired = false

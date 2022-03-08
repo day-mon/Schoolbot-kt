@@ -1,6 +1,6 @@
 package me.damon.schoolbot.handler
 
-import me.damon.schoolbot.apis.LaundryApi
+import me.damon.schoolbot.apis.JohnstownAPI
 import me.damon.schoolbot.apis.SchoolApi
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -18,7 +18,7 @@ class ApiHandler(
         .build()
 )
 {
-    val laundryApi: LaundryApi by lazy {
+    val johnstownAPI: JohnstownAPI by lazy {
         schoolbotRetrofit.create()
     }
 

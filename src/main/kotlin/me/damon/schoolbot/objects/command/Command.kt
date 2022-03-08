@@ -14,7 +14,8 @@ abstract class Command(
     override val memberPermissions: List<Permission> = listOf(),
     override val selfPermission: List<Permission> = listOf(),
     override val children: List<SubCommand> = listOf(),
-    override val options: List<CommandOptionData<*>> = listOf()
+    override val options: List<CommandOptionData<*>> = listOf(),
+             val group: Map<String, List<SubCommand>> = mapOf()
 ) : AbstractCommand(), Pagable
 {
 

@@ -1,10 +1,10 @@
 package me.damon.schoolbot.commands.sub.misc
 
+import me.damon.schoolbot.ext.getAsQEmbed
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
-import me.damon.schoolbot.objects.misc.getAsQEmbed
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import yahoofinance.YahooFinance
 
@@ -14,7 +14,7 @@ class SecurityQuote : SubCommand(
     description = "Gives a quote of a given security",
     options = listOf(
         CommandOptionData<String>(
-            type = OptionType.STRING,
+            optionType = OptionType.STRING,
             name = "security_symbol",
             description = "Security you want to get a price of",
             isRequired = true

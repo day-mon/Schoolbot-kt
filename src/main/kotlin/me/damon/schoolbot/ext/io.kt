@@ -1,6 +1,8 @@
-package me.damon.schoolbot.objects.misc
+package me.damon.schoolbot.ext
 
+import dev.minn.jda.ktx.SLF4J
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStream
 
 fun InputStream.string(): String
@@ -15,4 +17,18 @@ fun InputStream.string(): String
         }
     }
     return content.toString()
+}
+
+fun File.tryDelete(): Boolean
+{
+    val logger by SLF4J
+    return try
+    {
+        this.delete()
+    } catch (e: SecurityException)
+    {
+        logger.error("Error occurred while trying to delete ${this.name}", e)
+        false
+    }
+
 }

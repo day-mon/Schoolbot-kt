@@ -1,7 +1,12 @@
-package me.damon.schoolbot.objects.misc
+package me.damon.schoolbot.ext
 
 import dev.minn.jda.ktx.Embed
+import dev.minn.jda.ktx.await
+import me.damon.schoolbot.objects.command.CommandEvent
+import me.damon.schoolbot.objects.misc.Emoji
 import net.dv8tion.jda.api.entities.MessageEmbed
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction
 import yahoofinance.Stock
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -100,3 +105,7 @@ fun Stock.getAsQEmbed(): MessageEmbed
         }
     }
 }
+
+suspend fun ReplyCallbackAction.await(event: CommandEvent): MessageReceivedEvent
+= jda.await { it.guild != null && it.author.idLong ==  event.member.idLong && event.channel.idLong == it.channel.idLong }
+

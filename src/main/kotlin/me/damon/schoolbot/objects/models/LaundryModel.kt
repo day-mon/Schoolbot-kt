@@ -1,9 +1,9 @@
 package me.damon.schoolbot.objects.models
 
 import dev.minn.jda.ktx.Embed
+import me.damon.schoolbot.constants
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed
-import java.awt.Color
 
 data class LaundryModel(
     val applianceID: String,
@@ -48,7 +48,7 @@ data class LaundryModel(
             }
 
 
-            color = if (isWorking) 0x26a29 /* green */ else 0x990f0f /* red */
+            color = if (!isWorking || timeRemaining == "Offline")  constants.red else  0x26a29
         }
 
     }

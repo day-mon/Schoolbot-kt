@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.interactions.commands.Command
 
 class LaundryReminderCancel : SubCommand(
-    name = "remind-cancel",
+    name = "cancel",
     category = CommandCategory.SCHOOL,
     description = "Cancels reminder",
 )

@@ -6,10 +6,10 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 
 
-inline fun <reified T> CommandOptionData(type: Any, name: String, description: String, isRequired: Boolean = false, noinline validate: (T) -> Boolean = { true }, failedValidation: String = "", autoCompleteEnabled: Boolean = false, choices: List<CommandChoice> = listOf())
+inline fun <reified T> CommandOptionData(optionType: Any, name: String, description: String, isRequired: Boolean = false, noinline validate: (T) -> Boolean = { true }, failedValidation: String = "", autoCompleteEnabled: Boolean = false, choices: List<CommandChoice> = listOf())
         = CommandOptionData(
                     type = T::class.java,
-                    optionType = type,
+                    optionType = optionType,
                     name = name,
                     description = description,
                     autoCompleteEnabled = autoCompleteEnabled,

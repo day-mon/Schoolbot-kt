@@ -1,4 +1,4 @@
-package me.damon.schoolbot.web
+package me.damon.schoolbot.ext
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

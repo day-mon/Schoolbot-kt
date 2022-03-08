@@ -12,7 +12,7 @@ class Help : Command(
     category = CommandCategory.INFO,
     options = listOf(
         CommandOptionData<String>(
-            type = OptionType.STRING,
+            optionType = OptionType.STRING,
             name = "command",
             description = "Name of the command you wish to have assistance with",
             isRequired = true

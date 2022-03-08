@@ -1,12 +1,12 @@
 package me.damon.schoolbot.objects.command
 
-import dev.minn.jda.ktx.Embed
 import dev.minn.jda.ktx.SLF4J
 import me.damon.schoolbot.Schoolbot
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.Commands
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData
 
 abstract class AbstractCommand
 {
@@ -24,24 +24,30 @@ abstract class AbstractCommand
     val commandData: CommandData
     get()
     {
-        return when {
-            children.isEmpty() ->
-                Commands
-                    .slash(
-                        name.lowercase(),
-                        description
-                    )
-                    .addOptions(
-                        *options.map { it.asOptionData() }.toTypedArray()
-                    )
-            else ->
-                Commands.slash(
-                    name.lowercase(),
-                    description
-                ).addSubcommands(
-                        children.map { it.subCommandData }
-                    )
+        val s = Commands.slash(name.lowercase(), description)
+        val x = this as Command
+        if (this.group.isNotEmpty())
+        {
+             s.addSubcommandGroups(this.group.map {
+                SubcommandGroupData(it.key, "This ${it.key}'s")
+                    .addSubcommands(it.value.map { cmd -> cmd.subCommandData })
+
+            })
         }
+
+        if (children.isNotEmpty())
+        {
+            s.addSubcommands(children.map { it.subCommandData })
+
+
+        }
+        else
+        {
+            s.addOptions(
+                *options.map { it.asOptionData() }.toTypedArray()
+            )
+        }
+        return s
     }
 
 
