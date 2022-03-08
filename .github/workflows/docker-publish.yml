@@ -9,7 +9,7 @@ on:
   schedule:
     - cron: '28 23 * * *'
   push:
-    branches: [ master, docker-workflow ]
+    branches: [ master, feature/docker-workflow ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
   pull_request:
