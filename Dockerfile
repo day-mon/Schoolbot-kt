@@ -1,8 +1,8 @@
-FROM maven:3.8.1-adoptopenjdk-16 as build
+FROM gradle:jdk17 as build
 WORKDIR /home/schoolbot
 
 COPY . .
-RUN mvn clean compile assembly:single
+RUN gradle clean compileJava
 
 FROM adoptopenjdk/openjdk16-openj9:alpine
 WORKDIR /home/schoolbot
