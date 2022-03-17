@@ -1,7 +1,7 @@
 package me.damon.schoolbot.objects.models
 
 import dev.minn.jda.ktx.Embed
-import me.damon.schoolbot.constants
+import me.damon.schoolbot.Constants
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed
 
@@ -47,8 +47,12 @@ data class LaundryModel(
                 inline = false
             }
 
+            footer {
+                name = "Location $location"
+            }
 
-            color = if (!isWorking || timeRemaining == "Offline")  constants.red else  0x26a29
+
+            color = if (!isWorking || timeRemaining == "Offline")  Constants.RED else  0x26a29
         }
 
     }

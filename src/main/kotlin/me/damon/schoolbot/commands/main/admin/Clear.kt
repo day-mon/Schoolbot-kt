@@ -59,7 +59,9 @@ class Clear : Command(
     {
         val jda = event.jda
         val confirm = jda.button(label = "Confirm", style = ButtonStyle.SUCCESS, user = event.user) { button ->
-            button.channel.iterableHistory.takeAsync(amount.toInt() + 2).thenApplyAsync { list ->
+            button.channel.iterableHistory
+                .takeAsync(amount.toInt() + 2)
+                .thenApplyAsync { list ->
                     val channel = button.channel
                     val messages =
                         list.stream().filter { it.timeCreated.isBefore(OffsetDateTime.now().plusWeeks(2)) }.toList()

@@ -1,6 +1,6 @@
-package me.damon.schoolbot.commands.sub.school
+package me.damon.schoolbot.commands.sub.school.laundry
 
-import me.damon.schoolbot.constants
+import me.damon.schoolbot.Constants
 import me.damon.schoolbot.ext.asCommandChoice
 import me.damon.schoolbot.ext.asException
 import me.damon.schoolbot.objects.command.CommandCategory
@@ -17,7 +17,7 @@ class LaundryView : SubCommand(
         CommandOptionData<String>(
             optionType = OptionType.STRING,
             name = "dormitory",
-            choices = constants.dorms.map { it.asCommandChoice() }.toList(),
+            choices = Constants.dorms.map { it.asCommandChoice() }.toList(),
             description = "Target dormitory you want check",
             isRequired = true
         )

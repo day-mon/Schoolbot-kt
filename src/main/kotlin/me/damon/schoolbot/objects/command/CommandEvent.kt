@@ -5,8 +5,9 @@ import dev.minn.jda.ktx.await
 import dev.minn.jda.ktx.interactions.replyPaginator
 import dev.minn.jda.ktx.interactions.sendPaginator
 import kotlinx.coroutines.CoroutineScope
+import me.damon.schoolbot.Constants
 import me.damon.schoolbot.Schoolbot
-import me.damon.schoolbot.constants
+import me.damon.schoolbot.ext.empty
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.MessageEmbed
@@ -31,12 +32,12 @@ class CommandEvent(
     val scope: CoroutineScope,
 )
 {
-
     private val executors = Executors.newScheduledThreadPool(3)
     val jda = slashEvent.jda
     val user = slashEvent.user
     val channel = slashEvent.channel
     val guild = slashEvent.guild!!
+    val guildId = slashEvent.guild!!.idLong
     val member = slashEvent.member!!
     val hook = slashEvent.hook
     val options: MutableList<OptionMapping> = slashEvent.options
@@ -59,9 +60,9 @@ class CommandEvent(
             Embed {
                 title = tit
                 description = error
-                color = constants.red
+                color = Constants.RED
             })
-            .setContent("")
+            .setContent(String.empty)
             .setActionRows(Collections.emptyList())
             .queue({ }) {
             logger.error(
@@ -72,7 +73,7 @@ class CommandEvent(
             Embed {
             title = tit
             description = error
-            color = constants.red
+            color = Constants.RED
         })
             .addActionRows(Collections.emptyList())
             .setContent("")
@@ -136,7 +137,7 @@ class CommandEvent(
         }
     }
 
-    fun <T: Pagable> sendPaginator(embeds: List<T>) = sendPaginator(*embeds.map { it.getAsEmbed() }.toTypedArray())
+    fun <T: Pagable> sendPaginator(embeds: Collection<T>) = sendPaginator(*embeds.map { it.getAsEmbed() }.toTypedArray())
 
     suspend fun sendMenuAndAwait(menu: SelectMenu, message: String, timeoutDuration: Long = 60): SelectMenuInteractionEvent
     {
@@ -162,11 +163,20 @@ class CommandEvent(
         }
     }
 
+    fun sendEmbed(embed: MessageEmbed, content: String = String.empty) = when  {
+        command.deferredEnabled -> hook.editOriginalEmbeds(embed).setContent(content).setActionRows(Collections.emptyList()).queue()
+        else -> slashEvent.replyEmbeds(embed).setContent(content).queue()
+    }
+
     fun sendPaginator(vararg embeds: MessageEmbed)
     {
+        if (embeds.isEmpty()) return run { replyErrorEmbed("There are no embeds to display") }
+        if (embeds.size == 1) return run { sendEmbed(embeds[0]) }
 
         if (command.deferredEnabled)
         {
+
+
             hook.sendPaginator(
                 pages = embeds,
                 expireAfter = Duration.parse("5m")
@@ -189,7 +199,7 @@ class CommandEvent(
     fun sentWithOption(option: String) = slashEvent.getOption(option) != null
     fun getOption(option: String) = slashEvent.getOption(option)
     fun getSentOptions() = command.options.filter { commandOptionData -> commandOptionData.name in slashEvent.options.map { it.name } }
-
+    fun sentWithAnyOptions() = slashEvent.options.isNotEmpty()
 
 
 

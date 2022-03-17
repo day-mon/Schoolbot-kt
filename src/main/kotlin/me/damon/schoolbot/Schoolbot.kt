@@ -6,6 +6,7 @@ import me.damon.schoolbot.handler.*
 import me.damon.schoolbot.listener.GuildListeners
 import me.damon.schoolbot.listener.MessageListeners
 import me.damon.schoolbot.listener.SlashListener
+import me.damon.schoolbot.service.GuildService
 import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
@@ -18,10 +19,10 @@ import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import okhttp3.OkHttpClient
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.cache.annotation.EnableCaching
+import org.springframework.context.ConfigurableApplicationContext
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 import javax.security.auth.login.LoginException
@@ -34,11 +35,12 @@ fun main()
 
 @EnableCaching
 @SpringBootApplication
-open class Schoolbot : ListenerAdapter()
+open class Schoolbot(
+    val schoolService: SchoolService,
+    val guildService: GuildService,
+    val context: ConfigurableApplicationContext
+) : ListenerAdapter()
 {
-    @Autowired
-    lateinit var schoolService: SchoolService
-
     /**
      * withContext(Dispatcher.Main) {
      *
@@ -48,18 +50,19 @@ open class Schoolbot : ListenerAdapter()
      * withContext scope will run anything inside that block into whatever dispatcher its told to run into
      */
     private val logger by SLF4J
-    private val okhttp = OkHttpClient.Builder()
-        .writeTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
+    private val okhttp =
+        OkHttpClient.Builder()
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60 , TimeUnit.SECONDS)
+            .build()
     // TIME SET BECAUSE SOME REQUESTS TAKE A LONG TIME DEFAULT IS 10 SECONDS
 
     // handlers
     val startUpTime = Instant.now()!!
-    val configHandler  = ConfigHandler()
+    val configHandler = ConfigHandler()
     val taskHandler = TaskHandler()
-    val messageHandler  = MessageHandler()
-    val apiHandler = ApiHandler()
+    val messageHandler = MessageHandler(this)
+    val apiHandler = ApiHandler(okhttp)
 
     // jda
     val jda = build()
@@ -81,18 +84,18 @@ open class Schoolbot : ListenerAdapter()
              *
              * Member cache is only relevant if you are accessing the member object outside an event
              */
-            return JDABuilder.create(configHandler.config.token,
+            return JDABuilder.create(
+                configHandler.config.token,
                 GatewayIntent.GUILD_MESSAGES,
                 GatewayIntent.GUILD_MESSAGE_REACTIONS,
                 GatewayIntent.GUILD_MEMBERS
-            )
-                .disableCache(CacheFlag.ACTIVITY,
+            ).disableCache(
+                    CacheFlag.ACTIVITY,
                     CacheFlag.VOICE_STATE,
                     CacheFlag.EMOTE,
                     CacheFlag.CLIENT_STATUS,
                     CacheFlag.ONLINE_STATUS
-                )
-                .setMemberCachePolicy(MemberCachePolicy.NONE)
+                ).setMemberCachePolicy(MemberCachePolicy.NONE)
                 // doesn't cache members on start up
                 .setChunkingFilter(ChunkingFilter.NONE)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
@@ -100,7 +103,7 @@ open class Schoolbot : ListenerAdapter()
                     this,
                     SlashListener(this),
                     MessageListeners(this),
-                    GuildListeners(),
+                    GuildListeners(this),
                 )
                 .setHttpClient(okhttp)
                 .setActivity(Activity.playing("building...."))

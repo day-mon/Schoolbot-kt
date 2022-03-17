@@ -1,6 +1,9 @@
 package me.damon.schoolbot.objects.school
 
+import dev.minn.jda.ktx.Embed
+import me.damon.schoolbot.ext.empty
 import me.damon.schoolbot.objects.misc.Pagable
+import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.MessageEmbed
 import java.time.Instant
 import java.util.*
@@ -10,24 +13,20 @@ import javax.persistence.*
 @Entity(name = "courses")
 
 class Course(
-    @Id
-    @Column(name = "id", updatable = false, unique = true)
-    val id: UUID = UUID.randomUUID(),
-
     @Column(name = "name", nullable = false)
     val name: String,
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "text")
     val description: String,
 
     @Column(name = "prerequisite")
     val prerequisite: String,
 
-    @ManyToMany(mappedBy = "courses")
-    val professors: Set<Professor>,
+    @ManyToMany(mappedBy = "courses", fetch = FetchType.EAGER)
+    val professors: MutableSet<Professor>,
 
-    @OneToMany(mappedBy = "id")
-    val assignments: Set<Assignment>,
+    @OneToMany(mappedBy = "id", fetch = FetchType.EAGER)
+    val assignments: MutableSet<Assignment>,
 
     @Column(name = "startDate", nullable = false)
     val startDate: Instant,
@@ -35,8 +34,11 @@ class Course(
     @Column(name = "endDate", nullable = false)
     val endDate: Instant,
 
-    @Column(name = "term")
-    val term: ClassTerm,
+    //@Column(name = "term")
+    //val term: ClassTerm,
+
+    @Column(name = "termId")
+    val termIdentifier: String = String.empty,
 
     @Column(name = "url")
     val url: String,
@@ -48,10 +50,10 @@ class Course(
     val subjectAndIdentifier: String,
 
     @Column(name = "roleId", nullable = true)
-    val roleId: Long,
+    var roleId: Long = 0,
 
     @Column(name = "channelId", nullable = true)
-    val channelId: Long,
+    var channelId: Long = 0,
 
     @Column(name = "guildId", nullable = false)
     val guildId: Long,
@@ -64,18 +66,103 @@ class Course(
 
     @ManyToOne
     @JoinColumn(name = "school_id")
-    val school: School
+    val school: School,
+
+    @Id
+    private val id: UUID = UUID.nameUUIDFromBytes((name+termIdentifier+guildId+number).toByteArray())
 
     ) : Pagable
 
 {
-    enum class ClassTerm { SPRING, WINTER, FALL, SUMMER  }
+    override fun getAsEmbed(): MessageEmbed = Embed {
+        title = "$name | $subjectAndIdentifier"
+        url = this@Course.url
 
-    override fun getAsEmbed(): MessageEmbed
-    {
-        TODO("Not yet implemented")
+        field {
+            name = "Description"
+            value = this@Course.description
+        }
+
+        field {
+            name = "Prerequisites"
+            value = prerequisite
+        }
+
+        field {
+            name = "Term"
+            value = termIdentifier
+        }
+
+        field {
+            name = "Class Number"
+            value = number.toString()
+            inline = true
+        }
+
+        field {
+            name = "Professors"
+            value = professors.joinToString { "`${it.firstName}, ${it.lastName}`" }
+        }
+
+        field {
+            name = "Assignment Count"
+            value = assignments.size.toString()
+        }
     }
-    // TODO: 2022-01-24: Figure out relations for all of the object classes
+
+
+     fun getAsEmbed(guild: Guild): MessageEmbed = Embed {
+         val role = guild.getRoleById(roleId)
+         val channel = guild.getTextChannelById(channelId)
+
+        title = "$name | $subjectAndIdentifier"
+        url = this@Course.url
+
+        field {
+            name = "Description"
+            value = this@Course.description
+        }
+
+        field {
+            name = "Prerequisites"
+            value = prerequisite
+        }
+
+        field {
+            name = "Term"
+            value = termIdentifier
+        }
+
+        field {
+            name = "Class Number"
+            value = number.toString()
+            inline = true
+        }
+
+        field {
+            name = "Professors"
+            value = professors.joinToString { "`${it.firstName}, ${it.lastName}`" }
+        }
+
+        field {
+            name = "Assignment Count"
+            value = assignments.size.toString()
+            inline = true
+        }
+
+         field {
+             name = "Channel"
+             value = channel?.asMention ?: "N/A"
+         }
+
+         field {
+             name = "Role"
+             value = role?.asMention ?: "N/A"
+         }
+
+         color = role?.colorRaw ?: 0xFFFF
+
+    }
 }
 
 

@@ -82,7 +82,6 @@ class CommandHandler(private val schoolbot: Schoolbot)
                 CommandEvent(scope = scope, schoolbot =  schoolbot, command = sub, slashEvent = event)
             )
         }
-
         else scope.launch {
             command.process(
                 CommandEvent(scope = scope, schoolbot =  schoolbot, command = command, slashEvent = event)
@@ -105,7 +104,6 @@ class CommandHandler(private val schoolbot: Schoolbot)
             val subCommand = commandF.children.find { it.name == event.subcommandName }!!
             subCommand.onAutoCompleteSuspend(event, schoolbot)
         }
-
         else scope.launch {
             commandF.onAutoCompleteSuspend(event, schoolbot)
         }

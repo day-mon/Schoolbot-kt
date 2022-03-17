@@ -1,4 +1,4 @@
-package me.damon.schoolbot.commands.sub.school
+package me.damon.schoolbot.commands.sub.school.laundry
 
 import dev.minn.jda.ktx.interactions.SelectMenu
 import dev.minn.jda.ktx.interactions.option

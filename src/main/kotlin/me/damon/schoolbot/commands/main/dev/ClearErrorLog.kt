@@ -1,6 +1,7 @@
 package me.damon.schoolbot.commands.main.dev
 
-import me.damon.schoolbot.ext.tryDelete
+import me.damon.schoolbot.ext.empty
+import me.damon.schoolbot.ext.printWriter
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
@@ -20,8 +21,11 @@ class ClearErrorLog : Command(
         if (file.exists().not()) return run { event.replyErrorEmbed("There is no error log as of now.") }
         if (file.readLines().isEmpty()) return run { event.replyErrorEmbed("Log file is already empty") }
 
-        val deleted = file.tryDelete()
 
-        if (!deleted) return run { event.replyErrorEmbed("Error while trying to delete log. ")}
+        file.printWriter().use {
+            it.write(String.empty)
+        }
+
+        event.replyMessage("Error log has been cleared")
     }
 }

@@ -35,6 +35,31 @@ class Commands : Command(
                         .append("` - *")
                         .append(it.description)
                         .append("*")
+
+                    it.group.forEach { (group, sub) ->
+                        sub.forEach { subC ->
+                            page.append("\n")
+                                .append("\u200B ".repeat(3))
+                                .append(" - `")
+                                .append("/")
+                                .append("${it.name.lowercase()} $group ${subC.name}")
+                                .append("` - *")
+                                .append(subC.description)
+                                .append("*")
+                        }
+
+                    }
+
+                    it.children.forEach { sub ->
+                        page.append("\n")
+                            .append("\u200B ".repeat(3))
+                            .append(" - `")
+                            .append("/")
+                            .append("${it.name.lowercase()} ${sub.name}")
+                            .append("` - *")
+                            .append(sub.description)
+                            .append("*")
+                    }
                 }
 
                 pages.add(page.toString())

@@ -1,8 +1,8 @@
-package me.damon.schoolbot.commands.sub.school
+package me.damon.schoolbot.commands.sub.school.laundry
 
 import dev.minn.jda.ktx.interactions.SelectMenu
 import dev.minn.jda.ktx.interactions.option
-import me.damon.schoolbot.constants
+import me.damon.schoolbot.Constants
 import me.damon.schoolbot.ext.asCommandChoice
 import me.damon.schoolbot.ext.asException
 import me.damon.schoolbot.objects.command.CommandCategory
@@ -22,7 +22,7 @@ class LaundryReminderAdd : SubCommand(
         CommandOptionData<String>(
             optionType = OptionType.STRING,
             name = "dormitory",
-            choices = constants.dorms.map { it.asCommandChoice() }.toList(),
+            choices = Constants.dorms.map { it.asCommandChoice() }.toList(),
             description = "Target dormitory you want to choose to get reminded from",
             isRequired = true
         )
@@ -43,7 +43,7 @@ class LaundryReminderAdd : SubCommand(
             return
         }
 
-        val models = response.body()?.filter { it.isInUse && it.timeRemaining.contains("Ext").not() || it.timeRemaining.contains("Offline").not() }?.toList()
+        val models = response.body()?.filter { it.isInUse && !(it.timeRemaining.contains("Ext").not() || it.timeRemaining.contains("Offline").not()) }?.toList()
             ?: return run {
             event.replyMessage("Error has occurred while trying to get the response body")
         }

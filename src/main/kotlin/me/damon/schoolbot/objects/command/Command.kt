@@ -1,14 +1,13 @@
 package me.damon.schoolbot.objects.command
 
-import dev.minn.jda.ktx.Embed
-import me.damon.schoolbot.objects.misc.Pagable
+import me.damon.schoolbot.ext.empty
 import net.dv8tion.jda.api.Permission
 
 abstract class Command(
     override val name: String,
     override val category: CommandCategory,
     override val description: String,
-    override val commandPrerequisites: String = "",
+    override val commandPrerequisites: String = String.empty,
     override val coolDown: Long = 1000L,
     override val deferredEnabled: Boolean = true,
     override val memberPermissions: List<Permission> = listOf(),
@@ -16,14 +15,5 @@ abstract class Command(
     override val children: List<SubCommand> = listOf(),
     override val options: List<CommandOptionData<*>> = listOf(),
              val group: Map<String, List<SubCommand>> = mapOf()
-) : AbstractCommand(), Pagable
-{
+) : AbstractCommand()
 
-    override fun getAsEmbed() = Embed {
-        title = name
-        field {
-            name = "Description"
-
-        }
-    }
-}

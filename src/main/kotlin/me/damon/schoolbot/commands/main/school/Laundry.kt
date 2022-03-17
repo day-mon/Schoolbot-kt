@@ -1,8 +1,8 @@
 package me.damon.schoolbot.commands.main.school
 
-import me.damon.schoolbot.commands.sub.school.LaundryReminderAdd
-import me.damon.schoolbot.commands.sub.school.LaundryReminderCancel
-import me.damon.schoolbot.commands.sub.school.LaundryView
+import me.damon.schoolbot.commands.sub.school.laundry.LaundryReminderAdd
+import me.damon.schoolbot.commands.sub.school.laundry.LaundryReminderCancel
+import me.damon.schoolbot.commands.sub.school.laundry.LaundryView
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 

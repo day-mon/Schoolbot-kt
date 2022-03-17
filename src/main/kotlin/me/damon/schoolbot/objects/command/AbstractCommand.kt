@@ -1,14 +1,16 @@
 package me.damon.schoolbot.objects.command
 
+import dev.minn.jda.ktx.Embed
 import dev.minn.jda.ktx.SLF4J
 import me.damon.schoolbot.Schoolbot
+import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData
 
-abstract class AbstractCommand
+abstract class AbstractCommand : Pagable
 {
     val logger by SLF4J
     abstract val name: String
@@ -102,5 +104,18 @@ abstract class AbstractCommand
     }
     open suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot){}
 
+
+    override fun getAsEmbed() = Embed {
+        title = name
+        field {
+            name = "Description"
+            value = this@AbstractCommand.description
+        }
+
+        field {
+            name = "Category"
+            value = this@AbstractCommand.category.name
+        }
+    }
 }
 

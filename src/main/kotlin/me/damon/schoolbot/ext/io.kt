@@ -1,9 +1,12 @@
 package me.damon.schoolbot.ext
 
+import dev.minn.jda.ktx.Embed
 import dev.minn.jda.ktx.SLF4J
-import java.io.BufferedReader
-import java.io.File
-import java.io.InputStream
+import me.damon.schoolbot.Constants
+import net.dv8tion.jda.api.interactions.InteractionHook
+import net.dv8tion.jda.api.interactions.components.ActionRow
+import java.io.*
+import java.util.*
 
 fun InputStream.string(): String
 {
@@ -25,10 +28,22 @@ fun File.tryDelete(): Boolean
     return try
     {
         this.delete()
-    } catch (e: SecurityException)
+    }
+    catch (e: SecurityException)
     {
         logger.error("Error occurred while trying to delete ${this.name}", e)
         false
     }
-
 }
+
+fun InteractionHook.replyErrorEmbed(mainTitle: String = "Error has occurred", body: String, actionRows: List<ActionRow> = Collections.emptyList(), content: String = String.empty) = this.editOriginalEmbeds(
+    Embed {
+        title = mainTitle
+        description = body
+        color = Constants.RED
+    }
+).setActionRows(actionRows)
+    .setContent(content)
+    .queue()
+fun File.printWriter(append: Boolean = false ): PrintWriter =
+PrintWriter(FileOutputStream(this.path, append))

@@ -1,6 +1,6 @@
 package me.damon.schoolbot.commands.main.school
 
-import me.damon.schoolbot.commands.sub.school.ProfessorAdd
+import me.damon.schoolbot.commands.sub.school.professor.ProfessorAdd
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 

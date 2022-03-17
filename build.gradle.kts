@@ -8,7 +8,7 @@ plugins {
     kotlin("jvm") version "1.6.10"
     application
 
-
+    id("com.google.cloud.tools.jib") version "3.2.0"
     id("org.jetbrains.kotlin.plugin.noarg") version ("1.6.10")
     id("org.jetbrains.kotlin.plugin.serialization") version("1.4.30")
     id("org.springframework.boot") version "2.6.3"
@@ -33,6 +33,18 @@ noArg {
     annotation("javax.persistence.Entity")
     annotation("javax.persistence.MappedSuperclass")
 }
+
+jib {
+    from {
+        image = "openjdk:17"
+    }
+
+    container {
+        mainClass = "me.damon.schoolbot.Schoolbot"
+        jvmFlags = listOf("-server", "-Xmx2G", "-Dnogui=true", "-jar")
+    }
+}
+
 
 /**
  * GAV coordinates GroupId:Artifact:Version
@@ -61,17 +73,18 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.jsoup:jsoup:1.14.3")
+    implementation("edu.ksu.canvas:canvas-api:2.0.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     // Database
-    runtimeOnly("org.postgresql:postgresql:42.3.3")
+    implementation("org.postgresql:postgresql:42.3.3")
 
     // Utils
     implementation("org.reflections:reflections:0.10.2")
 
     // Misc
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.1")
-    implementation("ch.qos.logback:logback-classic:1.2.10")
+    implementation("ch.qos.logback:logback-classic:1.2.11")
     implementation("com.yahoofinance-api:YahooFinanceAPI:3.15.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")

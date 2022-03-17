@@ -1,17 +1,16 @@
-package me.damon.schoolbot.commands.sub.school
+package me.damon.schoolbot.commands.sub.school.school
 
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.SubCommand
 
-class CourseAddNormal : SubCommand(
-    name = "normal",
-    description = "Adds a course",
-    category = CommandCategory.SCHOOL,
+class SchoolEdit : SubCommand(
+    name = "edit",
+    description = "Edits a school",
+    category = CommandCategory.SCHOOL
 )
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        super.onExecuteSuspend(event)
     }
 }

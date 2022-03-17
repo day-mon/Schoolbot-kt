@@ -1,17 +1,17 @@
-package me.damon.schoolbot.commands.sub.school
+package me.damon.schoolbot.commands.sub.school.course
 
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.SubCommand
 
-class SchoolEdit : SubCommand(
-    name = "edit",
-    description = "Edits a school",
-    category = CommandCategory.SCHOOL
+class CourseAddNormal : SubCommand(
+    name = "normal",
+    description = "Adds a course",
+    category = CommandCategory.SCHOOL,
 )
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        TODO("Not yet implemented")
+        super.onExecuteSuspend(event)
     }
 }

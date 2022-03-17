@@ -6,7 +6,7 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.requests.ErrorResponse
 import java.io.File
-import java.time.Instant
+import java.time.LocalDateTime
 import kotlin.io.path.Path
 import kotlin.io.path.fileSize
 
@@ -38,14 +38,15 @@ class ExportErrorLog : Command(
         // add
 
         // blocking but /shrug
-        if (Path(file.path).fileSize() > event.jda.selfUser.allowedFileSize)
+        val size = Path(file.path).fileSize()
+        if (size > event.jda.selfUser.allowedFileSize)
         {
             event.replyMessage("Log file is large to export to discord")
             return
         }
 
         event.user.openPrivateChannel().queue {
-            it.sendMessage("Log file as of ${Instant.now()}")
+            it.sendMessage("Log file as of ${LocalDateTime.now()}. It currently has a size of `$size` bytes")
                 .addFile(file)
                 .queue({
                        event.replyMessage("Log sent in PMs.")

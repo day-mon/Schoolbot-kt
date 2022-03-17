@@ -1,11 +1,11 @@
-
-package me.damon.schoolbot.commands.sub.school
+package me.damon.schoolbot.commands.sub.school.school
 
 import dev.minn.jda.ktx.interactions.SelectMenu
 import dev.minn.jda.ktx.interactions.button
 import dev.minn.jda.ktx.interactions.option
 import dev.minn.jda.ktx.messages.reply_
 import me.damon.schoolbot.ext.asException
+import me.damon.schoolbot.ext.editOriginalAndClear
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
@@ -20,10 +20,7 @@ import java.util.*
 import kotlin.time.Duration.Companion.minutes
 
 class SchoolAdd : SubCommand(
-    name = "add",
-    description = "Adds a school",
-    category = CommandCategory.SCHOOL,
-    options = listOf(
+    name = "add", description = "Adds a school", category = CommandCategory.SCHOOL, options = listOf(
         CommandOptionData<String>(
             optionType = OptionType.STRING,
             name = "school_name",
@@ -43,7 +40,7 @@ class SchoolAdd : SubCommand(
 
         if (!response.isSuccessful)
         {
-            logger.error("Unexpected error has occurred",  response.raw().asException())
+            logger.error("Unexpected error has occurred", response.raw().asException())
             event.replyErrorEmbed("An unexpected error has occurred!")
             return
         }
@@ -57,14 +54,20 @@ class SchoolAdd : SubCommand(
         if (models.size > 25) return run { event.replyErrorEmbed("Please attempt to narrow your search down. That search propagated `${models.size}` results") }
 
 
-        val menu = SelectMenu("school:menu") { models.forEachIndexed { index, schoolModel -> option(schoolModel.name, index.toString()) } }
+        val menu = SelectMenu("school:menu") {
+            models.forEachIndexed { index, schoolModel ->
+                option(
+                    schoolModel.name,
+                    index.toString()
+                )
+            }
+        }
 
         val selectionEvent = event.sendMenuAndAwait(menu, "Select an item from the menu to choose a school")
         val school = models[selectionEvent.values[0].toInt()]
 
         val duplicate = event.schoolbot.schoolService.findSchoolInGuild(event.guild.idLong, school.name)
-
-        if (duplicate != null) return run { event.replyErrorEmbed("${school.name} already exist. You cannot add duplicate schools!") }
+        if (duplicate != null) return run { event.replyErrorEmbed("`${school.name}` already exist. You cannot add duplicate schools!") }
 
         selectionEvent.reply_("Does this look like the correct school?")
             .addEmbeds(school.getAsEmbed())
@@ -78,27 +81,25 @@ class SchoolAdd : SubCommand(
         val jda = event.jda
         val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = event.user, expiration = 1.minutes) {
 
-            try
-            {
-                val savedSchool = cmdEvent.schoolbot.schoolService.saveSchool(school, cmdEvent)
+            cmdEvent.schoolbot.schoolService.saveSchool(school, cmdEvent).
+
+            onSuccess {
                 event.hook.editOriginal("School has been saved")
-                    .setEmbeds(savedSchool.getAsEmbed())
+                    .setEmbeds(it.getAsEmbed())
                     .setActionRows(Collections.emptyList())
                     .queue()
-            }
-            catch (e: IllegalArgumentException)
-            {
-                logger.error("{} could not be saved", school.name)
-                cmdEvent.replyMessage("${school.name} could not be saved")
-            }
+            }.
 
+            onFailure {
+                logger.error("Error has occurred while trying to add `${school.name}` to `${cmdEvent.guild.name}`")
+                event.hook.editOriginalAndClear("An unknown error has occurred while trying to add ${school.name}")
+            }
         }
 
+
+
         val no = jda.button(label = "No", style = ButtonStyle.DANGER, user = event.user, expiration = 1.minutes) {
-            event.hook.editOriginal("Aborting.. Thank you for using Schoolbot!")
-                .setActionRows(Collections.emptyList())
-                .setEmbeds(Collections.emptyList())
-                .queue()
+            event.hook.editOriginalAndClear("Aborting. Thank you for using Schoolbot!")
         }
 
         return listOf(yes, no)

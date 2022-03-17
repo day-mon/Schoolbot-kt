@@ -57,4 +57,6 @@ fun get(url: String): Request
     return Request.Builder().url(url).method("GET", null).build()
 }
 
-fun Response.bodyAsString() = this.body()?.string()
+fun Response.bodyAsString() = this.body()?.string().also {
+    this.body()?.close()
+}

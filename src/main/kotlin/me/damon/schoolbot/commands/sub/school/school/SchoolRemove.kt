@@ -1,4 +1,4 @@
-package me.damon.schoolbot.commands.sub.school
+package me.damon.schoolbot.commands.sub.school.school
 
 import dev.minn.jda.ktx.interactions.SelectMenu
 import dev.minn.jda.ktx.interactions.button
@@ -34,7 +34,10 @@ class SchoolRemove : SubCommand(
     {
         val service = event.schoolbot.schoolService
         val name = event.getOption("school_name")!!.asString
-        val schools = service.getSchoolsByGuildId(event.guild.idLong).filter { it.classes.isEmpty() }
+        val schoolResult = service.getSchoolsByGuildId(event.guild.idLong) ?:
+           return run { event.replyErrorEmbed("Error occurred while fetching schools ") }
+
+        val schools = schoolResult.filter { it.classes.isEmpty() }
 
         if (schools.isEmpty()) return run {
             event.replyErrorEmbed("School does not exist.")
@@ -67,8 +70,8 @@ class SchoolRemove : SubCommand(
 
 
             cmdEvent.schoolbot.schoolService.deleteSchool(school, cmdEvent)
-            it.reply("School has been deleted")
-                .addEmbeds(school.getAsEmbed())
+            event.hook.editOriginal("School has been deleted")
+                .setEmbeds(school.getAsEmbed())
                 .queue()
 
 

@@ -1,6 +1,6 @@
 package me.damon.schoolbot
 
-object constants
+object Constants
 {
     val dorms = listOf(
         "willow",
@@ -13,9 +13,12 @@ object constants
         "hawthorn",
         "hemlock",
         "maple",
+        "laurel",
         "larkspur",
         "cpas",
     )
 
-    const val red = 0x990f0f
+    const val RED = 0x990f0f
+    const val MAX_ROLE_COUNT = 250
+    const val MAX_CHANNEL_COUNT = 500
 }

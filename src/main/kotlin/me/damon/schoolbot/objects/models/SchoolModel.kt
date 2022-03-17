@@ -30,11 +30,11 @@ data class SchoolModel(
     fun asSchool(timeZone: ZoneId) = School(
         name = name,
         url = if (webPages.isNullOrEmpty()) "https://schoolbot.dev" else webPages[0],
-        emailSuffix = if (domains.isEmpty()) "N/A" else domains[0],
+        emailSuffix = if (domains.isEmpty()) "N/A" else " @${domains[0]}",
         isPittSchool = name.contains("University of Pittsburgh"),
         timeZone = timeZone,
-        classes = setOf(),
-        professor = setOf()
+        classes = mutableSetOf(),
+        professor = mutableSetOf()
     )
 
 
