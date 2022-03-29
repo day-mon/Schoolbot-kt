@@ -11,6 +11,7 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import org.reflections.Reflections
+import org.springframework.stereotype.Component
 import java.util.*
 
 
@@ -18,7 +19,7 @@ private const val COMMANDS_PACKAGE = "me.damon.schoolbot.commands"
 private val supervisor = SupervisorJob()
 private val scope = CoroutineScope(Dispatchers.IO + supervisor)
 
-
+@Component
 class CommandHandler(private val schoolbot: Schoolbot)
 {
     private val logger by SLF4J

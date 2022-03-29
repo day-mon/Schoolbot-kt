@@ -1,38 +1,40 @@
 package me.damon.schoolbot.objects.school
 
+import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.*
 import javax.persistence.*
 
 @Table(name = "assignments")
 @Entity(name = "Assignment")
-class Assignment (
+@Transactional
+open class Assignment (
     @Id
     @Column(name = "id", unique = true, nullable = false, updatable = false)
-    val id: UUID,
+    override val id: UUID,
 
     @Column(name = "name")
-    val name: String,
+    open val name: String,
 
     @Column(name= "description")
-    val description: String,
+    open val description: String,
 
     @Column(name = "points")
-    val points: Int,
+    open val points: Int,
 
     @Column(name = "dueDate")
-    val dueDate: Instant,
-
+    open  val dueDate: Instant,
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
-    val course: Course
+    open val course: Course
 
 
 
-) : Comparable<Assignment>, Pagable
+) : Comparable<Assignment>, Pagable, Identifiable
 {
     override fun compareTo(other: Assignment): Int
     {

@@ -12,7 +12,6 @@ import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
-import kotlin.streams.toList
 
 class Prune : Command (
     name = "Prune",
@@ -27,6 +26,7 @@ class Prune : Command (
         event.slashEvent
             .reply_("This will clear the last 50 bot messages within the last two weeks in this channel. Would you like to proceed?")
             .addActionRow(getActionRows(event))
+            .queue()
     }
 
     private fun getActionRows(event: CommandEvent): List<Button>
@@ -40,13 +40,13 @@ class Prune : Command (
                     val channel = button.channel
                     val messages = list.stream()
                         .filter { it.timeCreated.isBefore(OffsetDateTime.now().plusWeeks(2)) && selfUser.idLong == it.member?.idLong }
-                        .limit(25)
+                        .limit(50)
                         .toList()
                     channel.purgeMessages(messages)
-                    return@thenApplyAsync
+                    return@thenApplyAsync messages.size
                 }
                 .thenApplyAsync { size ->
-                    button.channel.sendMessage("Successfully deleted $size messages")
+                    button.channel.sendMessage("Successfully deleted `$size` messages")
                         .queueAfter(5, TimeUnit.SECONDS,
                             null,
                             ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))

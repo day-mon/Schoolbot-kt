@@ -1,18 +1,19 @@
 package me.damon.schoolbot.handler
 
+import dev.minn.jda.ktx.SLF4J
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.OnlineStatus
 import net.dv8tion.jda.api.entities.Activity
-import java.util.*
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
-import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
+import org.springframework.stereotype.Component
+import java.util.concurrent.*
 
+@Component
 class TaskHandler
 {
-    private val scheduler = Executors.newScheduledThreadPool(10)
+    private val scheduler = Executors.newScheduledThreadPool(10) { Thread(it, "Schoolbot TaskHandler-Thread") }
     val tasks = mutableMapOf<String, Future<*>>()
+    private val logger by SLF4J
+
 
     fun addRepeatingTask(name: String, timeUnit: TimeUnit, duration: Long, block: () -> Unit): ScheduledFuture<*>
     {
@@ -22,7 +23,6 @@ class TaskHandler
            /* period = */ duration,
            /* unit = */ timeUnit
         )
-
         tasks[name] = job
         return job
     }
@@ -35,6 +35,8 @@ class TaskHandler
             timeUnit
         )
         tasks[name] = job
+        logger.info("Task with ID [{}] has been scheduled for {} {}(s)", name, duration, timeUnit.name.lowercase())
+
     }
 
     fun taskExist(name: String) = tasks.containsKey(name)
@@ -47,7 +49,7 @@ class TaskHandler
         timeUnit = TimeUnit.MINUTES,
         duration = 5,
         block = {
-            val random = Random()
+            val random = ThreadLocalRandom.current()
             val activityList = listOf(
                 Activity.watching("mark sleep"),
                 Activity.streaming("warner growing", "https://www.youtube.com/watch?v=PLOPygVcaVE"),

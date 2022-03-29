@@ -20,7 +20,8 @@ import java.util.*
 import kotlin.time.Duration.Companion.minutes
 
 class SchoolAdd : SubCommand(
-    name = "add", description = "Adds a school", category = CommandCategory.SCHOOL, options = listOf(
+    name = "add",
+    description = "Adds a school", category = CommandCategory.SCHOOL, options = listOf(
         CommandOptionData<String>(
             optionType = OptionType.STRING,
             name = "school_name",
@@ -81,19 +82,15 @@ class SchoolAdd : SubCommand(
         val jda = event.jda
         val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = event.user, expiration = 1.minutes) {
 
-            cmdEvent.schoolbot.schoolService.saveSchool(school, cmdEvent).
+            val savedSchool = cmdEvent.service.saveSchool(school, cmdEvent) ?: return@button run {
+                cmdEvent.replyErrorEmbed("Error has occurred while trying to save school!")
+            }
 
-            onSuccess {
                 event.hook.editOriginal("School has been saved")
-                    .setEmbeds(it.getAsEmbed())
+                    .setEmbeds(school.getAsEmbed())
                     .setActionRows(Collections.emptyList())
                     .queue()
-            }.
 
-            onFailure {
-                logger.error("Error has occurred while trying to add `${school.name}` to `${cmdEvent.guild.name}`")
-                event.hook.editOriginalAndClear("An unknown error has occurred while trying to add ${school.name}")
-            }
         }
 
 

@@ -13,5 +13,5 @@ class GuildSettings(
     val guildId: Long,
 
     @Column(name = "longMessageUploading")
-    val longMessageUploading: Boolean = true
+    var longMessageUploading: Boolean = true
 )

@@ -87,7 +87,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.11")
     implementation("com.yahoofinance-api:YahooFinanceAPI:3.15.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.3"))
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
 }

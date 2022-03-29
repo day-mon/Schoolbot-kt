@@ -1,52 +1,63 @@
 package me.damon.schoolbot.objects.school
 
 import dev.minn.jda.ktx.Embed
+import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed
+import org.springframework.transaction.annotation.Transactional
 import java.time.ZoneId
 import java.util.*
-import javax.persistence.*
+import java.util.concurrent.ThreadLocalRandom
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.Id
+import javax.persistence.Table
 
 @Entity(name = "School")
 @Table(name = "schools")
-class  School(
+@Transactional
+open class School(
     @Id
     @Column(name = "id", unique = true, updatable = false)
-    private val id: UUID = UUID.randomUUID(),
+    override val id: UUID = UUID.randomUUID(),
 
     @Column(name = "name", nullable = false, unique = true)
-    val name: String,
+    open var name: String,
 
     @Column(name = "url", nullable = true)
-    val url: String,
+    open var url: String,
 
     @Column(name = "emailSuffix", nullable = false)
-    val emailSuffix: String,
+    open var emailSuffix: String,
 
-    @Column(name = "isPittSchool", nullable = false)
-    val isPittSchool: Boolean = name.contains("University of Pittsburgh"),
+    @Column(name = "isPittSchool", nullable = false )
+    open val isPittSchool: Boolean = name.contains("University of Pittsburgh"),
 
     @Column(name = "guildId", nullable = false)
-    var guildId: Long = -1L,
+    open var guildId: Long = -1L,
 
     @Column(name = "roleId", nullable = false)
-    var roleId: Long = -1L,
-    
-    @OneToMany(mappedBy = "school", fetch = FetchType.EAGER)
-    val professor: MutableSet<Professor>,
+    open var roleId: Long = -1L,
 
-    @OneToMany(mappedBy = "school", fetch = FetchType.EAGER)
-    val classes: MutableSet<Course>,
-    
+    /*
+    @OneToMany(mappedBy = "school", fetch = FetchType.LAZY)
+    open val professor: MutableSet<Professor>,
+
+    @OneToMany(mappedBy = "school", fetch = FetchType.LAZY)
+    open val classes: MutableSet<Course>,
+'*/
     @Column(name = "timeZone", nullable = false, updatable = true)
-    val timeZone: ZoneId
+    open val timeZone: ZoneId
 
-    ) : Pagable
+    ) : Pagable, Identifiable
 {
+
+//    fun hasProfessors() = professor.isNotEmpty()
     override fun getAsEmbed(): MessageEmbed = Embed {
         title = name
         url = if (url.isNullOrEmpty()) "https://schoolbot.dev" else url
 
+    /*
         field {
             name = "Classes Count"
             value = classes.size.toString()
@@ -59,15 +70,18 @@ class  School(
             inline = true
         }
 
+     */
+
         field {
             name = "Email"
             value = emailSuffix
             inline = false
         }
 
-        color = Random().nextInt(0xFFFF)
+        color = ThreadLocalRandom.current().nextInt(200)
     }
 
+    override fun toString(): String = name
 }
 
 

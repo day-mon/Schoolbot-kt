@@ -33,8 +33,6 @@ data class SchoolModel(
         emailSuffix = if (domains.isEmpty()) "N/A" else " @${domains[0]}",
         isPittSchool = name.contains("University of Pittsburgh"),
         timeZone = timeZone,
-        classes = mutableSetOf(),
-        professor = mutableSetOf()
     )
 
 

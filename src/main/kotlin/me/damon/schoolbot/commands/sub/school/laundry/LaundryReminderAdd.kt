@@ -32,8 +32,8 @@ class LaundryReminderAdd : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val taskHandler = event.schoolbot.taskHandler
-        val dorm = event.getOption("dormitory")?.asString
-        val response = event.schoolbot.apiHandler.johnstownAPI.getLaundryItems(dorm!!)
+        val dorm = event.getOption("dormitory")!!.asString
+        val response = event.schoolbot.apiHandler.johnstownAPI.getLaundryItems(dorm)
 
 
         if (response.isSuccessful.not())
@@ -43,8 +43,9 @@ class LaundryReminderAdd : SubCommand(
             return
         }
 
-        val models = response.body()?.filter { it.isInUse && !(it.timeRemaining.contains("Ext").not() || it.timeRemaining.contains("Offline").not()) }?.toList()
+        val models = response.body()?.filter { it.isInUse && !(it.timeRemaining.contains("Ext") || it.timeRemaining.contains("Offline")) }?.toList()
             ?: return run {
+                logger.debug("{}", response.errorBody())
             event.replyMessage("Error has occurred while trying to get the response body")
         }
 
@@ -73,7 +74,7 @@ class LaundryReminderAdd : SubCommand(
                 val message = "${option.type} - ${option.applianceID} at ${option.location} is now ready"
                 event.user.openPrivateChannel()
                     .queue { pc ->
-                        pc.sendMessage(message).queue({}, ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER) {
+                        pc.sendMessage(message).queue(null, ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER) {
                             event.replyMessage("I could not send you a message but.. $message")
                         })
                     }

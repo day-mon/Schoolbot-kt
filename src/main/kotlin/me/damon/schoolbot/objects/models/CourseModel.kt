@@ -76,10 +76,10 @@ data class CourseModel(
         school = school,
         termIdentifier = term,
         prerequisite = (enrollmentRequirements ?: "N/A") as String,
-        assignments = mutableSetOf(),
+        // assignments = mutableSetOf(),
         subjectAndIdentifier = identifier,
         guildId = school.guildId,
-        professors = processProfessors(instructors, school),
+        // professors = processProfessors(instructors, school),
         startDate = Instant.parse("${startDate}Z").minusMillis(14400000),
         endDate = Instant.parse("${endDate}Z").minusMillis(14400000),
         url = url
@@ -87,6 +87,7 @@ data class CourseModel(
 
     private fun processProfessors(professors: List<String>, school: School): MutableSet<Professor>
     {
+        /*
         val regex = Regex("\\s+")
         if (professors.isEmpty()) return mutableSetOf(
             Professor(
@@ -142,7 +143,6 @@ data class CourseModel(
                     )
                 )
             }
-            //TODO: Fix TBA
             else
             {
                 val prof = school.professor.find { it.firstName == professor && it.lastName == String.empty  }
@@ -166,5 +166,8 @@ data class CourseModel(
             }
         }
         return profs
+
+         */
+        return mutableSetOf()
     }
 }

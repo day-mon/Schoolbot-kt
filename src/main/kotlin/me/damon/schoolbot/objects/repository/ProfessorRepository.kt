@@ -8,5 +8,12 @@ import java.util.*
 interface ProfessorRepository : JpaRepository<Professor, UUID>
 {
     fun findByFullNameEqualsIgnoreCaseAndSchool(fullName: String, school: School): Professor?
-    fun findProfessorBySchool(school: School): Professor?
+    fun findProfessorBySchool(school: School): Set<Professor>
+
+
+    fun findBySchool_GuildId(guildId: Long): Set<Professor>
+
+
+    fun findBySchool_NameAndSchool_GuildId(name: String, guildId: Long): Set<Professor>
+
 }

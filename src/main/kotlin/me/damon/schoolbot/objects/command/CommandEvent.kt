@@ -11,10 +11,10 @@ import me.damon.schoolbot.ext.empty
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.MessageEmbed
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
+import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import org.slf4j.LoggerFactory
@@ -27,7 +27,7 @@ private val logger = LoggerFactory.getLogger(CommandEvent::class.java)
 
 class CommandEvent(
     val schoolbot: Schoolbot,
-    val slashEvent: SlashCommandInteractionEvent,
+    val slashEvent: SlashCommandInteraction,
     val command: AbstractCommand,
     val scope: CoroutineScope,
 )
@@ -40,18 +40,23 @@ class CommandEvent(
     val guildId = slashEvent.guild!!.idLong
     val member = slashEvent.member!!
     val hook = slashEvent.hook
+    val service = schoolbot.schoolService
+
     val options: MutableList<OptionMapping> = slashEvent.options
 
-    fun replyEmbed(embed: MessageEmbed) = when {
-        command.deferredEnabled -> hook.editOriginalEmbeds(embed).queue({ }) {
+    fun replyEmbed(embed: MessageEmbed, content: String = String.empty) = when {
+        command.deferredEnabled -> hook.editOriginalEmbeds(embed).setActionRows(Collections.emptyList()).setContent(content).queue({ }) {
             logger.error(
                 "Error has occurred while attempting to send embeds for command ${command.name}", it
             )
+            hook.editOriginal("Error has occurred while attempting to send embeds").queue()
         }
-        else -> slashEvent.replyEmbeds(embed).queue({ }) {
+        else -> slashEvent.replyEmbeds(embed).setContent(content).queue({ }) {
             logger.error(
                 "Error has occurred while attempting to send embeds for command ${command.name}", it
             )
+            slashEvent.reply("Error has occurred while attempting to send embeds").queue()
+
         }
     }
 
@@ -138,8 +143,9 @@ class CommandEvent(
     }
 
     fun <T: Pagable> sendPaginator(embeds: Collection<T>) = sendPaginator(*embeds.map { it.getAsEmbed() }.toTypedArray())
+    fun <T: Pagable> sendPaginatorColor(embeds: Collection<T>) = sendPaginator(*embeds.map { it.getAsEmbed(guild) }.toTypedArray())
 
-    suspend fun sendMenuAndAwait(menu: SelectMenu, message: String, timeoutDuration: Long = 60): SelectMenuInteractionEvent
+    suspend fun sendMenuAndAwait(menu: SelectMenu, message: String, timeoutDuration: Long = 60, acknowledge: Boolean = false): SelectMenuInteractionEvent
     {
         hook.editOriginal("$message | Time out is set to $timeoutDuration seconds")
             .setActionRow(menu)
@@ -148,6 +154,9 @@ class CommandEvent(
         return jda.await<SelectMenuInteractionEvent> { it.member!!.idLong == member.idLong && it.componentId == menu.id }.also {
             if (!job.isCancelled)
                 job.cancel(true)
+
+            if (acknowledge)
+                it.deferEdit().queue()
         }
     }
 
@@ -157,21 +166,17 @@ class CommandEvent(
             .setActionRows(rows)
             .queue()
         val job = executors.schedule({ hook.run { editOriginal("Command has timed out try again please").setActionRows(Collections.emptyList()).queue() } }, timeoutDuration, TimeUnit.SECONDS)
-        return jda.await<MessageReceivedEvent> {it.guild != null && it.member!!.idLong == member.idLong }.also {
+        return jda.await<MessageReceivedEvent> {it.guild != null && it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }.also {
             if (!job.isCancelled)
                 job.cancel(true)
         }
     }
 
-    fun sendEmbed(embed: MessageEmbed, content: String = String.empty) = when  {
-        command.deferredEnabled -> hook.editOriginalEmbeds(embed).setContent(content).setActionRows(Collections.emptyList()).queue()
-        else -> slashEvent.replyEmbeds(embed).setContent(content).queue()
-    }
 
     fun sendPaginator(vararg embeds: MessageEmbed)
     {
         if (embeds.isEmpty()) return run { replyErrorEmbed("There are no embeds to display") }
-        if (embeds.size == 1) return run { sendEmbed(embeds[0]) }
+        if (embeds.size == 1) return run { replyEmbed(embeds[0]) }
 
         if (command.deferredEnabled)
         {

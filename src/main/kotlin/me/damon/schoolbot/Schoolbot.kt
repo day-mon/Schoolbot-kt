@@ -38,6 +38,7 @@ fun main()
 open class Schoolbot(
     val schoolService: SchoolService,
     val guildService: GuildService,
+    val taskHandler: TaskHandler,
     val context: ConfigurableApplicationContext
 ) : ListenerAdapter()
 {
@@ -60,7 +61,7 @@ open class Schoolbot(
     // handlers
     val startUpTime = Instant.now()!!
     val configHandler = ConfigHandler()
-    val taskHandler = TaskHandler()
+   // val taskHandler = TaskHandler()
     val messageHandler = MessageHandler(this)
     val apiHandler = ApiHandler(okhttp)
 

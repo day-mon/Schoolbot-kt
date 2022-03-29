@@ -21,13 +21,13 @@ open class GuildService(
         }
         else
         {
-            guildRepository.save(
-                GuildSettings(guildId = guildId)
-            )
+            guildRepository.save( GuildSettings(guildId = guildId ) )
         }
     }
 
-    open fun createSettings(settings: GuildSettings): GuildSettings = guildRepository.save(settings)
+    open fun createSettings(settings: GuildSettings): GuildSettings? =
+        runCatching { guildRepository.save(settings) }
+        .getOrNull()
 
     @CacheEvict(cacheNames = ["guild_settings"], key = "#guildId")
     open fun removeGuildInstance(guildId: Long) = guildRepository.deleteById(guildId)

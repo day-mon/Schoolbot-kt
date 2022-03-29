@@ -3,11 +3,11 @@ package me.damon.schoolbot.commands.sub.school.laundry
 import dev.minn.jda.ktx.interactions.SelectMenu
 import dev.minn.jda.ktx.interactions.option
 import me.damon.schoolbot.Schoolbot
+import me.damon.schoolbot.ext.replyChoiceStringAndLimit
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.SubCommand
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
-import net.dv8tion.jda.api.interactions.commands.Command
 
 class LaundryReminderCancel : SubCommand(
     name = "cancel",
@@ -50,8 +50,6 @@ class LaundryReminderCancel : SubCommand(
     {
         val keys = schoolbot.taskHandler.tasks.keys
         val reminders = keys.filter { it.contains(event.user.id) }
-            .map { Command.Choice(it, it) }
-
-        event.replyChoices(reminders).queue()
+        event.replyChoiceStringAndLimit(reminders).queue()
     }
 }
