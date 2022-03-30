@@ -6,11 +6,13 @@ import me.damon.schoolbot.objects.guild.GuildSettings
 import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.school.Course
 import me.damon.schoolbot.objects.school.School
+import net.dv8tion.jda.api.audit.ActionType
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent
 import net.dv8tion.jda.api.events.role.RoleDeleteEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
+import kotlin.math.log
 
 class GuildListeners(val schoolbot: Schoolbot) : ListenerAdapter()
 {
@@ -34,36 +36,56 @@ class GuildListeners(val schoolbot: Schoolbot) : ListenerAdapter()
 
     override fun onRoleDelete(event: RoleDeleteEvent)
     {
-        val roleDeleted = event.role.idLong
-        val schoolRoles = schoolbot.schoolService.getSchoolsByGuildId(event.guild.idLong)?.map { MentionableDeleteDTO(it.roleId, it) } ?: return run { logger.error("Error while trying to get schools in delete event") }
-        val courseRoles = schoolbot.schoolService.getClassesInGuild(event.guild.idLong)?.map { MentionableDeleteDTO(it.roleId, it) } ?: return run { logger.error("Error while trying to get course in delete event") }
-        val combined = schoolRoles.plus(courseRoles)
-        val found = combined.firstOrNull { it.mentionableId == roleDeleted } ?: return
+        val selfUser = event.jda.selfUser
+        if (event.role.name == selfUser.name) return
 
+        event.guild.retrieveAuditLogs()
+            .type(ActionType.ROLE_DELETE)
+            .limit(1)
+            .queue ({ logs ->
+                val user = logs[0].user ?: return@queue run { logger.error("Error while trying to obtain user") }
 
+                if (user.idLong == selfUser.idLong) return@queue
 
-        // I have to have duplicates right here because the compiler thinks they are identifiable
-        when (val obj = found.obj)
-        {
-            is School -> schoolbot.schoolService.updateEntity( obj.apply { roleId = 0 } ) ?: return
-            is Course -> schoolbot.schoolService.updateEntity( obj.apply { roleId = 0 } ) ?: return
-            else -> TODO("${obj.javaClass.name} has not been implemented yet")
-        }
+                val roleDeleted = event.role.idLong
+                val schoolRoles = schoolbot.schoolService.getSchoolsByGuildId(event.guild.idLong)?.map { MentionableDeleteDTO(it.roleId, it) } ?: return@queue run { logger.error("Error while trying to get schools in delete event") }
+                val courseRoles = schoolbot.schoolService.getClassesInGuild(event.guild.idLong)?.map { MentionableDeleteDTO(it.roleId, it) } ?: return@queue run { logger.error("Error while trying to get course in delete event") }
+                val combined = schoolRoles.plus(courseRoles)
+                val found = combined.firstOrNull { it.mentionableId == roleDeleted } ?: return@queue
+
+                // I have to have duplicates right here because the compiler thinks they are identifiable
+                when (val obj = found.obj)
+                {
+                    is School -> schoolbot.schoolService.updateEntity( obj.apply { roleId = 0 } ) ?: return@queue
+                    is Course -> schoolbot.schoolService.updateEntity( obj.apply { roleId = 0 } ) ?: return@queue
+                    else -> TODO("${obj.javaClass.name} has not been implemented yet")
+                }
+            }) { failure -> logger.error("Error has occurred while trying to retrieve the audit logs", failure) }
     }
 
     override fun onChannelDelete(event: ChannelDeleteEvent)
     {
-        val channel = event.channel.idLong
-        val schools = schoolbot.schoolService.getClassesInGuild(event.guild.idLong) ?: return run { logger.error("Error while trying to fetch schools") }
-        val found = schools.filter { course -> course.channelId != 0L  }
-            .map { course -> MentionableDeleteDTO(course.channelId, course) }
-            .find { it.mentionableId == channel } ?: return
+        val selfUser = event.jda.selfUser
 
-        when (val obj = found.obj)
-        {
-            is Course -> schoolbot.schoolService.updateEntity( obj.apply { channelId = 0L } )
-            else -> TODO("${obj.javaClass.name} has not been implemented yet")
-        }
+        event.guild.retrieveAuditLogs()
+            .type(ActionType.CHANNEL_DELETE)
+            .queue ({ logs ->
+                val user = logs[0].user ?: return@queue run { logger.error("Error while trying to obtain user") }
+
+                if (user.idLong == selfUser.idLong) return@queue
+
+                val channel = event.channel.idLong
+                val schools = schoolbot.schoolService.getClassesInGuild(event.guild.idLong) ?: return@queue run { logger.error("Error while trying to fetch schools") }
+                val found = schools.filter { course -> course.channelId != 0L }
+                    .map { course -> MentionableDeleteDTO(course.channelId, course) }
+                    .find { it.mentionableId == channel } ?: return@queue
+
+                when (val obj = found.obj)
+                {
+                    is Course -> schoolbot.schoolService.updateEntity(obj.apply { channelId = 0L })
+                    else -> TODO("${obj.javaClass.name} has not been implemented yet")
+                }
+            }) { failure -> logger.error("Error has occurred while trying to retrieve the audit logs", failure) }
     }
 
     class MentionableDeleteDTO(val mentionableId: Long, val obj: Identifiable)
