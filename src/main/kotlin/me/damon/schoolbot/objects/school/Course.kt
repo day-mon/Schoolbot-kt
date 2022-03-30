@@ -24,11 +24,13 @@ open class Course(
     @Column(name = "prerequisite")
     open val prerequisite: String,
 
-   // @ManyToMany(mappedBy = "courses", fetch = FetchType.LAZY)
-   // open val professors: MutableSet<Professor>,
 
-   // @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
-   // open val assignments: MutableSet<Assignment>,
+
+   @ManyToMany(mappedBy = "courses", fetch = FetchType.LAZY)
+    open val professors: MutableSet<Professor>,
+
+   @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
+    open val assignments: MutableSet<Assignment>,
 
     @Column(name = "startDate", nullable = false)
     open val startDate: Instant,

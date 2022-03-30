@@ -1,8 +1,18 @@
 package me.damon.schoolbot.commands.sub.school.course
 
+import dev.minn.jda.ktx.interactions.SelectMenu
+import dev.minn.jda.ktx.interactions.button
+import dev.minn.jda.ktx.interactions.option
+import me.damon.schoolbot.ext.replyErrorEmbed
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.SubCommand
+import me.damon.schoolbot.objects.school.Course
+import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
+import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import java.util.*
+import kotlin.time.Duration.Companion.minutes
 
 class CourseRemove : SubCommand(
     name = "remove",
@@ -12,9 +22,9 @@ class CourseRemove : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        /*
+
         val courses =
-            event.schoolbot.schoolService.getClassesInGuild(event.guildId)?.filter { it.assignments.isEmpty() }
+            event.schoolbot.schoolService.findEmptyClassesInGuild(event.guild.idLong)
                 ?: return run {
                     event.replyErrorEmbed("Error occurred while attempting to grab the courses for the `${event.guild.name}`")
                 }
@@ -40,8 +50,8 @@ class CourseRemove : SubCommand(
 
 
 
-        selection.hook.editMessageById(selection.messageId,"Are you sure you want to remove `${course.name}` from `${course.school.name}`")
-            .setActionRow(getActionRows(event, selection, course))
+        selection.reply("Are you sure you want to remove `${course.name}` from `${course.school.name}`")
+            .addActionRow(getActionRows(event, selection, course))
             .queue()
 
     }
@@ -67,8 +77,5 @@ class CourseRemove : SubCommand(
         }
 
         return listOf(yes, no)
-    }
-
-         */
     }
 }

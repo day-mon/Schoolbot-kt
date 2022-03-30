@@ -3,6 +3,7 @@ package me.damon.schoolbot.objects.models
 
 import com.google.gson.annotations.SerializedName
 import me.damon.schoolbot.ext.empty
+import me.damon.schoolbot.objects.repository.ProfessorRepository
 import me.damon.schoolbot.objects.school.Course
 import me.damon.schoolbot.objects.school.Professor
 import me.damon.schoolbot.objects.school.School
@@ -67,7 +68,7 @@ data class CourseModel(
     var term: String = String.empty,
     var url: String = String.empty
 ) {
-    fun asCourse(school: School)
+    fun asCourse(school: School, professorRepository: ProfessorRepository)
     = Course(
         name = name,
         description = description,
@@ -76,18 +77,17 @@ data class CourseModel(
         school = school,
         termIdentifier = term,
         prerequisite = (enrollmentRequirements ?: "N/A") as String,
-        // assignments = mutableSetOf(),
+        assignments = mutableSetOf(),
         subjectAndIdentifier = identifier,
         guildId = school.guildId,
-        // professors = processProfessors(instructors, school),
+        professors = processProfessors(instructors, school, professorRepository),
         startDate = Instant.parse("${startDate}Z").minusMillis(14400000),
         endDate = Instant.parse("${endDate}Z").minusMillis(14400000),
         url = url
     )
 
-    private fun processProfessors(professors: List<String>, school: School): MutableSet<Professor>
+    private fun processProfessors(professors: List<String>, school: School, professorRepository: ProfessorRepository): MutableSet<Professor>
     {
-        /*
         val regex = Regex("\\s+")
         if (professors.isEmpty()) return mutableSetOf(
             Professor(
@@ -109,7 +109,7 @@ data class CourseModel(
                     Professor(
                         firstName = "To be Announced",
                         lastName = String.empty,
-                        courses = setOf(),
+                        courses = mutableSetOf(),
                         school = school,
                         emailPrefix = "tba"
                     )
@@ -123,21 +123,21 @@ data class CourseModel(
                     limit = 2
                 )
 
-                val prof = school.professor.find { it.firstName == split[0] && it.lastName == split[1]  }
+                val professor = professorRepository.findByFullNameEqualsIgnoreCaseAndSchool_GuildIdEquals("${split[0]} ${split[1]}", school.guildId)
+                    .orElse(null)
 
 
-                if (prof != null)
+                if (professor != null)
                 {
-                    profs.add(prof)
+                    profs.add(professor)
                     continue
                 }
-
 
                 profs.add(
                     Professor(
                         firstName = split[0],
                         lastName = split[1],
-                        courses = setOf(),
+                        courses = mutableSetOf(),
                         emailPrefix = split[1],
                         school = school
                     )
@@ -158,7 +158,7 @@ data class CourseModel(
                     Professor(
                         firstName =  professor,
                         lastName = String.empty,
-                        courses = setOf(),
+                        courses = mutableSetOf(),
                         emailPrefix = "unknown",
                         school = school
                     )
@@ -167,7 +167,7 @@ data class CourseModel(
         }
         return profs
 
-         */
+
         return mutableSetOf()
     }
 }

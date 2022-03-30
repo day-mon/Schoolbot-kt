@@ -27,7 +27,7 @@ class ProfessorView : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val name = event.getOption("school_name")!!.asString
+        val name = event.getOption("professor_name")!!.asString
 
         val service = event.service
         val professors = service.findProfessorsBySchool(name, event.guildId)

@@ -45,7 +45,7 @@ class SchoolView : SubCommand(
                     event.replyErrorEmbed("There are no schools in `${event.guild.name}`")
                 }
 
-                event.sendPaginator(schools)
+                event.sendPaginatorColor(schools)
             }
         }
     }

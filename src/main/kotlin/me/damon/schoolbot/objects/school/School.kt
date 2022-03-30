@@ -1,17 +1,19 @@
 package me.damon.schoolbot.objects.school
 
 import dev.minn.jda.ktx.Embed
+import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
+import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.MessageEmbed
+import org.hibernate.Hibernate
+import org.hibernate.annotations.Fetch
+import org.hibernate.annotations.FetchMode
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZoneId
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Id
-import javax.persistence.Table
+import javax.persistence.*
 
 @Entity(name = "School")
 @Table(name = "schools")
@@ -39,13 +41,15 @@ open class School(
     @Column(name = "roleId", nullable = false)
     open var roleId: Long = -1L,
 
-    /*
     @OneToMany(mappedBy = "school", fetch = FetchType.LAZY)
+    @Fetch(value = FetchMode.SELECT)
+
     open val professor: MutableSet<Professor>,
 
     @OneToMany(mappedBy = "school", fetch = FetchType.LAZY)
+    @Fetch(value = FetchMode.SELECT)
     open val classes: MutableSet<Course>,
-'*/
+
     @Column(name = "timeZone", nullable = false, updatable = true)
     open val timeZone: ZoneId
 
@@ -57,20 +61,7 @@ open class School(
         title = name
         url = if (url.isNullOrEmpty()) "https://schoolbot.dev" else url
 
-    /*
-        field {
-            name = "Classes Count"
-            value = classes.size.toString()
-            inline = true
-        }
 
-        field {
-            name = "Professors Count"
-            value  = professor.size.toString()
-            inline = true
-        }
-
-     */
 
         field {
             name = "Email"
@@ -78,9 +69,23 @@ open class School(
             inline = false
         }
 
-        color = ThreadLocalRandom.current().nextInt(200)
+        color = ThreadLocalRandom.current().nextInt(0xFFFFFF)
     }
 
+
+    override fun getAsEmbed(guild: Guild): MessageEmbed = Embed {
+        title = name
+        url = if (url.isNullOrEmpty()) "https://schoolbot.dev" else url
+
+
+        field {
+            name = "Email"
+            value = emailSuffix
+            inline = false
+        }
+
+        color = guild.getRoleById(roleId)?.colorRaw ?:  ThreadLocalRandom.current().nextInt(0xFFFFFF)
+    }
     override fun toString(): String = name
 }
 

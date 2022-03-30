@@ -166,7 +166,7 @@ class CommandEvent(
             .setActionRows(rows)
             .queue()
         val job = executors.schedule({ hook.run { editOriginal("Command has timed out try again please").setActionRows(Collections.emptyList()).queue() } }, timeoutDuration, TimeUnit.SECONDS)
-        return jda.await<MessageReceivedEvent> {it.guild != null && it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }.also {
+        return jda.await<MessageReceivedEvent> { it.guild != null && it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }.also {
             if (!job.isCancelled)
                 job.cancel(true)
         }

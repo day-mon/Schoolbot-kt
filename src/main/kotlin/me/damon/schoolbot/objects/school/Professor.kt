@@ -28,16 +28,14 @@ open class Professor(
     @JoinColumn(name = "school_id")
     open val school: School,
 
-    /*
-    @ManyToMany(fetch = FetchType.LAZY)
+
+    @ManyToMany(fetch = FetchType.LAZY )
     @JoinTable(
         name = "professors_courses",
         joinColumns = [JoinColumn(name = "professor_id", referencedColumnName = "id")],
         inverseJoinColumns = [JoinColumn(name = "course_id", referencedColumnName = "id")]
     )
     open val courses: MutableSet<Course> = mutableSetOf(),
-
-     */
 
     ) : Pagable, Identifiable
 {

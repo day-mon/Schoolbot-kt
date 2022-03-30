@@ -37,18 +37,18 @@ open class SchoolService(
     open suspend fun saveSchool(school: School, commandEvent: CommandEvent): School?
     {
         val guild = commandEvent.guild
-        val role = guild.createRole().setColor(random.nextInt(0xFFFFF)).setName(school.name.replace(regex, "-")).await()
+       // val role = guild.createRole().setColor(random.nextInt(0xFFFFF)).setName(school.name.replace(regex, "-")).await()
 
 
 
         school.apply {
-            roleId = 0L
+           // roleId = 0L
             guildId = guild.idLong
         }
 
         return runCatching { schoolRepository.save(school) }.onFailure {
             logger.error("Error occurred while trying to save the school", it)
-            role.delete().queue()
+          //  role.delete().queue()
         }.getOrNull()
 
     }
@@ -147,6 +147,7 @@ open class SchoolService(
 
         val course = courseModel.asCourse(
             school = school,
+
         )
 
         val professors = findProfessorsBySchool(school) ?: return run {
@@ -169,7 +170,7 @@ open class SchoolService(
         val role = guild.createRole().setColor(random.nextInt(0xFFFFF))
             .setName(courseModel.name.replace(regex, "-").lowercase()).await()
 
-        val channel = guild.createTextChannel(courseModel.name.replace(regex, "-"))
+        val channel = guild.createTextChannel(courseModel.name.replace(regex, "-").lowercase())
             .addPermissionOverride(role, Permission.ALL_CHANNEL_PERMISSIONS, 0L)
             .addPermissionOverride(guild.publicRole, 0L, Permission.ALL_CHANNEL_PERMISSIONS).await()
 
@@ -247,6 +248,11 @@ open class SchoolService(
         runCatching { classroomRepository.findByGuildIdEquals(guildId) }
             .onFailure { logger.error("Error has occurred while trying to get the courses for guild id: {}", guildId, it) }.
             getOrNull()
+
+    open fun findEmptyClassesInGuild(guildId: Long): List<Course>? =
+        runCatching { classroomRepository.findByAssignmentsIsEmptyAndGuildIdEquals(guildId) }
+            .onFailure { logger.error("Error has o") }
+            .getOrNull()
 
     open fun getClassesBySchool(school: School): Set<Course>? =
         runCatching { classroomRepository.findBySchool(school = school) }
