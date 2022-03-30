@@ -8,7 +8,10 @@ import java.util.*
 @Repository
 interface SchoolRepository : JpaRepository<School, UUID>
 {
+
     fun querySchoolsByGuildId(guildId: Long): List<School>
     fun findSchoolByNameIgnoreCaseAndGuildId(name: String, guildId: Long): School?
     fun findSchoolsByIsPittSchoolAndGuildId(isPittSchool: Boolean = true, guildId: Long): List<School>
+    fun findByProfessorIsNotEmptyAndGuildIdEquals(guildId: Long): List<School>
+
 }

@@ -39,9 +39,9 @@ class ProfessorAdd : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val firstName = event.getOption("first_name")!!.asString
-        val lastName = event.getOption("last_name")!!.asString
-        val schoolName = event.getOption("school_name")!!.asString
+        val firstName = event.getOption<String>("first_name")
+        val lastName = event.getOption<String>("last_name")
+        val schoolName = event.getOption<String>("school_name")
 
         val service = event.service
         val school = service.findSchoolInGuild(event.guildId, schoolName)
@@ -72,7 +72,6 @@ class ProfessorAdd : SubCommand(
 
         event.replyChoiceStringAndLimit(
             schools.map { it.name }
-                .filter { it.startsWith(event.focusedOption.value, ignoreCase = true) }
         ).queue()
     }
 }

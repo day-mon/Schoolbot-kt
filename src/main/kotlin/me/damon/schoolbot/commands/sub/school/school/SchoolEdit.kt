@@ -34,7 +34,7 @@ class SchoolEdit : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val name = event.getOption("school_name")!!.asString
+        val name = event.getOption<String>("school_name")
 
         val school = event.schoolbot.schoolService.findSchoolInGuild(
             name = name,
@@ -46,12 +46,10 @@ class SchoolEdit : SubCommand(
         // This could error if names are too large I assume
         val menu = SelectMenu("${event.slashEvent.idLong}_${school.id}:schoolEdit:menu")
         {
-            listOf (
-                option("Name - ${school.name}", "name"),
-                option("Url - ${school.url}", "url"),
-                option("Suffix - ${school.emailSuffix}", "suffix"),
+                option("Name - ${school.name}", "name")
+                option("Url - ${school.url}", "url")
+                option("Suffix - ${school.emailSuffix}", "suffix")
                 option("Role - ${event.jda.getRoleById(school.roleId)?.name ?: "N/A"}", "role")
-            )
         }
         val selectionEvent = event.sendMenuAndAwait(
             menu = menu,
@@ -94,7 +92,7 @@ class SchoolEdit : SubCommand(
                     null
                 }
 
-                return school.apply {
+                 school.apply {
                     name = message
                 }
             }
@@ -126,7 +124,7 @@ class SchoolEdit : SubCommand(
                     null
                 }
 
-                return school.apply {
+                 school.apply {
                     this.roleId = roleId
                 }
             }
@@ -157,7 +155,6 @@ class SchoolEdit : SubCommand(
         }
         event.replyChoiceStringAndLimit(
             schools.map { it.name }
-                .filter { it.startsWith(event.focusedOption.value, ignoreCase = true) }
         ).queue()
     }
 }

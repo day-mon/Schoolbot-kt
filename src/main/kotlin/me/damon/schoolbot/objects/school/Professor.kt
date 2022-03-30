@@ -14,16 +14,14 @@ import javax.persistence.*
 @Transactional
 open class Professor(
     @Column(name = "firstName", nullable = false, columnDefinition = "TEXT")
-    open val firstName: String,
+    open var firstName: String,
 
     @Column(name = "lastName", nullable = false, columnDefinition = "TEXT")
-    open val lastName: String,
+    open var lastName: String,
 
     @Column(name = "emailPrefix", nullable = false, columnDefinition = "TEXT")
-    open val emailPrefix: String = lastName,
-
-
-
+    open var emailPrefix: String = lastName,
+    
     @ManyToOne
     @JoinColumn(name = "school_id")
     open val school: School,
@@ -44,7 +42,7 @@ open class Professor(
     override val id: UUID = UUID.randomUUID()
 
     @Column(name = "fullName", unique = true)
-    open val fullName: String = "$firstName $lastName"
+    open var fullName: String = "$firstName $lastName"
 
     override fun getAsEmbed(): MessageEmbed = Embed {
         title = "Professor $lastName"

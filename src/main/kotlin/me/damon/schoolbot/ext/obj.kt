@@ -121,6 +121,15 @@ fun InteractionHook.editOriginalAndClear(content: String) = editMessageById("@or
 
 
 private const val interactionLimit: Int = 25
-fun CommandAutoCompleteInteractionEvent.replyChoiceAndLimit(commands: Collection<Command.Choice>) = this.replyChoices(commands.take(interactionLimit))
-fun CommandAutoCompleteInteractionEvent.replyChoiceStringAndLimit(commands: Collection<String>) = this.replyChoiceStrings(commands.take(interactionLimit))
-fun CommandAutoCompleteInteractionEvent.replyChoiceStringAndLimit(vararg choices: String) = this.replyChoiceStrings(choices.take(interactionLimit))
+fun CommandAutoCompleteInteractionEvent.replyChoiceAndLimit(commands: Collection<Command.Choice>) = this.replyChoices(
+    commands.take(interactionLimit)
+        .filter { it.name.startsWith(this.focusedOption.value, ignoreCase = true) }
+)
+fun CommandAutoCompleteInteractionEvent.replyChoiceStringAndLimit(commands: Collection<String>) = this.replyChoiceStrings(
+    commands.take(interactionLimit)
+        .filter { it.startsWith(this.focusedOption.value, ignoreCase = true) }
+)
+fun CommandAutoCompleteInteractionEvent.replyChoiceStringAndLimit(vararg choices: String) = this.replyChoiceStrings(
+    choices.take(interactionLimit)
+        .filter { it.startsWith(this.focusedOption.value, ignoreCase = true) }
+)

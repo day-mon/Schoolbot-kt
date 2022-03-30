@@ -47,7 +47,6 @@ class ProfessorRemove : SubCommand(
         event.replyChoiceAndLimit(
             professors
                 .map { Command.Choice(it.fullName, it.id.toString()) }
-                .filter { it.name.startsWith(event.focusedOption.value, ignoreCase = true) }
         ).queue()
     }
 }

@@ -15,6 +15,8 @@ import me.damon.schoolbot.objects.school.Course
 import me.damon.schoolbot.objects.school.Professor
 import me.damon.schoolbot.objects.school.School
 import net.dv8tion.jda.api.Permission
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
@@ -53,9 +55,37 @@ open class SchoolService(
 
     }
 
+     private fun <T: Identifiable> getRepository(identifiable: T): JpaRepository<in Any, UUID> = when (identifiable) {
+        is Professor -> professorRepository
+        is School -> schoolRepository
+        is Course -> classroomRepository
+       // is Assignment -> AssignmentRepository
+        // is GuildSettings -> GuildSettingsRepository
+        else -> throw IllegalArgumentException("Unknown identifiable type")
+    }
+
+
+      private inline fun <reified T : Identifiable> updateEntity(identifiable: T): T?
+      {
+          val repository = getRepository(identifiable)
+          val opt = repository.findByIdOrNull(identifiable.id)  ?: return run {
+              logger.warn("Could not find identifiable with id ${identifiable.id}")
+              null
+          }
+
+
+          return runCatching { repository.save(identifiable) }
+              .onFailure { logger.error("Error occurred while trying to save the identifiable", it) }
+              .getOrNull()
+      }
+
+
     // write a function that creates the Declaration of Independence
+    /*
     open fun updateEntity(entity: Identifiable): Identifiable? = when (entity)
     {
+
+
         is School ->
         {
             val schoolOpt = schoolRepository.findById(entity.id)
@@ -68,6 +98,23 @@ open class SchoolService(
             val school = schoolOpt.get()
 
             runCatching { schoolRepository.save(school) }
+                .onFailure { logger.error("Error has occurred while trying update ${school.name}") }
+                .onSuccess { logger.info("Successfully updated ${school.name}") }
+                .getOrNull()
+        }
+
+        is Professor ->
+        {
+            val professorOpt = professorRepository.findById(entity.id)
+
+            if (professorOpt.isEmpty) run {
+                logger.error("School passed through does not exist in the database.")
+                null
+            }
+
+            val professor = professorOpt.get()
+
+            runCatching { professorRepository.save(professor) }
                 .onFailure { logger.error("Error has occurred while trying update ${school.name}") }
                 .onSuccess { logger.info("Successfully updated ${school.name}") }
                 .getOrNull()
@@ -92,6 +139,7 @@ open class SchoolService(
         else -> throw NotImplementedError("${entity.javaClass.simpleName} has not been implemented")
     }
 
+     */
 
 
 
@@ -147,6 +195,7 @@ open class SchoolService(
 
         val course = courseModel.asCourse(
             school = school,
+            professorRepository
 
         )
 
@@ -260,24 +309,15 @@ open class SchoolService(
             getOrNull()
 
 
-    open fun findSchoolsWithNoClassesInGuild(guildId: Long): Set<School>? =
-        runCatching {
-            val courses = classroomRepository.findByGuildIdEquals(guildId)
-            val schools = mutableSetOf<School>()
-            courses.forEach {
-                schools.add(it.school)
-            }
-            schoolRepository.findAll().filter {
-                !schools.contains(it)
-            }.toSet()
-        }.onFailure {
-            logger.error("Error has occurred while trying to get the schools for guild id: {}", guildId, it)
-        }.getOrNull()
-
     open fun getSchoolsByGuildId(guildId: Long): List<School>? =
         runCatching { schoolRepository.querySchoolsByGuildId(guildId) }
             .onFailure { logger.error("Error occurred while trying to grab the schools for guild {}", guildId, it) }
             .onSuccess { logger.debug("Schools returned for {} - {}", guildId, it) }.getOrNull()
+
+    open fun getSchoolsWithProfessorsInGuild(guildId: Long): List<School>? =
+        runCatching { schoolRepository.findByProfessorIsNotEmptyAndGuildIdEquals(guildId) }
+            .onFailure { logger.error("Error occurred while trying to grab the schools for guild {}", guildId, it) }
+            .getOrNull()
 
     open fun getPittSchoolsInGuild(guildId: Long) =
         runCatching { schoolRepository.findSchoolsByIsPittSchoolAndGuildId(guildId = guildId) }
@@ -287,6 +327,11 @@ open class SchoolService(
         runCatching { schoolRepository.findSchoolByNameIgnoreCaseAndGuildId(name, guildId) }
             .onFailure { logger.error("Error occurred while trying to fetch {} in guild {}", name, guildId, it) }
             .getOrNull()
+
+    open fun findSchoolById(id: UUID): Optional<School>? = runCatching { schoolRepository.findById(id) }
+        .onFailure { logger.error("Error occurred while trying to fetch school by id [{}]", id, it) }
+        .getOrNull()
+
 
     open fun findDuplicateSchool(guildId: Long, name: String): Boolean? =
         runCatching { schoolRepository.findSchoolByNameIgnoreCaseAndGuildId(name, guildId) }

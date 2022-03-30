@@ -202,6 +202,17 @@ class CommandEvent(
     fun hasSelfPermissions(permissions: List<Permission>) = guild.selfMember.hasPermission(permissions)
     fun hasMemberPermissions(permissions: List<Permission>) = member.hasPermission(permissions)
     fun sentWithOption(option: String) = slashEvent.getOption(option) != null
+    inline fun <reified T> getOption(name: String): T = when (T::class)
+    {
+        String::class -> slashEvent.getOption(name)?.asString as T
+        // Could break if number is over 2.147 billion lol
+        Int::class -> slashEvent.getOption(name)?.asLong?.toInt() as T
+        Long::class -> slashEvent.getOption(name)?.asLong as T
+        Double::class -> slashEvent.getOption(name)?.asDouble as T
+        Boolean::class -> slashEvent.getOption(name)?.asBoolean as T
+        else -> throw IllegalArgumentException("Unknown type ${T::class}")
+    }
+
     fun getOption(option: String) = slashEvent.getOption(option)
     fun getSentOptions() = command.options.filter { commandOptionData -> commandOptionData.name in slashEvent.options.map { it.name } }
     fun sentWithAnyOptions() = slashEvent.options.isNotEmpty()
