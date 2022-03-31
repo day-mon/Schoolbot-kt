@@ -2,18 +2,48 @@
 
 
 **Kotlin Covariance & Contravariance** | [Picture with explanation](https://i.imgur.com/oKD9hPL.png)
-> **Covariance** is the ability to take a type parameter and make it more specific. **Accepts subtypes**
-> For example, if you have a function that takes a List<String> and returns a List<Any>, you can make the function return a List<Int> by changing the type parameter to Int. This is called covariance.
-> Here is a java example: 
->>``List<? extends Number> list = new ArrayList<Integer>();``
+> **Covariance** is the ability to take a type parameter and make it more specific.\
+> **Accepts subtypes**
+> 
+> For example, if you have a function that takes a List<String> and returns a List<Any>, you can make the function return a List<Int> by changing the type parameter to Int. \
+> **This is called covariance.**
+> 
+> Here is a java example:
+>```java
+> public class Covariance {
+>     public static void main(String[] args) {
+>       List<Mango> mangoes = new ArrayList<>();
+>       List<Fruit> fruitList = new ArrayList<>();
+>
+>       mangoes = fruitList; // not allowed
+>       fruitList = mangoes; // allowed
+>    }
+>}
+>```
+> To simply put it Covariance is **READ-ONLY**. Can be denoted in kotlin by `List<in T>`.
+>
 
 >
-> **Contravariance** is the ability to take a type parameter and make it less specific. **Accepts supertypes**
-> Here is a java example: 
-> For example
->> ```List<? super Number> list = new ArrayList<Integer>();``` 
+> **Contravariance** is the ability to take a type parameter and make it less specific.\
+> **Accepts supertypes**
 > 
+> Here is a java example:
+> ```java
+> public class Contravariance {
+>    public static void main(String[] args) {
+>        Wrapper<Mango> mangoInfo = getFruitInfo();
+>        Wrapper<Fruit> fruitInfo = getMangoInfo();
+>       
+>        fruitInfo = mangoInfo; // not allowed
+>        mangoInfo = fruitInfo; // allowed
+>   }
+>    static void getFruitInfo(Fruit fruits) { }
+>    static void getMangoInfo(Mango mango) { }
+> }
+> ```
+> Simply to put it Contravariance is **WRITE-ONLY**. Can be denoted in kotlin by `List<out T>`.
 > 
+
 
 **What is a coroutine?**
 > A coroutine is a function that can be suspended and resumed at a later time.
@@ -41,13 +71,12 @@ Coroutines can be thought of as light-weight threads, but there is a number of i
 4. ``Dispatcher.Unconfined``:
     - As the name suggests unconfined dispatcher is not confined to any specific thread. It executes the initial continuation of a coroutine in the current call-frame and lets the coroutine resume in whatever thread that is used by the corresponding suspending function, without mandating any specific threading policy. 
 
-> **Note:** If needed you may do some background operations with one disptacher and then switch context
-> ```
-> Example:
+> **Note:** If needed you may do some background operations with one dispatcher and then switch context
+> ```kotlin
 > withContext(Dispatchers.IO) {
 >   // do some background work
 >   // then switch to the UI thread
->  withContext(Dispatchers.Main) {
->    // do some UI work
+>   withContext(Dispatchers.Main) {
+>     // do some UI work
 >  }
-> } ```
+> }
