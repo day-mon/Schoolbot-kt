@@ -1,22 +1,25 @@
 package me.damon.schoolbot.listener
 
 import me.damon.schoolbot.Schoolbot
+import me.damon.schoolbot.handler.CommandHandler
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
+import org.springframework.stereotype.Component
 
-class SlashListener(private val schoolbot: Schoolbot) : ListenerAdapter()
+@Component
+class SlashListener(private val commandHandler: CommandHandler) : ListenerAdapter()
 {
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent)
     {
         if (event.guild == null) return
-        schoolbot.cmd.handle(event)
+        commandHandler.handle(event)
     }
 
     override fun onCommandAutoCompleteInteraction(event: CommandAutoCompleteInteractionEvent)
     {
         if (event.guild == null) return
-        schoolbot.cmd.handleAutoComplete(event)
+        commandHandler.handleAutoComplete(event)
     }
 
 }

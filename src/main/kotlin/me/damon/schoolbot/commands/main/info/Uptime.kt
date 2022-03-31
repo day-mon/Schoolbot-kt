@@ -4,6 +4,7 @@ import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.EmbedBuilder
+import java.lang.management.ManagementFactory
 import java.time.Duration
 import java.time.Instant
 
@@ -16,7 +17,8 @@ class Uptime : Command(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val time = Duration.between(event.schoolbot.startUpTime, Instant.now())
+        //  ManagementFactory.getRuntimeMXBean().uptime gets JVM uptime in milliseconds
+        val time = Duration.ofMillis(ManagementFactory.getRuntimeMXBean().uptime)
         event.replyEmbed(
             EmbedBuilder()
                 .setTitle("Uptime")

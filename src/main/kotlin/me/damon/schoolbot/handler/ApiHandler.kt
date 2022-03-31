@@ -1,23 +1,25 @@
 package me.damon.schoolbot.handler
 
+import me.damon.schoolbot.Constants
 import me.damon.schoolbot.apis.JohnstownAPI
 import me.damon.schoolbot.apis.SchoolApi
 import okhttp3.OkHttpClient
+import org.springframework.stereotype.Component
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 
+@Component
 class ApiHandler(
-    private val client: OkHttpClient,
     private val schoolbotRetrofit: Retrofit = Retrofit.Builder()
         .baseUrl("https://johnstown.schoolbot.dev/api/")
-        .client(client)
+        .client(Constants.DEFAULT_CLIENT)
         .addConverterFactory(GsonConverterFactory.create())
         .build(),
 
     private val schoolApiRetrofit: Retrofit = Retrofit.Builder()
         .baseUrl("http://universities.hipolabs.com/")
-        .client(client)
+        .client(Constants.DEFAULT_CLIENT)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 )

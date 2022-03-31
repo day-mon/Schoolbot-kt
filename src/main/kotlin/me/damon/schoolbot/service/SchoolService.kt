@@ -15,21 +15,25 @@ import me.damon.schoolbot.objects.school.Course
 import me.damon.schoolbot.objects.school.Professor
 import me.damon.schoolbot.objects.school.School
 import net.dv8tion.jda.api.Permission
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
-import kotlin.reflect.jvm.internal.impl.resolve.calls.inference.CapturedType
 
 @Service("SchoolService")
 open class SchoolService(
-    private val professorRepository: ProfessorRepository,
-    private val schoolRepository: SchoolRepository,
-    private val classroomRepository: ClassroomRepository,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 )
 {
+
+    @Autowired
+    lateinit var professorRepository: ProfessorRepository
+    @Autowired
+    lateinit var schoolRepository: SchoolRepository
+    @Autowired
+    lateinit var classroomRepository: ClassroomRepository
 
     private val logger by SLF4J
     private val regex = Regex("\\s+")

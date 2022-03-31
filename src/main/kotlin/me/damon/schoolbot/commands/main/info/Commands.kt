@@ -15,7 +15,7 @@ class Commands : Command(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val commands = event.schoolbot.cmd.commands.values
+        val commands = event.schoolbot.commandHandler.commands.values
         val pages = mutableListOf<String>()
         commands.stream()
             .collect(Collectors.groupingBy(Command::category))
