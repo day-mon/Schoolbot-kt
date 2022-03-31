@@ -1,5 +1,6 @@
 .idea
 .gradle
 build
-application.properties
+*.properties
+*.log
 schoolbot_cfg.json
