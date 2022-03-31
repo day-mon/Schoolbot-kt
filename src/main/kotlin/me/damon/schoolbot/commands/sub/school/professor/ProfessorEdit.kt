@@ -76,11 +76,13 @@ class ProfessorEdit : SubCommand(
         val changedProfessor = evaluateChangeRequest(event, messageResponse, choice, professor) ?: return
 
 
-        val updatedProfessor = event.service.updateEntity(changedProfessor) ?: return
+        val updatedProfessor = event.service.updateEntity(changedProfessor) ?: return run {
+            event.replyErrorEmbed("An unexpected error has occurred whiel trying to save the entitiy")
+        }
 
-        val embed = withContext(Dispatchers.IO) { changedProfessor.getAsEmbed() }
+        val embed = withContext(Dispatchers.IO) { updatedProfessor.getAsEmbed() }
 
-        event.replyEmbed(embed, "School Updated!")
+        event.replyEmbed(embed, "Professor Updated!")
     }
 
     private suspend fun evaluateMenuChoice(choice: String, cmdEvent: CommandEvent) = when (choice) {
@@ -90,7 +92,7 @@ class ProfessorEdit : SubCommand(
         else ->
         {
             logger.error("{} has not been implemented as a valid choice", choice)
-            null`
+            null
         }
     }
 

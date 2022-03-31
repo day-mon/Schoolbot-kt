@@ -20,6 +20,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
+import kotlin.reflect.jvm.internal.impl.resolve.calls.inference.CapturedType
 
 @Service("SchoolService")
 open class SchoolService(
@@ -55,91 +56,30 @@ open class SchoolService(
 
     }
 
-     private fun <T: Identifiable> getRepository(identifiable: T): JpaRepository<in Any, UUID> = when (identifiable) {
-        is Professor -> professorRepository
-        is School -> schoolRepository
-        is Course -> classroomRepository
-       // is Assignment -> AssignmentRepository
-        // is GuildSettings -> GuildSettingsRepository
+       fun  <T: Identifiable> getRepository(identifiable: T): JpaRepository<Any, UUID> = when (identifiable) {
+        is Professor -> professorRepository as JpaRepository<Any, UUID>
+        is School -> schoolRepository as JpaRepository<Any, UUID>
+        is Course -> classroomRepository as JpaRepository<Any, UUID>
         else -> throw IllegalArgumentException("Unknown identifiable type")
     }
 
 
-      private inline fun <reified T : Identifiable> updateEntity(identifiable: T): T?
+    /*
+     * This is very bad probably could be written a bit better.
+     */
+    inline fun <reified T : Identifiable> updateEntity(newEntity: T): T?
       {
-          val repository = getRepository(identifiable)
-          val opt = repository.findByIdOrNull(identifiable.id)  ?: return run {
-              logger.warn("Could not find identifiable with id ${identifiable.id}")
+          val logger by SLF4J
+          val repository = getRepository(newEntity)
+          repository.findByIdOrNull(newEntity.id)  ?: return run {
+              logger.warn("Could not find identifiable with id ${newEntity.id}")
               null
           }
 
-
-          return runCatching { repository.save(identifiable) }
+          return runCatching { repository.save(newEntity) }
               .onFailure { logger.error("Error occurred while trying to save the identifiable", it) }
               .getOrNull()
       }
-
-
-    // write a function that creates the Declaration of Independence
-    /*
-    open fun updateEntity(entity: Identifiable): Identifiable? = when (entity)
-    {
-
-
-        is School ->
-        {
-            val schoolOpt = schoolRepository.findById(entity.id)
-
-            if (schoolOpt.isEmpty) run {
-                logger.error("School passed through does not exist in the database.")
-                null
-            }
-
-            val school = schoolOpt.get()
-
-            runCatching { schoolRepository.save(school) }
-                .onFailure { logger.error("Error has occurred while trying update ${school.name}") }
-                .onSuccess { logger.info("Successfully updated ${school.name}") }
-                .getOrNull()
-        }
-
-        is Professor ->
-        {
-            val professorOpt = professorRepository.findById(entity.id)
-
-            if (professorOpt.isEmpty) run {
-                logger.error("School passed through does not exist in the database.")
-                null
-            }
-
-            val professor = professorOpt.get()
-
-            runCatching { professorRepository.save(professor) }
-                .onFailure { logger.error("Error has occurred while trying update ${school.name}") }
-                .onSuccess { logger.info("Successfully updated ${school.name}") }
-                .getOrNull()
-        }
-
-        is Course ->
-        {
-            val courseOpt = classroomRepository.findById(entity.id)
-
-            if (courseOpt.isEmpty) run {
-                logger.error("Course passed through does not exist in the database.")
-                null
-            }
-
-            val course = courseOpt.get()
-
-            runCatching { classroomRepository.save(course) }
-                .onFailure { logger.error("Error has occurred while trying to update ${course.name}") }
-                .onSuccess { logger.info("Successfully updated ${course.name}") }
-                .getOrNull()
-        }
-        else -> throw NotImplementedError("${entity.javaClass.simpleName} has not been implemented")
-    }
-
-     */
 
 
 
@@ -196,7 +136,6 @@ open class SchoolService(
         val course = courseModel.asCourse(
             school = school,
             professorRepository
-
         )
 
         val professors = findProfessorsBySchool(school) ?: return run {
