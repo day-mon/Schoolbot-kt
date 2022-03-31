@@ -73,7 +73,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.jsoup:jsoup:1.14.3")
-    implementation("edu.ksu.canvas:canvas-api:2.0.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     // Database
