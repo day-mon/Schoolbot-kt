@@ -2,11 +2,17 @@ package me.damon.schoolbot.commands.sub.school.course
 
 import dev.minn.jda.ktx.interactions.SelectMenu
 import dev.minn.jda.ktx.interactions.option
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import me.damon.schoolbot.Constants
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.asException
 import me.damon.schoolbot.ext.empty
-import me.damon.schoolbot.objects.command.*
+import me.damon.schoolbot.ext.replyChoiceStringAndLimit
+import me.damon.schoolbot.objects.command.CommandCategory
+import me.damon.schoolbot.objects.command.CommandEvent
+import me.damon.schoolbot.objects.command.CommandOptionData
+import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.models.CourseModel
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
@@ -37,7 +43,7 @@ class CourseAddPitt : SubCommand(
     {
         val service = event.schoolbot.schoolService
         val schoolName = event.getOption("school_name")!!.asString
-        val pittSchools = service.getPittSchoolsInGuild(event.guild.idLong)
+        val pittSchools = service.getPittSchoolsInGuild(event.guild.idLong) ?: return run { event.replyErrorEmbed("Error has occurred while thing to get schools in `${event.guild.name}`") }
         if (pittSchools.isEmpty()) return run { event.replyErrorEmbed("There are no pitt schools in ${event.guild.name}") }
 
         val school = pittSchools.find { it.name == schoolName }
@@ -84,18 +90,17 @@ class CourseAddPitt : SubCommand(
         }
 
 
-
-
-        event.schoolbot.schoolService.createPittCourse(event, school, course).
-        onFailure {
+        val savedCourse = event.schoolbot.schoolService.createPittCourse(event, school, course) ?: return run {
             event.replyErrorEmbed("An error has occurred. I will clean up any of the channels/roles I have created.")
-        }.
-        onSuccess {
-                event.hook.editOriginal("Course created successfully")
-                    .setEmbeds(it.getAsEmbed(event.guild))
-                    .setActionRows(Collections.emptyList())
-                    .queue()
         }
+
+
+        val embed = withContext(Dispatchers.IO) { savedCourse.getAsEmbed(event.guild) }
+
+        event.hook.editOriginal("Course created successfully")
+            .setEmbeds(embed)
+            .setActionRows(Collections.emptyList())
+            .queue()
 
 
     }
@@ -146,6 +151,14 @@ class CourseAddPitt : SubCommand(
             term = 1
             date = date.plusYears(1)
         }
+
+        var test: Int
+        for (xg in 1..10 step 3)
+        {
+            test = 3
+            test.toString()
+        }
+
         return list
     }
 
@@ -159,8 +172,12 @@ class CourseAddPitt : SubCommand(
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {
-        val pittSchools = schoolbot.schoolService.getPittSchoolsInGuild(event.guild!!.idLong)
-        event.replyChoices(pittSchools.mapIndexed { _, it -> CommandChoice(it.name).asCommandChoice() }).queue()
+        val pittSchools = schoolbot.schoolService.getPittSchoolsInGuild(event.guild!!.idLong) ?: return
+        event.replyChoiceStringAndLimit(
+            pittSchools
+                .map { it.name }
+                .filter { it.startsWith(event.focusedOption.value, ignoreCase = true) }
+        ).queue()
 
     }
 }

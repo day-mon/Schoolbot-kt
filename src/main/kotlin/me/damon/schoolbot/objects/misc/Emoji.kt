@@ -4,6 +4,7 @@ enum class Emoji(private val emote: String, private val unicode: String? = null,
 {
     ERROR("811388299310137354"),
     SUCCESS("811388330889052213"),
+    THINKING(":thinking:", "\uD83E\uDD14"),
     BOOKS(":books: ", "\u1F4DA" ),
     PEAR(":pear:", "U+1F350"),
     WATERMELON(":watermelon:", "U+1F349"),

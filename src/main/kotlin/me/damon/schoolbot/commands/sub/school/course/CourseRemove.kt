@@ -22,42 +22,19 @@ class CourseRemove : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val schools =
-            event.schoolbot.schoolService.getSchoolsByGuildId(event.guildId)?.filter { it.classes.isNotEmpty() }
+
+        val courses =
+            event.schoolbot.schoolService.findEmptyClassesInGuild(event.guild.idLong)
                 ?: return run {
-                    event.replyErrorEmbed("Error occurred while attempting to grab the schools for the `${event.guild.name}`")
+                    event.replyErrorEmbed("Error occurred while attempting to grab the courses for the `${event.guild.name}`")
                 }
 
-        if (schools.isEmpty()) return run {
-            event.replyErrorEmbed("There are no schools with courses in `${event.guild.name}`")
+        if (courses.isEmpty()) return run {
+            event.replyErrorEmbed("There are no courses with no assignments in the `${event.guild.name}`")
         }
 
         val selection = event.sendMenuAndAwait(
-            menu = SelectMenu("${event.slashEvent.idLong}:CRschoolselection:menu") {
-                schools.forEachIndexed { index, school ->
-                    option(
-                        school.name,
-                        index.toString()
-                    )
-                }
-            },
-
-            message = "Please select a school you to remove the school from"
-        )
-
-        val school = schools[selection.values[0].toInt()]
-
-        val courses = school.classes.filter {
-            it.assignments.isEmpty()
-        }
-
-        if (courses.isEmpty()) return run {
-            event.replyErrorEmbed("There are no courses in `${school.name}`")
-        }
-
-
-        val courseSelection = event.sendMenuAndAwait(
-            menu = SelectMenu("${event.slashEvent.idLong}:CRcourseslection:menu") {
+            menu = SelectMenu("${event.slashEvent.idLong}:CRcourseselection:menu") {
                 courses.forEachIndexed { index, course ->
                     option(
                         course.name,
@@ -66,13 +43,15 @@ class CourseRemove : SubCommand(
                 }
             },
 
-            message = "Please select a course to remove"
+            message = "Please select the course you wish to remove"
         )
 
-        val course = courses[courseSelection.values[0].toInt()]
+        val course = courses[selection.values[0].toInt()]
 
-        selection.hook.editOriginal("Are you sure you want to remove ${course.name} from ${school.name}")
-            .setActionRow(getActionRows(event, selection, course))
+
+
+        selection.reply("Are you sure you want to remove `${course.name}` from `${course.school.name}`")
+            .addActionRow(getActionRows(event, selection, course))
             .queue()
 
     }

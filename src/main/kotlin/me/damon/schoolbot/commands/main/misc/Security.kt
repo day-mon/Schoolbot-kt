@@ -4,7 +4,6 @@ import me.damon.schoolbot.commands.sub.misc.SecurityPrice
 import me.damon.schoolbot.commands.sub.misc.SecurityQuote
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
-import me.damon.schoolbot.objects.command.CommandEvent
 
 class Security : Command (
     name = "Security",
@@ -15,6 +14,3 @@ class Security : Command (
         SecurityQuote()
     )
 )
-{
-    override suspend fun onExecuteSuspend(event: CommandEvent) {}
-}

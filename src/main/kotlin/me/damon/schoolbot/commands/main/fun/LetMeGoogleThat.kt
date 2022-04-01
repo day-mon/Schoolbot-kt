@@ -18,15 +18,14 @@ class LetMeGoogleThat : Command(
             optionType = OptionType.STRING,
             name = "search_results",
             description = "Injects search results into LMGTFY link",
-            isRequired = false
+            isRequired = true
         )
     )
 )
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val args = event.getOption("search_results")!!
-            .asString
+        val args = event.getOption<String>("search_results")
             .replace(regex = SPACES, replacement = "+")
 
         val url = "https://www.letmegooglethat.com/?q=$args"

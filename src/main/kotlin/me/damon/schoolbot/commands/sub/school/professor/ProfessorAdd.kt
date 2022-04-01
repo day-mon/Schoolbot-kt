@@ -1,6 +1,7 @@
 package me.damon.schoolbot.commands.sub.school.professor
 
 import me.damon.schoolbot.Schoolbot
+import me.damon.schoolbot.ext.replyChoiceStringAndLimit
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
@@ -38,11 +39,11 @@ class ProfessorAdd : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val firstName = event.getOption("first_name")!!.asString
-        val lastName = event.getOption("last_name")!!.asString
-        val schoolName = event.getOption("school_name")!!.asString
+        val firstName = event.getOption<String>("first_name")
+        val lastName = event.getOption<String>("last_name")
+        val schoolName = event.getOption<String>("school_name")
 
-        val service = event.schoolbot.schoolService
+        val service = event.service
         val school = service.findSchoolInGuild(event.guildId, schoolName)
             ?: return run { event.replyErrorEmbed("Error occurred while trying to get school or school does not exist") }
 
@@ -58,7 +59,7 @@ class ProfessorAdd : SubCommand(
             event.replyErrorEmbed("Error occurred while trying to save professor")
         }
 
-        event.sendEmbed(
+        event.replyEmbed(
             embed = savedProfessor.getAsEmbed(), content = "Professor $lastName has been saved"
         )
     }
@@ -68,6 +69,9 @@ class ProfessorAdd : SubCommand(
     {
         val schools = schoolbot.schoolService.getSchoolsByGuildId(event.guild!!.idLong) ?:
             return run { logger.error("Error occurred during auto complete in Professor Add command") }
-        event.replyChoiceStrings(schools.map { it.name }).queue()
+
+        event.replyChoiceStringAndLimit(
+            schools.map { it.name }
+        ).queue()
     }
 }

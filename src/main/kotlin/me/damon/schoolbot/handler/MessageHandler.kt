@@ -9,6 +9,7 @@ import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.asException
 import me.damon.schoolbot.ext.bodyAsString
 import me.damon.schoolbot.ext.string
+import me.damon.schoolbot.service.GuildService
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.exceptions.ErrorHandler
@@ -17,6 +18,8 @@ import net.dv8tion.jda.api.utils.data.DataObject
 import okhttp3.MediaType
 import okhttp3.Request
 import okhttp3.RequestBody
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import ru.gildor.coroutines.okhttp.await
 import java.io.InputStream
 import java.util.concurrent.CompletableFuture
@@ -26,9 +29,10 @@ private val FILE_EXTENSIONS = listOf(
 )
 private val supervisor = SupervisorJob()
 private val context = CoroutineScope(Dispatchers.IO + supervisor)
-
-class MessageHandler(val schoolbot: Schoolbot)
+@Component
+class MessageHandler(val service: GuildService)
 {
+
     private val logger by SLF4J
 
     fun handle(event: MessageReceivedEvent)
@@ -37,7 +41,7 @@ class MessageHandler(val schoolbot: Schoolbot)
 
         if (message.attachments.isNotEmpty())
         {
-            val autoUpload = schoolbot.guildService.getGuildSettings(event.guild.idLong).longMessageUploading
+            val autoUpload = service.getGuildSettings(event.guild.idLong).longMessageUploading
             if (autoUpload)
             {
                 handleFile(event)

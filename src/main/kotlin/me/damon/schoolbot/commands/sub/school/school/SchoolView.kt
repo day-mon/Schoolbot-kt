@@ -1,7 +1,11 @@
 package me.damon.schoolbot.commands.sub.school.school
 
 import me.damon.schoolbot.Schoolbot
-import me.damon.schoolbot.objects.command.*
+import me.damon.schoolbot.ext.replyChoiceStringAndLimit
+import me.damon.schoolbot.objects.command.CommandCategory
+import me.damon.schoolbot.objects.command.CommandEvent
+import me.damon.schoolbot.objects.command.CommandOptionData
+import me.damon.schoolbot.objects.command.SubCommand
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
 
@@ -29,7 +33,7 @@ class SchoolView : SubCommand(
                     event.replyErrorEmbed("School does not exist")
                 }
 
-                event.sendEmbed(school.getAsEmbed())
+                event.replyEmbed(school.getAsEmbed())
 
             }
             else ->
@@ -41,7 +45,7 @@ class SchoolView : SubCommand(
                     event.replyErrorEmbed("There are no schools in `${event.guild.name}`")
                 }
 
-                event.sendPaginator(schools)
+                event.sendPaginatorColor(schools)
             }
         }
     }
@@ -49,6 +53,9 @@ class SchoolView : SubCommand(
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {
        val schools = schoolbot.schoolService.getSchoolsByGuildId(event.guild!!.idLong) ?: return
-        event.replyChoices(schools.mapIndexed { _, it -> CommandChoice(it.name).asCommandChoice() }).queue()
+        event.replyChoiceStringAndLimit(
+            schools.map { it.name }
+                .filter { it.startsWith(event.focusedOption.value, ignoreCase = true) }
+        ).queue()
     }
 }

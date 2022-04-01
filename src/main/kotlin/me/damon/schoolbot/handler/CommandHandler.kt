@@ -8,9 +8,13 @@ import kotlinx.coroutines.launch
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandEvent
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import org.reflections.Reflections
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.stereotype.Component
 import java.util.*
 
 
@@ -18,18 +22,16 @@ private const val COMMANDS_PACKAGE = "me.damon.schoolbot.commands"
 private val supervisor = SupervisorJob()
 private val scope = CoroutineScope(Dispatchers.IO + supervisor)
 
-
-class CommandHandler(private val schoolbot: Schoolbot)
+@Component
+class CommandHandler(private val context: ConfigurableApplicationContext)
 {
     private val logger by SLF4J
     private val reflections = Reflections(COMMANDS_PACKAGE)
-    val commands: Map<String, Command> = initCommands()
+    val commands: MutableMap<String, Command> = mutableMapOf()
 
 
-    private fun initCommands(): MutableMap<String, Command>
+    fun registerCommands(jda: JDA)
     {
-        val map = HashMap<String, Command>()
-        val jda = schoolbot.jda
         val classes = reflections.getSubTypesOf(Command::class.java)
         val commandsUpdate = jda.updateCommands()
 
@@ -52,17 +54,17 @@ class CommandHandler(private val schoolbot: Schoolbot)
             }
 
             val name = instance.name.lowercase()
-            map[name] = instance
+            commands[name] = instance
             commandsUpdate.addCommands(instance.commandData)
         }
         commandsUpdate.queue()
-        logger.info("${map.count()} have been loaded successfully")
-        logger.debug("{}", map.toList())
-        return Collections.unmodifiableMap(map)
+        logger.info("${commands.count()} have been loaded successfully")
+        logger.debug("{}", commands.toList())
     }
 
     fun handle(event: SlashCommandInteractionEvent)
     {
+        val schoolbot = context.getBean(Schoolbot::class.java)
         val cmdName = event.name
         val group = event.subcommandGroup
         val subCommand = event.subcommandName
@@ -91,6 +93,7 @@ class CommandHandler(private val schoolbot: Schoolbot)
 
     fun handleAutoComplete(event: CommandAutoCompleteInteractionEvent)
     {
+        val schoolbot = context.getBean(Schoolbot::class.java)
         val command = event.name
         val group = event.subcommandGroup
         val sub = event.subcommandName
@@ -108,4 +111,6 @@ class CommandHandler(private val schoolbot: Schoolbot)
             commandF.onAutoCompleteSuspend(event, schoolbot)
         }
     }
+
+
 }

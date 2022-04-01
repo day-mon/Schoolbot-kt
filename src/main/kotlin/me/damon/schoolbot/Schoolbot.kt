@@ -18,15 +18,15 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
-import okhttp3.OkHttpClient
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.ConfigurableApplicationContext
-import java.time.Instant
-import java.util.concurrent.TimeUnit
+import org.springframework.context.annotation.Bean
+import org.springframework.stereotype.Component
 import javax.security.auth.login.LoginException
 import kotlin.system.exitProcess
+
 
 fun main()
 {
@@ -35,91 +35,80 @@ fun main()
 
 @EnableCaching
 @SpringBootApplication
+@Component
 open class Schoolbot(
-    val schoolService: SchoolService,
+    val configHandler: ConfigHandler,
+    val messageHandler: MessageHandler,
     val guildService: GuildService,
+    val taskHandler: TaskHandler,
+    val apiHandler: ApiHandler,
+    val commandHandler: CommandHandler,
+
+    val schoolService: SchoolService,
+
+    private val guildListener: GuildListeners,
+    private val messageListeners: MessageListeners,
+    private val slashListener: SlashListener,
+
     val context: ConfigurableApplicationContext
 ) : ListenerAdapter()
 {
-    /**
-     * withContext(Dispatcher.Main) {
-     *
-     *      // this will run anything on the main thread
-     * }
-     *
-     * withContext scope will run anything inside that block into whatever dispatcher its told to run into
-     */
     private val logger by SLF4J
-    private val okhttp =
-        OkHttpClient.Builder()
-            .writeTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(60 , TimeUnit.SECONDS)
-            .build()
-    // TIME SET BECAUSE SOME REQUESTS TAKE A LONG TIME DEFAULT IS 10 SECONDS
 
-    // handlers
-    val startUpTime = Instant.now()!!
-    val configHandler = ConfigHandler()
-    val taskHandler = TaskHandler()
-    val messageHandler = MessageHandler(this)
-    val apiHandler = ApiHandler(okhttp)
-
-    // jda
-    val jda = build()
-
-    // after loading
-    val cmd = CommandHandler(this)
-
-    fun build(): JDA
+    @Bean
+    open fun build(): JDA = try
     {
-        try
-        {
-            /**
-             * create        - creates empty jda builder with user defined settings (will only create empty if you dont pass in the token into create function)
-             *               - will only cache self member
-             * createLight   - creates jda builder with recommended default settings but disables all CacheFlags
-             *               - will only cache members that are connected to voice, guild owner, and self member
-             * createDefault - creates jda builder with recommended default settings (default settings may be subject to change)
-             *               - caches all members
-             *
-             * Member cache is only relevant if you are accessing the member object outside an event
-             */
-            return JDABuilder.create(
-                configHandler.config.token,
-                GatewayIntent.GUILD_MESSAGES,
-                GatewayIntent.GUILD_MESSAGE_REACTIONS,
-                GatewayIntent.GUILD_MEMBERS
-            ).disableCache(
-                    CacheFlag.ACTIVITY,
-                    CacheFlag.VOICE_STATE,
-                    CacheFlag.EMOTE,
-                    CacheFlag.CLIENT_STATUS,
-                    CacheFlag.ONLINE_STATUS
-                ).setMemberCachePolicy(MemberCachePolicy.NONE)
-                // doesn't cache members on start up
-                .setChunkingFilter(ChunkingFilter.NONE)
-                .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                .addEventListeners(
-                    this,
-                    SlashListener(this),
-                    MessageListeners(this),
-                    GuildListeners(this),
-                )
-                .setHttpClient(okhttp)
-                .setActivity(Activity.playing("building...."))
-                .injectKTX()
-                .build()
-        }
-        catch (e: LoginException)
-        {
-            logger.error("Login Exception has occurred", e)
-            exitProcess(1)
-        }
+
+        /**
+         * create        - creates empty jda builder with user defined settings (will only create empty if you dont pass in the token into create function)
+         *               - will only cache self member
+         * createLight   - creates jda builder with recommended default settings but disables all CacheFlags
+         *               - will only cache members that are connected to voice, guild owner, and self member
+         * createDefault - creates jda builder with recommended default settings (default settings may be subject to change)
+         *               - caches all members
+         *
+         * Member cache is only relevant if you are accessing the member object outside an event
+         */
+        JDABuilder.create(
+            configHandler.config.token,
+            GatewayIntent.GUILD_MESSAGES,
+            GatewayIntent.GUILD_MESSAGE_REACTIONS,
+            GatewayIntent.GUILD_MEMBERS
+        ).disableCache(
+            CacheFlag.ACTIVITY,
+            CacheFlag.VOICE_STATE,
+            CacheFlag.EMOTE,
+            CacheFlag.CLIENT_STATUS,
+            CacheFlag.ONLINE_STATUS
+        ).setMemberCachePolicy(MemberCachePolicy.NONE)
+            // doesn't cache members on start up
+            .setChunkingFilter(ChunkingFilter.NONE)
+            .setStatus(OnlineStatus.DO_NOT_DISTURB)
+            .addEventListeners(
+                this,
+                messageListeners,
+                guildListener,
+                slashListener
+            )
+            .setHttpClient(Constants.DEFAULT_CLIENT)
+            .setActivity(Activity.playing("building...."))
+            .injectKTX()
+            .build()
     }
+    catch (e: LoginException)
+    {
+        logger.error("Login Exception has occurred", e)
+        exitProcess(1)
+    }
+
+
+
 
     override fun onReady(event: ReadyEvent)
     {
         logger.info("Ready.")
+
+        commandHandler.registerCommands(event.jda)
         taskHandler.startOnReadyTask(event.jda)
     }
 }

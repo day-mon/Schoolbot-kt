@@ -24,33 +24,35 @@ abstract class AbstractCommand : Pagable
     abstract val children: List<SubCommand>
     abstract val options: List<CommandOptionData<*>>
     val commandData: CommandData
-    get()
-    {
-        val s = Commands.slash(name.lowercase(), description)
-        val x = this as Command
-        if (this.group.isNotEmpty())
+        get()
         {
-             s.addSubcommandGroups(this.group.map {
-                SubcommandGroupData(it.key, "This ${it.key}'s")
-                    .addSubcommands(it.value.map { cmd -> cmd.subCommandData })
+            val s = Commands.slash(name.lowercase(), description)
+            val x = this as Command
+            if (this.group.isNotEmpty())
+            {
+                s.addSubcommandGroups(this.group.map {
+                    SubcommandGroupData(
+                        it.key,
+                        "This ${it.key}'s"
+                    ).addSubcommands(it.value.map { cmd -> cmd.subCommandData })
 
-            })
+                })
+            }
+
+            if (children.isNotEmpty())
+            {
+                s.addSubcommands(children.map { it.subCommandData })
+
+
+            }
+            else
+            {
+                s.addOptions(
+                    *options.map { it.asOptionData() }.toTypedArray()
+                )
+            }
+            return s
         }
-
-        if (children.isNotEmpty())
-        {
-            s.addSubcommands(children.map { it.subCommandData })
-
-
-        }
-        else
-        {
-            s.addOptions(
-                *options.map { it.asOptionData() }.toTypedArray()
-            )
-        }
-        return s
-    }
 
 
     suspend fun process(event: CommandEvent)
@@ -68,12 +70,16 @@ abstract class AbstractCommand : Pagable
 
         if (!event.hasSelfPermissions(selfPermission))
         {
-            val correct = "I will need ${selfPermission.filter { it !in event.guild.selfMember.permissions}.joinToString { "`${it.getName()}`" } } permission(s) to run this command!"
-            sendMessage(event ,correct)
+            val correct = "I will need ${
+                selfPermission.filter { it !in event.guild.selfMember.permissions }.joinToString { "`${it.getName()}`" }
+            } permission(s) to run this command!"
+            sendMessage(event, correct)
         }
         else if (!event.hasMemberPermissions(memberPermissions))
         {
-            val correct = "You will need ${memberPermissions.filter { it !in event.member.permissions}.joinToString { "`${it.getName()}`" } } permission(s) to run this command!"
+            val correct = "You will need ${
+                memberPermissions.filter { it !in event.member.permissions }.joinToString { "`${it.getName()}`" }
+            } permission(s) to run this command!"
             sendMessage(event, correct)
         }
         else if (category == CommandCategory.DEV)
@@ -99,10 +105,16 @@ abstract class AbstractCommand : Pagable
         else e.slashEvent.reply(message).queue()
     }
 
-     open suspend fun onExecuteSuspend(event: CommandEvent) {
+    open suspend fun onExecuteSuspend(event: CommandEvent)
+    {
         event.replyMessage("This command is not implemented yet.")
+        throw NotImplementedError("Execution for $name has not implemented ")
     }
-    open suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot){}
+
+    open suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
+    {
+        throw NotImplementedError("Autocomplete for $name has not implemented ")
+    }
 
 
     override fun getAsEmbed() = Embed {
