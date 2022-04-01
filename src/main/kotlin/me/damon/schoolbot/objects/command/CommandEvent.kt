@@ -1,6 +1,7 @@
 package me.damon.schoolbot.objects.command
 
 import dev.minn.jda.ktx.Embed
+import dev.minn.jda.ktx.SLF4J
 import dev.minn.jda.ktx.await
 import dev.minn.jda.ktx.interactions.replyPaginator
 import dev.minn.jda.ktx.interactions.sendPaginator
@@ -17,13 +18,10 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
-import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
-
-private val logger = LoggerFactory.getLogger(CommandEvent::class.java)
 
 class CommandEvent(
     val schoolbot: Schoolbot,
@@ -33,6 +31,9 @@ class CommandEvent(
 )
 {
     private val executors = Executors.newScheduledThreadPool(3)
+
+
+    val logger by SLF4J
     val jda = slashEvent.jda
     val user = slashEvent.user
     val channel = slashEvent.channel
