@@ -24,12 +24,13 @@ open class Course(
     @Column(name = "prerequisite")
     open val prerequisite: String,
 
+    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
+    open val reminders: MutableList<CourseReminder> = mutableListOf(),
 
-
-   @ManyToMany(mappedBy = "courses", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "courses", fetch = FetchType.LAZY)
     open val professors: MutableSet<Professor>,
 
-   @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
     open val assignments: MutableSet<Assignment>,
 
     @Column(name = "startDate", nullable = false)
@@ -37,6 +38,9 @@ open class Course(
 
     @Column(name = "endDate", nullable = false)
     open val endDate: Instant,
+
+    @Column(name = "meeting_days", nullable = false)
+    open val meetingDays: String,
 
     //@Column(name = "term")
     //val term: ClassTerm,

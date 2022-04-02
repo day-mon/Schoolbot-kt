@@ -14,7 +14,7 @@ import javax.persistence.*
 open class Assignment (
     @Id
     @Column(name = "id", unique = true, nullable = false, updatable = false)
-    override val id: UUID,
+    override val id: UUID = UUID.randomUUID(),
 
     @Column(name = "name")
     open val name: String,
@@ -30,11 +30,12 @@ open class Assignment (
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
-    open val course: Course
+    open val course: Course,
 
+    @OneToMany(mappedBy = "assignment", fetch = FetchType.LAZY)
+    open val assignments: MutableSet<AssignmentReminder> = mutableSetOf(),
 
-
-) : Comparable<Assignment>, Pagable, Identifiable
+    ) : Comparable<Assignment>, Pagable, Identifiable
 {
     override fun compareTo(other: Assignment): Int
     {

@@ -83,7 +83,8 @@ data class CourseModel(
         professors = processProfessors(instructors, school, professorRepository),
         startDate = Instant.parse("${startDate}Z").minusMillis(14400000),
         endDate = Instant.parse("${endDate}Z").minusMillis(14400000),
-        url = url
+        url = url,
+        meetingDays = meetingDays.joinToString { it },
     )
 
     private fun processProfessors(professors: List<String>, school: School, professorRepository: ProfessorRepository): MutableSet<Professor>
