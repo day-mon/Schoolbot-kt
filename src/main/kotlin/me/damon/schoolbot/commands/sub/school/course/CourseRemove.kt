@@ -44,7 +44,7 @@ class CourseRemove : SubCommand(
             },
 
             message = "Please select the course you wish to remove"
-        )
+        ) ?: return
 
         val course = courses[selection.values[0].toInt()]
 

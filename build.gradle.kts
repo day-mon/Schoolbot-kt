@@ -5,7 +5,7 @@ application {
 
 plugins {
     id("com.github.johnrengelman.shadow") version "7.1.1"
-    kotlin("jvm") version "1.6.10"
+    kotlin("jvm") version "1.6.20"
     application
 
     id("com.google.cloud.tools.jib") version "3.2.0"
@@ -62,12 +62,16 @@ dependencies {
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.10")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("ru.gildor.coroutines:kotlin-coroutines-okhttp:1.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+    implementation("ru.gildor.coroutines:kotlin-coroutines-okhttp:1.0") {
+        exclude("com.squareup.okhttp3:okhttp")
+    }
+    implementation(kotlin("stdlib-jdk8"))
+
 
     // Discord
-    implementation("net.dv8tion:JDA:5.0.0-alpha.5")
-    implementation("com.github.minndevelopment:jda-ktx:6f70da7")
+    implementation("net.dv8tion:JDA:5.0.0-alpha.9")
+    implementation("com.github.minndevelopment:jda-ktx:9f01b74")
 
     // Spring
     implementation("org.springframework.boot:spring-boot-starter")
@@ -82,7 +86,7 @@ dependencies {
     implementation("org.reflections:reflections:0.10.2")
 
     // Misc
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.1")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.2")
     implementation("ch.qos.logback:logback-classic:1.2.11")
     implementation("com.yahoofinance-api:YahooFinanceAPI:3.15.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

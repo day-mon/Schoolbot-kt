@@ -66,7 +66,7 @@ class SchoolAdd : SubCommand(
             }
         }
 
-        val selectionEvent = event.sendMenuAndAwait(menu, "Select an item from the menu to choose a school")
+        val selectionEvent = event.sendMenuAndAwait(menu, "Select an item from the menu to choose a school") ?: return
         val school = models[selectionEvent.values[0].toInt()]
 
         val duplicate = event.schoolbot.schoolService.findSchoolInGuild(event.guild.idLong, school.name)

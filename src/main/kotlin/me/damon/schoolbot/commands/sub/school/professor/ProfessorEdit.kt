@@ -46,7 +46,7 @@ class ProfessorEdit : SubCommand(
             { professors.forEachIndexed { index, professor -> option(professor.fullName, index.toString()) } },
 
             message = "Select a professor to edit",
-         )
+         ) ?: return
 
         val professor = professors[selection.values[0].toInt()]
 
@@ -60,7 +60,7 @@ class ProfessorEdit : SubCommand(
         val finalSelection = event.sendMenuAndAwait(
             menu = menu,
             message = "Select a field to edit",
-        )
+        ) ?: return
 
         val choice = finalSelection.values[0]
 

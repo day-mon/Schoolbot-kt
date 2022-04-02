@@ -57,7 +57,7 @@ class LaundryReminderAdd : SubCommand(
         val selectionEvent = event.sendMenuAndAwait(
             menu = menu,
             message = "Please select the machine you would like to be reminded of"
-        )
+        ) ?: return
         val option = models[selectionEvent.values[0].toInt()]
         val timeLeft = option.timeRemaining.split(Regex("\\s+"))[0].toInt()
         val id = "${event.user.idLong}_${option.location}_${option.type}_${option.applianceID}"

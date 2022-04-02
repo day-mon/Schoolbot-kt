@@ -54,7 +54,7 @@ class SchoolEdit : SubCommand(
         val selectionEvent = event.sendMenuAndAwait(
             menu = menu,
             message = "Please select the attribute you wish you edit"
-        )
+        ) ?: return
 
         val choice = selectionEvent.values[0]
 
@@ -68,7 +68,7 @@ class SchoolEdit : SubCommand(
         val updatedSchool = event.service.updateEntity(changedSchool) ?: return run {
             event.replyErrorEmbed("`${school.name}` either does not exist or an unexpected error occurred during the update sequence. Please try again. If this error persis please contact `damon#9999` ")
         }
-        val embed = withContext(Dispatchers.IO) { changedSchool.getAsEmbed() }
+        val embed = withContext(Dispatchers.IO) { updatedSchool.getAsEmbed() }
 
         event.replyEmbed(embed, "School Updated!")
 

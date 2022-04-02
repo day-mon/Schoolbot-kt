@@ -37,13 +37,14 @@ class CourseAddPitt : SubCommand(
     ),
 
 
-)
+    )
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val service = event.schoolbot.schoolService
         val schoolName = event.getOption("school_name")!!.asString
-        val pittSchools = service.getPittSchoolsInGuild(event.guild.idLong) ?: return run { event.replyErrorEmbed("Error has occurred while thing to get schools in `${event.guild.name}`") }
+        val pittSchools = service.getPittSchoolsInGuild(event.guild.idLong)
+            ?: return run { event.replyErrorEmbed("Error has occurred while thing to get schools in `${event.guild.name}`") }
         if (pittSchools.isEmpty()) return run { event.replyErrorEmbed("There are no pitt schools in ${event.guild.name}") }
 
         val school = pittSchools.find { it.name == schoolName }
@@ -52,14 +53,14 @@ class CourseAddPitt : SubCommand(
         val selectionEvent = event.sendMenuAndAwait(
             SelectMenu("pittschool:menu") { terms.forEach { option(it.first, it.second) } },
             "Awesome we have selected `${school.name}`! Please select a term from the following term list!"
-        )
+        ) ?: return
 
         val termNumber = selectionEvent.values[0]
         val term = terms.find { it.second == termNumber }!!.first
 
         val messageReceivedEvent = event.sendMessageAndAwait(
             message = "Nice! You selected `$term`! Please give me your class number"
-        )
+        ) ?: return
         val message = messageReceivedEvent.message.contentRaw
 
         event.replyMessageAndClear("Okay, looks good. I will now do the search for the class in the term: `$term` and with the number: `${message}`")
@@ -84,8 +85,7 @@ class CourseAddPitt : SubCommand(
         val constraints = evaluateConstraints(course, event, term)
         if (constraints != String.empty) return run {
             event.replyErrorEmbed(
-                tit = "An error has occurred while trying to add a class",
-                error = constraints
+                tit = "An error has occurred while trying to add a class", error = constraints
             )
         }
 
@@ -97,9 +97,7 @@ class CourseAddPitt : SubCommand(
 
         val embed = withContext(Dispatchers.IO) { savedCourse.getAsEmbed(event.guild) }
 
-        event.hook.editOriginal("Course created successfully")
-            .setEmbeds(embed)
-            .setActionRows(Collections.emptyList())
+        event.hook.editOriginal("Course created successfully").setEmbeds(embed).setActionRows(Collections.emptyList())
             .queue()
 
 
@@ -111,13 +109,11 @@ class CourseAddPitt : SubCommand(
         val courseName = course.name
         return when
         {
-            guild.roles.size == Constants.MAX_ROLE_COUNT  -> "Cannot create role. `${guild.name}` is already at max role count"
+            guild.roles.size == Constants.MAX_ROLE_COUNT -> "Cannot create role. `${guild.name}` is already at max role count"
             guild.textChannels.size == Constants.MAX_CHANNEL_COUNT -> "Cannot create channel. `${guild.name}` is already at max channel count"
             courseName.length >= 100 -> "${course.name} is longer than 100. Please add the class manually"
             event.schoolbot.schoolService.findDuplicateCourse(
-                name = courseName,
-                number = course.classNumber.toLong(),
-                termId = term
+                name = courseName, number = course.classNumber.toLong(), termId = term
             ) != null -> "`${course.name} / ${course.classNumber}` already exist under term id `${term}`"
             else -> String.empty
         }
@@ -173,11 +169,8 @@ class CourseAddPitt : SubCommand(
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {
         val pittSchools = schoolbot.schoolService.getPittSchoolsInGuild(event.guild!!.idLong) ?: return
-        event.replyChoiceStringAndLimit(
-            pittSchools
-                .map { it.name }
-                .filter { it.startsWith(event.focusedOption.value, ignoreCase = true) }
-        ).queue()
+        event.replyChoiceStringAndLimit(pittSchools.map { it.name }
+            .filter { it.startsWith(event.focusedOption.value, ignoreCase = true) }).queue()
 
     }
 }

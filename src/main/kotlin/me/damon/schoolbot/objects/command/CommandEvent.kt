@@ -6,9 +6,13 @@ import dev.minn.jda.ktx.await
 import dev.minn.jda.ktx.interactions.replyPaginator
 import dev.minn.jda.ktx.interactions.sendPaginator
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import me.damon.schoolbot.Constants
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.empty
+import me.damon.schoolbot.ext.replyErrorEmbed
 import me.damon.schoolbot.ext.toUUID
 import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.misc.Identifiable
@@ -22,7 +26,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
-import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -35,9 +38,6 @@ class CommandEvent(
     val scope: CoroutineScope,
 )
 {
-    private val executors = Executors.newScheduledThreadPool(3)
-
-
     val logger by SLF4J
     val jda = slashEvent.jda
     val user = slashEvent.user
@@ -50,13 +50,15 @@ class CommandEvent(
 
     val options: MutableList<OptionMapping> = slashEvent.options
 
-    fun replyEmbed(embed: MessageEmbed, content: String = String.empty) = when {
-        command.deferredEnabled -> hook.editOriginalEmbeds(embed).setActionRows(Collections.emptyList()).setContent(content).queue({ }) {
-            logger.error(
-                "Error has occurred while attempting to send embeds for command ${command.name}", it
-            )
-            hook.editOriginal("Error has occurred while attempting to send embeds").queue()
-        }
+    fun replyEmbed(embed: MessageEmbed, content: String = String.empty) = when
+    {
+        command.deferredEnabled -> hook.editOriginalEmbeds(embed).setActionRows(Collections.emptyList())
+            .setContent(content).queue({ }) {
+                logger.error(
+                    "Error has occurred while attempting to send embeds for command ${command.name}", it
+                )
+                hook.editOriginal("Error has occurred while attempting to send embeds").queue()
+            }
         else -> slashEvent.replyEmbeds(embed).setContent(content).queue({ }) {
             logger.error(
                 "Error has occurred while attempting to send embeds for command ${command.name}", it
@@ -66,26 +68,24 @@ class CommandEvent(
         }
     }
 
-    fun replyErrorEmbed(error: String, tit: String = "Error has occurred") = when {
-        command.deferredEnabled -> hook.editOriginalEmbeds(
-            Embed {
-                title = tit
-                description = error
-                color = Constants.RED
-            })
+    fun replyErrorEmbed(error: String, tit: String = "Error has occurred") = when
+    {
+        command.deferredEnabled -> hook.editOriginalEmbeds(Embed {
+            title = tit
+            description = error
+            color = Constants.RED
+        })
             .setContent(String.empty)
             .setActionRows(Collections.emptyList())
             .queue(null) { logger.error("Error has occurred while attempting to send embeds for command ${command.name}", it) }
-        else -> slashEvent.replyEmbeds(
-            Embed {
+        else -> slashEvent.replyEmbeds(Embed {
             title = tit
             description = error
             color = Constants.RED
         })
             .addActionRows(Collections.emptyList())
             .setContent("")
-            .queue(null) { logger.error("Error has occurred while attempting to send embeds for command ${command.name}", it)
-        }
+            .queue(null) { logger.error("Error has occurred while attempting to send embeds for command ${command.name}", it) }
     }
 
     fun replyAndEditWithDelay(message: String, delayMessage: String, unit: TimeUnit, time: Long)
@@ -105,19 +105,19 @@ class CommandEvent(
         }
     }
 
-    fun replyMessage(message: String) = when {
+    fun replyMessage(message: String) = when  {
         command.deferredEnabled -> hook.editOriginal(message).queue()
         else -> slashEvent.reply(message).queue()
     }
-    fun replyMessageAndClear(message: String) = when {
+
+    fun replyMessageAndClear(message: String) = when  {
         command.deferredEnabled -> hook.editOriginal(message).setActionRows(Collections.emptyList()).setEmbeds(Collections.emptyList()).queue()
         else -> slashEvent.reply(message).addActionRows(Collections.emptyList()).addActionRows(Collections.emptyList()).queue()
     }
 
     fun replyMessageWithErrorEmbed(message: String, exception: Exception)
     {
-        val embed =
-            Embed {
+        val embed = Embed {
             title = "Error occurred. Send this message to a developer if it constantly occurs"
             field {
                 title = "Cause"
@@ -142,8 +142,8 @@ class CommandEvent(
     }
 
 
-     // This function must be inlined and reified so that the compiler can infer the type of the generic
-    inline fun <reified T: Identifiable> findGenericByIdAndGet(optionName: String): T?
+    // This function must be inlined and reified so that the compiler can infer the type of the generic
+    inline fun <reified T : Identifiable> findGenericByIdAndGet(optionName: String): T?
     {
         val genericStr = getOption<String>(optionName.trim())
         val id = genericStr.toUUID() ?: return run {
@@ -156,35 +156,55 @@ class CommandEvent(
         }
     }
 
-    fun <T: Pagable> sendPaginator(embeds: Collection<T>) = sendPaginator(*embeds.map { it.getAsEmbed() }.toTypedArray())
-    fun <T: Pagable> sendPaginatorColor(embeds: Collection<T>) = sendPaginator(*embeds.map { it.getAsEmbed(guild) }.toTypedArray())
+    fun <T : Pagable> sendPaginator(embeds: Collection<T>) =
+        sendPaginator(*embeds.map { it.getAsEmbed() }.toTypedArray())
 
-    suspend fun sendMenuAndAwait(menu: SelectMenu, message: String, timeoutDuration: Long = 60, acknowledge: Boolean = false): SelectMenuInteractionEvent
-    {
-        hook.editOriginal("$message | Time out is set to $timeoutDuration seconds")
-            .setActionRow(menu)
-            .queue()
-        val job = executors.schedule({ hook.run { editOriginal("Command has timed out try again please").setActionRows(Collections.emptyList()).queue() } }, timeoutDuration, TimeUnit.SECONDS)
-        return jda.await<SelectMenuInteractionEvent> { it.member!!.idLong == member.idLong && it.componentId == menu.id }.also {
-            if (!job.isCancelled)
-                job.cancel(true)
+    fun <T : Pagable> sendPaginatorColor(embeds: Collection<T>) =
+        sendPaginator(*embeds.map { it.getAsEmbed(guild) }.toTypedArray())
 
-            if (acknowledge)
-                it.deferEdit().queue()
-        }
+
+
+
+    /**
+     * This function is used to send a paginator of embeds.
+     * @param embeds The embeds to send
+     * @param timeoutDuration The duration in seconds before the paginator times out
+     * @param acknowledge whether to acknowledge the message
+     * @return The interaction event
+     *
+     */
+    suspend fun sendMenuAndAwait(
+        menu: SelectMenu, message: String, timeoutDuration: Long = 1, acknowledge: Boolean = false
+    ) = withTimeoutOrNull(timeoutDuration * 1) {
+        hook.editOriginal("$message | Time out is set to $timeoutDuration seconds").setActionRow(menu).queue()
+        jda
+            .await<SelectMenuInteractionEvent> { it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }
+            .also { if (acknowledge) it.deferEdit().queue() }
+    } ?: run {
+        replyErrorEmbed("Command has timed out try again please")
+        null
     }
 
-    suspend fun sendMessageAndAwait(message: String, rows: List<ActionRow> = Collections.emptyList(), timeoutDuration: Long = 60): MessageReceivedEvent
-    {
-        hook.editOriginal("$message | Time out is set to $timeoutDuration seconds")
-            .setActionRows(rows)
-            .queue()
-        val job = executors.schedule({ hook.run { editOriginal("Command has timed out try again please").setActionRows(Collections.emptyList()).queue() } }, timeoutDuration, TimeUnit.SECONDS)
-        return jda.await<MessageReceivedEvent> {  it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }.also {
-            if (!job.isCancelled)
-                job.cancel(true)
-        }
+    /**
+     * This function is used to send a paginator of embeds.
+     * @param embeds The embeds to send
+     * @param timeoutDuration The duration in seconds before the paginator times out
+     * @param acknowledge whether to acknowledge the message
+     * @return The interaction event
+     *
+     */
+    suspend fun sendMessageAndAwait(
+        message: String,
+        rows: List<ActionRow> = Collections.emptyList(),
+        timeoutDuration: Long = 1
+    ): MessageReceivedEvent? = withTimeoutOrNull(timeoutDuration * 60000) {
+        hook.editOriginal(message).setActionRows(rows).queue()
+        jda.await { it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }
+    } ?: run {
+        hook.replyErrorEmbed(body = "Command has timed out try again please")
+        null
     }
+
 
     fun sendPaginator(vararg embeds: MessageEmbed)
     {
@@ -196,8 +216,7 @@ class CommandEvent(
 
 
             hook.sendPaginator(
-                pages = embeds,
-                expireAfter = Duration.parse("5m")
+                pages = embeds, expireAfter = Duration.parse("5m")
             ) {
                 it.user.idLong == slashEvent.user.idLong
             }.queue()
@@ -227,10 +246,10 @@ class CommandEvent(
     }
 
     fun getOption(option: String) = slashEvent.getOption(option)
-    fun getSentOptions() = command.options.filter { commandOptionData -> commandOptionData.name in slashEvent.options.map { it.name } }
+    fun getSentOptions() =
+        command.options.filter { commandOptionData -> commandOptionData.name in slashEvent.options.map { it.name } }
+
     fun sentWithAnyOptions() = slashEvent.options.isNotEmpty()
-
-
 
 
 }
