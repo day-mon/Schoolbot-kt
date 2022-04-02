@@ -60,13 +60,19 @@ open class SchoolService(
 
     }
 
-       fun  <T: Identifiable> getRepository(identifiable: T): JpaRepository<Any, UUID> = when (identifiable) {
+    fun <T: Identifiable> getRepository(identifiable: T): JpaRepository<Any, UUID> = when (identifiable) {
         is Professor -> professorRepository as JpaRepository<Any, UUID>
         is School -> schoolRepository as JpaRepository<Any, UUID>
         is Course -> classroomRepository as JpaRepository<Any, UUID>
         else -> throw IllegalArgumentException("Unknown identifiable type")
     }
 
+     private fun <T: Identifiable> getRepository(klass: Class<T>): JpaRepository<Any, UUID> = when (klass.simpleName) {
+        "Professor" -> professorRepository as JpaRepository<Any, UUID>
+        "School" -> schoolRepository as JpaRepository<Any, UUID>
+        "Course" -> classroomRepository as JpaRepository<Any, UUID>
+        else -> throw IllegalArgumentException("Unknown identifiable type")
+    }
 
     /*
      * This is very bad probably could be written a bit better.
@@ -119,6 +125,14 @@ open class SchoolService(
             .getOrNull()
 
     */
+
+    open fun findSchoolsWithNoClasses(guildId: Long):List<School>? =
+        runCatching { schoolRepository.findByClassesIsEmptyAndGuildId(guildId) }
+            .onFailure { logger.error("Error occurred while retrieving schools with no classrooms in guild {}", guildId) }
+            .getOrNull()
+
+    open fun <T : Identifiable> findGenericById(klass: Class<T>, id: UUID) : T? =
+        getRepository(klass).findById(id).orElse(null) as T?
 
 
     open fun findProfessorById(id: UUID): Professor? = runCatching { professorRepository.findById(id).orElse(null) }

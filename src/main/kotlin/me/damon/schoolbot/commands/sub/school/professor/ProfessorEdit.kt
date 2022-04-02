@@ -13,6 +13,7 @@ import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.school.Professor
+import me.damon.schoolbot.objects.school.School
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.commands.Command
@@ -37,14 +38,8 @@ class ProfessorEdit : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val schoolId = event.getOption<String>("school_name")
-        val id = schoolId.toUUID() ?: return run { event.replyErrorEmbed("An unexpected error has occurred") }
-        val school = event.service.findSchoolById(id) ?: return run { event.replyErrorEmbed("Error occurred while trying to fetch school by id. ${Emoji.THINKING.getAsChat()}") }
-
-        if (school.isEmpty) return run { event.replyErrorEmbed("School has not been found") }
-
-        val finalSchool = school.get()
-
-        val professors = event.service.findProfessorsBySchool(finalSchool)?.toMutableList() ?: return run { event.replyErrorEmbed("Error occurred while trying to fetch professors by school.")}
+        val school = event.findGenericByIdAndGet<School>(schoolId) ?: return
+        val professors = event.service.findProfessorsBySchool(school)?.toMutableList() ?: return run { event.replyErrorEmbed("Error occurred while trying to fetch professors by school.")}
 
         val selection =  event.sendMenuAndAwait(
             menu = SelectMenu("${event.slashEvent.id}_${event.user.idLong}:SM:EDIT_PROFESSOR")

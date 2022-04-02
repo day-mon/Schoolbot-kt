@@ -9,7 +9,11 @@ import kotlinx.coroutines.CoroutineScope
 import me.damon.schoolbot.Constants
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.empty
+import me.damon.schoolbot.ext.toUUID
+import me.damon.schoolbot.objects.misc.Emoji
+import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
+import me.damon.schoolbot.objects.school.School
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
@@ -18,6 +22,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
+import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -70,11 +75,7 @@ class CommandEvent(
             })
             .setContent(String.empty)
             .setActionRows(Collections.emptyList())
-            .queue({ }) {
-            logger.error(
-                "Error has occurred while attempting to send embeds for command ${command.name}", it
-            )
-        }
+            .queue(null) { logger.error("Error has occurred while attempting to send embeds for command ${command.name}", it) }
         else -> slashEvent.replyEmbeds(
             Embed {
             title = tit
@@ -83,10 +84,7 @@ class CommandEvent(
         })
             .addActionRows(Collections.emptyList())
             .setContent("")
-            .queue({ }) {
-            logger.error(
-                "Error has occurred while attempting to send embeds for command ${command.name}", it
-            )
+            .queue(null) { logger.error("Error has occurred while attempting to send embeds for command ${command.name}", it)
         }
     }
 
@@ -143,6 +141,21 @@ class CommandEvent(
         }
     }
 
+
+     // This function must be inlined and reified so that the compiler can infer the type of the generic
+    inline fun <reified T: Identifiable> findGenericByIdAndGet(optionName: String): T?
+    {
+        val genericStr = getOption<String>(optionName.trim())
+        val id = genericStr.toUUID() ?: return run {
+            replyErrorEmbed("Error occurred while trying to fetch school by id. ${Emoji.THINKING.getAsChat()}")
+            null
+        }
+        return service.findGenericById(T::class.java, id) ?: return run {
+            replyErrorEmbed("Error occurred while trying to fetch school by id. ${Emoji.THINKING.getAsChat()}")
+            null
+        }
+    }
+
     fun <T: Pagable> sendPaginator(embeds: Collection<T>) = sendPaginator(*embeds.map { it.getAsEmbed() }.toTypedArray())
     fun <T: Pagable> sendPaginatorColor(embeds: Collection<T>) = sendPaginator(*embeds.map { it.getAsEmbed(guild) }.toTypedArray())
 
@@ -172,7 +185,6 @@ class CommandEvent(
                 job.cancel(true)
         }
     }
-
 
     fun sendPaginator(vararg embeds: MessageEmbed)
     {

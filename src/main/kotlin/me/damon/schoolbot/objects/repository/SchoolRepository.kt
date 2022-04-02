@@ -2,6 +2,7 @@ package me.damon.schoolbot.objects.repository
 
 import me.damon.schoolbot.objects.school.School
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import java.util.*
 
@@ -13,5 +14,6 @@ interface SchoolRepository : JpaRepository<School, UUID>
     fun findSchoolByNameIgnoreCaseAndGuildId(name: String, guildId: Long): School?
     fun findSchoolsByIsPittSchoolAndGuildId(isPittSchool: Boolean = true, guildId: Long): List<School>
     fun findByProfessorIsNotEmptyAndGuildIdEquals(guildId: Long): List<School>
+    fun findByClassesIsEmptyAndGuildId(guildId: Long): List<School>
 
 }

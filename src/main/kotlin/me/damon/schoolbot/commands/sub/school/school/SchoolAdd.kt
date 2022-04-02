@@ -34,7 +34,7 @@ class SchoolAdd : SubCommand(
 
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val schoolName = event.getOption("school_name")!!.asString
+        val schoolName = event.getOption<String>("school_name")
         event.replyMessage("Searching for `$schoolName`...")
         val response = event.schoolbot.apiHandler.schoolApi.getSchools(schoolName)
 
@@ -60,6 +60,8 @@ class SchoolAdd : SubCommand(
                 option(
                     schoolModel.name,
                     index.toString()
+                //damon, its ryan. u forgot a ';'. not sure if u need in kotlin. but just checking :)-
+                // xd
                 )
             }
         }
