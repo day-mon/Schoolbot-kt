@@ -60,6 +60,7 @@ open class SchoolService(
 
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <T: Identifiable> getRepository(identifiable: T): JpaRepository<Any, UUID> = when (identifiable) {
         is Professor -> professorRepository as JpaRepository<Any, UUID>
         is School -> schoolRepository as JpaRepository<Any, UUID>
@@ -67,7 +68,8 @@ open class SchoolService(
         else -> throw IllegalArgumentException("Unknown identifiable type")
     }
 
-     private fun <T: Identifiable> getRepository(klass: Class<T>): JpaRepository<Any, UUID> = when (klass.simpleName) {
+    @Suppress("UNCHECKED_CAST")
+    private fun <T: Identifiable> getRepository(klass: Class<T>): JpaRepository<Any, UUID> = when (klass.simpleName) {
         "Professor" -> professorRepository as JpaRepository<Any, UUID>
         "School" -> schoolRepository as JpaRepository<Any, UUID>
         "Course" -> classroomRepository as JpaRepository<Any, UUID>
