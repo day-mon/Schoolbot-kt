@@ -33,6 +33,7 @@ class Search : Command (
             add("q", query.replace("\\s", "+"))
         }
 
+        // todo: fix this and dont use call back
         client.newCall(request).await(scope = event.scope) { response ->
             when
             {
