@@ -27,7 +27,7 @@ class Search : Command (
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val query = event.getOption("search_results")!!.asString
+        val query = event.getOption<String>("search_results")
         val client = event.jda.httpClient
         val request = post("https://html.duckduckgo.com/html/") {
             add("q", query.replace("\\s", "+"))

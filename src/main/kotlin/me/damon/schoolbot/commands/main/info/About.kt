@@ -28,7 +28,7 @@ class About : Command(
         {
             event.sentWithOption("user") ->
             {
-                event.getOption("user")!!.asMember!!
+                event.getOption<Member>("user")
             }
             else ->
             {

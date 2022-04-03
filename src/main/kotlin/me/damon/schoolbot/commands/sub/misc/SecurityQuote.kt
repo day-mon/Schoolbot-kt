@@ -24,8 +24,8 @@ class SecurityQuote : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val security = YahooFinance.get(event.getOption("security_symbol")!!.asString) ?: return run {
-            event.replyMessage("${event.getOption("security_symbol")!!.asString} does not exist")
+        val security = YahooFinance.get(event.getOption<String>("security_symbol")) ?: return run {
+            event.replyMessage("${event.getOption<String>("security_symbol")} does not exist")
         } // blocking
 
         event.replyEmbed(

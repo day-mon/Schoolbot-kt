@@ -32,7 +32,7 @@ class LaundryReminderAdd : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val taskHandler = event.schoolbot.taskHandler
-        val dorm = event.getOption("dormitory")!!.asString
+        val dorm = event.getOption<String>("dormitory")
         val response = event.schoolbot.apiHandler.johnstownAPI.getLaundryItems(dorm)
 
 

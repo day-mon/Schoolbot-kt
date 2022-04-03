@@ -24,7 +24,7 @@ class SecurityPrice : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val security = YahooFinance.get(event.getOption("security_symbol")!!.asString) // blocking
+        val security = YahooFinance.get(event.getOption<String>("security_symbol")) // blocking
         val quote = security.quote
         event.replyEmbed(
             Embed {

@@ -26,8 +26,8 @@ class ProfessorRemove : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val professorStringId = event.getOption("professor_name")
-        val professorId = UUID.fromString(professorStringId!!.asString)
+        val professorStringId = event.getOption<String>("professor_name")
+        val professorId = UUID.fromString(professorStringId)
 
 
         val professor = event.service.findProfessorById(professorId) ?: return run {

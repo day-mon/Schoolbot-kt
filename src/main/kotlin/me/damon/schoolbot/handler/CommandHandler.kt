@@ -12,10 +12,8 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import org.reflections.Reflections
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.stereotype.Component
-import java.util.*
 
 
 private const val COMMANDS_PACKAGE = "me.damon.schoolbot.commands"

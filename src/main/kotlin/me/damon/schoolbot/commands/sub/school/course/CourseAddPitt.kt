@@ -42,7 +42,7 @@ class CourseAddPitt : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val service = event.schoolbot.schoolService
-        val schoolName = event.getOption("school_name")!!.asString
+        val schoolName = event.getOption<String>("school_name")
         val pittSchools = service.getPittSchoolsInGuild(event.guild.idLong)
             ?: return run { event.replyErrorEmbed("Error has occurred while thing to get schools in `${event.guild.name}`") }
         if (pittSchools.isEmpty()) return run { event.replyErrorEmbed("There are no pitt schools in ${event.guild.name}") }

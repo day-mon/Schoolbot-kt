@@ -43,7 +43,7 @@ class Clear : Command(
 
         val slash = event.slashEvent
         val sent = event.sentWithOption("amount_of_messages")
-        val amount = if (sent) event.getOption("amount_of_messages")!!.asLong else defaultClearAmount
+        val amount = if (sent) event.getOption<Long>("amount_of_messages") else defaultClearAmount
 
 
        slash

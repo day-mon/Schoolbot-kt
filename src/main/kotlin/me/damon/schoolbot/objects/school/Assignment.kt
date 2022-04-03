@@ -1,5 +1,6 @@
 package me.damon.schoolbot.objects.school
 
+import dev.minn.jda.ktx.Embed
 import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed
@@ -38,12 +39,11 @@ open class Assignment (
     ) : Comparable<Assignment>, Pagable, Identifiable
 {
     override fun compareTo(other: Assignment): Int
-    {
-        return dueDate.compareTo(other.dueDate)
-    }
+    =  dueDate.compareTo(other.dueDate)
 
-    override fun getAsEmbed(): MessageEmbed
-    {
-        TODO("Not yet implemented")
+    override fun getAsEmbed(): MessageEmbed = Embed {
+        title = name
+        description = this@Assignment.description
+
     }
 }

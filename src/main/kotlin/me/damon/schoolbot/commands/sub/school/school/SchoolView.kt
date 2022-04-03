@@ -28,7 +28,7 @@ class SchoolView : SubCommand(
         when {
             event.sentWithAnyOptions() ->
             {
-                val name = event.getOption("school_name")!!.asString
+                val name = event.getOption<String>("school_name")
                 val school = event.schoolbot.schoolService.findSchoolInGuild(event.guildId, name) ?: return run {
                     event.replyErrorEmbed("School does not exist")
                 }

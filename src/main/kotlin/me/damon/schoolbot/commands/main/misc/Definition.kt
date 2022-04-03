@@ -32,7 +32,7 @@ class Definition : Command(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val word = event.getOption("word")!!.asString
+        val word = event.getOption<String>("word")
         val regex = Regex("\\s")
         val dictionaryUrl = "https://api.dictionaryapi.dev/api/v2/entries/en/${word.replace(regex, "%20")}"
         val client = event.jda.httpClient

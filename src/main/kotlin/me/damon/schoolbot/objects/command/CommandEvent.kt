@@ -6,8 +6,6 @@ import dev.minn.jda.ktx.await
 import dev.minn.jda.ktx.interactions.replyPaginator
 import dev.minn.jda.ktx.interactions.sendPaginator
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import me.damon.schoolbot.Constants
 import me.damon.schoolbot.Schoolbot
@@ -17,8 +15,8 @@ import me.damon.schoolbot.ext.toUUID
 import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
-import me.damon.schoolbot.objects.school.School
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -27,7 +25,6 @@ import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import java.util.*
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 
@@ -242,6 +239,7 @@ class CommandEvent(
         Long::class -> slashEvent.getOption(name)?.asLong as T
         Double::class -> slashEvent.getOption(name)?.asDouble as T
         Boolean::class -> slashEvent.getOption(name)?.asBoolean as T
+        Member::class -> slashEvent.getOption(name)?.asMember as T
         else -> throw IllegalArgumentException("Unknown type ${T::class}")
     }
 

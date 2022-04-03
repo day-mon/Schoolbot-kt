@@ -89,7 +89,7 @@ class SchoolAdd : SubCommand(
             }
 
                 event.hook.editOriginal("School has been saved")
-                    .setEmbeds(school.getAsEmbed())
+                    .setEmbeds(savedSchool.getAsEmbed())
                     .setActionRows(Collections.emptyList())
                     .queue()
 

@@ -124,13 +124,13 @@ data class CourseModel(
                     limit = 2
                 )
 
-                val professor = professorRepository.findByFullNameEqualsIgnoreCaseAndSchool_GuildIdEquals("${split[0]} ${split[1]}", school.guildId)
+                val duplicate = professorRepository.findByFullNameEqualsIgnoreCaseAndSchool_GuildIdEquals("${split[0]} ${split[1]}", school.guildId)
                     .orElse(null)
 
 
-                if (professor != null)
+                if (duplicate != null)
                 {
-                    profs.add(professor)
+                    profs.add(duplicate)
                     continue
                 }
 
@@ -167,8 +167,5 @@ data class CourseModel(
             }
         }
         return profs
-
-
-        return mutableSetOf()
     }
 }
