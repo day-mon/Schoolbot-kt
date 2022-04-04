@@ -63,9 +63,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.10")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
-    implementation("ru.gildor.coroutines:kotlin-coroutines-okhttp:1.0") {
-        exclude("com.squareup.okhttp3:okhttp")
-    }
     implementation(kotlin("stdlib-jdk8"))
 
 

@@ -1,38 +1,38 @@
 package me.damon.schoolbot.ext
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import dev.minn.jda.ktx.SLF4J
 import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.*
 import java.io.IOException
+import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-inline fun <T : AutoCloseable, R> T.useCatching(fn: () -> R) = runCatching {
-    fn()
-}.also { close() }
-
-suspend inline fun <T> Call.await(scope: CoroutineScope, crossinline callback: suspend (Response) -> T) =
-    suspendCancellableCoroutine<T> { sink ->
-        sink.invokeOnCancellation { cancel() }
-        enqueue(object : Callback
-        {
-            override fun onFailure(call: Call, e: IOException)
-            {
-                sink.resumeWithException(e)
+val logger by SLF4J
+suspend fun Call.await(): Response {
+    return suspendCancellableCoroutine { continuation ->
+        enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                logger.debug("Request to ${call.request().url()} succeeded with status code ${response.code()}")
+                continuation.resume(response)
             }
 
-            override fun onResponse(call: Call, response: Response)
-            {
-                scope.launch {
-                    response.useCatching {
-                        callback(response)
-                    }.also(sink::resumeWith)
-                }
+            override fun onFailure(call: Call, e: IOException) {
+                // Don't bother with resuming the continuation if it is already cancelled.
+                logger.error("Error has occurred while trying to make a request o ${call.request().url()}", e)
+                if (continuation.isCancelled) return
+                continuation.resumeWithException(e)
             }
         })
+
+        continuation.invokeOnCancellation {
+            try {
+                cancel()
+            } catch (ex: Throwable) {
+                //Ignore cancel exception
+            }
+        }
     }
-
-
+}
 
 
 class HttpException(

@@ -1,6 +1,5 @@
 package me.damon.schoolbot.commands.main.misc
 
-import me.damon.schoolbot.ext.asException
 import me.damon.schoolbot.ext.await
 import me.damon.schoolbot.ext.bodyAsString
 import me.damon.schoolbot.ext.post
@@ -33,45 +32,23 @@ class Search : Command (
             add("q", query.replace("\\s", "+"))
         }
 
-        // todo: fix this and dont use call back
-        client.newCall(request).await(scope = event.scope) { response ->
-            when
-            {
-                response.isSuccessful -> {
-                    val body = response.bodyAsString() ?: return@await run {
-                        event.replyMessage("There was an issue attempting to get the response body of DuckDuckGo")
-                    }
 
-                    val document = Jsoup.parse(body)
+        val response = client.newCall(request).await()
 
-                    if (document.getElementsByClass("no-results").hasText())
-                    {
-                        return@await run {
-                            // weird scoping issue just won't let me return??
-                            event.replyMessage("No search results for `$query`")
-                        }
-                    }
-                    val url = document.getElementsByClass("result__extras__url")[0].text()
-                    val title = document.select("a[href]")[1].text()
-                    val snippet = document.getElementsByClass("result__snippet")[0].text()
-                    event.replyMessage("https://$url - $title - $snippet")
-                }
-
-                response.isRedirect -> {
-                    event.replyMessage("DuckDuckGo responded with a redirect status code. Cannot carry out the search")
-                }
-
-                response.code() >= 500 -> {
-                    logger.error("DuckDuckGo is down?", response.asException())
-                    event.replyMessage("DuckDuckGo responded with an internal server error")
-                }
-
-                else -> {
-                    logger.error("An unexpected error has occurred", response.asException())
-                    event.replyMessage("An unexpected error has occurred")
-                }
-
-            }
+        if (!response.isSuccessful) return run {
+            event.replyMessage("There was an issue attempting to get the response body of DuckDuckGo")
         }
+
+        val body = response.bodyAsString() ?: return run { event.replyMessage("There was an issue attempting to get the response body of DuckDuckGo") }
+        val document = Jsoup.parse(body)
+
+        if (document.getElementsByClass("no-results").hasText()) return run { event.replyMessage("No search results for `$query`") }
+
+        // TODO: A lot can go wrong here, probably need to do some error handling just encase those indexes are out of bounds
+        val url =  document.getElementsByClass("result__extras__url")[0].text()
+        val title = document.select("a[href]")[1].text()
+        val snippet = document.getElementsByClass("result__snippet")[0].text()
+        event.replyMessage("https://$url - $title - $snippet")
+
     }
 }

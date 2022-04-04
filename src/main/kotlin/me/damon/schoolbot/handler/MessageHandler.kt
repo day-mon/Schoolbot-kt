@@ -5,8 +5,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.asException
+import me.damon.schoolbot.ext.await
 import me.damon.schoolbot.ext.bodyAsString
 import me.damon.schoolbot.ext.string
 import me.damon.schoolbot.service.GuildService
@@ -18,9 +18,7 @@ import net.dv8tion.jda.api.utils.data.DataObject
 import okhttp3.MediaType
 import okhttp3.Request
 import okhttp3.RequestBody
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import ru.gildor.coroutines.okhttp.await
 import java.io.InputStream
 import java.util.concurrent.CompletableFuture
 
