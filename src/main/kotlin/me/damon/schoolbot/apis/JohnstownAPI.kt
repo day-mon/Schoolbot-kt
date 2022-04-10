@@ -8,10 +8,10 @@ import retrofit2.http.Path
 
 interface JohnstownAPI
 {
-    @GET("Laundry/{dorm}")
+    @GET("laundry/{dorm}")
     suspend fun getLaundryItems(@Path("dorm") dorm: String): Response<List<LaundryModel>>
 
-    @GET("Course/{term}/{number}")
+    @GET("course/{term}/{number}")
     suspend fun getCourse(@Path("term") term: String, @Path("number")number: String): Response<CourseModel>
 
 }

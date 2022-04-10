@@ -1,7 +1,6 @@
 package me.damon.schoolbot.objects.models
 
-
-import com.google.gson.annotations.SerializedName
+import com.fasterxml.jackson.annotation.JsonIgnore
 import me.damon.schoolbot.ext.empty
 import me.damon.schoolbot.objects.repository.ProfessorRepository
 import me.damon.schoolbot.objects.school.Course
@@ -10,83 +9,58 @@ import me.damon.schoolbot.objects.school.School
 import java.time.Instant
 
 data class CourseModel(
-    @SerializedName("campus")
-    val campus: String, // Pittsburgh Campus
-    @SerializedName("career")
+    val campus: String,
     val career: String,
-    @SerializedName("classAttributes")
-    val classAttributes: Any?, // null
-    @SerializedName("classCapacity")
-    val classCapacity: Int, // 20
-    @SerializedName("classNumber")
-    val classNumber: Int, // 28920
-    @SerializedName("components")
-    val components: String, // Lecture Required, Recitation Required
-    @SerializedName("description")
-    val description: String, // This course gives a broad introduction to contemporary work on the philosophy of mind.  It will primarily focus on the nature of consciousness, the mind-body problem, and may include how we know the minds of other human beings, the nature of personal identity over time, as well as discussion of the theory of action.
-    @SerializedName("dropConsent")
-    val dropConsent: Any?, // null
-    @SerializedName("endDate")
-    val endDate: String, // 2022-04-22T09:50:00
-    @SerializedName("enrollmentRequirements")
-    val enrollmentRequirements: Any?, // null
-    @SerializedName("grading")
+    val classAttributes: String?,
+    val classCapacity: Int,
+    val classNumber: Int,
+    val components: String,
+    val courseUrl: String,
+    val description: String,
+    val dropConsent: Any?,
+    val endDateAndEndTime: Long,
+    val enrollmentRequirements: String,
     val grading: String,
-    @SerializedName("identifier")
-    val identifier: String, // PHIL 0460 - 1040
-    @SerializedName("instructors")
-    val instructors: List<String>,
-    @SerializedName("location")
-    val location: String, // Pittsburgh Campus
-    @SerializedName("meetingDays")
+    val identifier: String,
+    val instructor: List<String>,
+    val location: String,
     val meetingDays: List<String>,
-    @SerializedName("name")
-    val name: String, // INTRODUCTION TO PHILOSOPHY OF MIND
-    @SerializedName("restrictedSeats")
-    val restrictedSeats: Int, // 0
-    @SerializedName("room")
-    val room: String, // 2322 Cathedral of Learning
-    @SerializedName("seatsOpen")
-    val seatsOpen: Int, // 0
-    @SerializedName("seatsTaken")
-    val seatsTaken: Int, // 20
-    @SerializedName("session")
-    val session: String, // Academic Term
-    @SerializedName("startDate")
-    val startDate: String, // 2022-01-10T09:00:00
-    @SerializedName("status")
-    val status: String, // Closed
-    @SerializedName("units")
-    val units: Int, // 0
-    @SerializedName("unrestrictedSeats")
-    val unrestrictedSeats: Int, // 0
-    @SerializedName("waitListCapacity")
-    val waitListCapacity: Int, // 20
-    @SerializedName("waitListTotal")
-    val waitListTotal: Int, // 0
-
-    var term: String = String.empty,
-    var url: String = String.empty
+    val name: String,
+    val restrictedSeats: Int,
+    val room: String,
+    val seatsOpen: Int,
+    val seatsTaken: Int,
+    val session: String?,
+    val startDateAndStartTime: Long,
+    val status: String,
+    val topic: String?,
+    val units: Int,
+    val unrestrictedSeats: Int,
+    val waitListCapacity: Int,
+    val waitListTotal: Int,
+    @JsonIgnore
+    var term: String,
 ) {
     fun asCourse(school: School, professorRepository: ProfessorRepository)
     = Course(
         name = name,
         description = description,
         number = classNumber.toLong(),
-        autoFilled = true,
-        school = school,
         termIdentifier = term,
-        prerequisite = (enrollmentRequirements ?: "N/A") as String,
-        assignments = mutableSetOf(),
+        prerequisite = enrollmentRequirements,
         subjectAndIdentifier = identifier,
-        guildId = school.guildId,
-        professors = processProfessors(instructors, school, professorRepository),
-        startDate = Instant.parse("${startDate}Z").minusMillis(14400000),
-        endDate = Instant.parse("${endDate}Z").minusMillis(14400000),
-        url = url,
+        topic = topic,
+        url = courseUrl,
+        startDate = Instant.ofEpochMilli(startDateAndStartTime),
+        endDate = Instant.ofEpochMilli(endDateAndEndTime),
+        guildId = school.guildId, // kinda silly..
+        professors = processProfessors(instructor, school, professorRepository),
+        assignments = mutableSetOf(),
         meetingDays = meetingDays.joinToString { it },
+        autoFilled = true,
+        school = school
     )
-
+    @JsonIgnore
     private fun processProfessors(professors: List<String>, school: School, professorRepository: ProfessorRepository): MutableSet<Professor>
     {
         val regex = Regex("\\s+")

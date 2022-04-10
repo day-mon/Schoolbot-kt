@@ -16,5 +16,6 @@ open class AssignmentReminder(
     open val assignment: Assignment,
 
     open val remindTime: Instant,
+
     open val message: String = String.empty
 )

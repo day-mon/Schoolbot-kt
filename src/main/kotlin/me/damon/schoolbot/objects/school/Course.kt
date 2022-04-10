@@ -21,8 +21,11 @@ open class Course(
     @Column(name = "description", columnDefinition = "text")
     open val description: String,
 
+    @Column(name = "topic", nullable = true)
+    open val topic: String?,
+
     @Column(name = "prerequisite")
-    open val prerequisite: String,
+    open val prerequisite: String?,
 
     @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
     open val reminders: MutableList<CourseReminder> = mutableListOf(),
@@ -91,9 +94,12 @@ open class Course(
             value = this@Course.description
         }
 
-        field {
-            name = "Prerequisites"
-            value = prerequisite
+        if (prerequisite != null)
+        {
+            field {
+                name = "Prerequisites"
+                value = prerequisite!!
+            }
         }
 
         field {
@@ -113,12 +119,16 @@ open class Course(
             value = professors.joinToString { "`${it.firstName}, ${it.lastName}`" }
         }
 
+
+
         field {
             name = "Assignment Count"
             value = assignments.size.toString()
         }
 
          */
+
+
     }
 
 
@@ -134,10 +144,13 @@ open class Course(
             value = this@Course.description
         }
 
-        field {
-            name = "Prerequisites"
-            value = prerequisite
-        }
+         if (prerequisite != null)
+         {
+             field {
+                 name = "Prerequisites"
+                 value = prerequisite!!
+             }
+         }
 
         field {
             name = "Term"
@@ -156,6 +169,8 @@ open class Course(
             value = professors.joinToString { "`${it.firstName}, ${it.lastName}`" }
         }
 
+
+
         field {
             name = "Assignment Count"
             value = assignments.size.toString()
@@ -164,14 +179,36 @@ open class Course(
 
           */
 
+
+
+
          field {
              name = "Channel"
              value = channel?.asMention ?: "N/A"
          }
 
+         if (topic != null) {
+             field {
+                 name = "Topic"
+                 value = topic!!
+             }
+         }
+
          field {
              name = "Role"
              value = role?.asMention ?: "N/A"
+         }
+
+         field {
+             name = "Start Date & Time"
+             println(startDate.epochSecond)
+             value = "<t:${startDate.epochSecond}>"
+
+         }
+
+         field {
+             name = "End Date & Time"
+             value = "<t:${endDate.epochSecond}>"
          }
 
          color = role?.colorRaw ?: 0xFFFF

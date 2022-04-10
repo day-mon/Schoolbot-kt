@@ -79,7 +79,6 @@ class CourseAddPitt : SubCommand(
 
         course.apply {
             course.term = term
-            course.url = response.raw().request().url().toString()
         }
 
         val constraints = evaluateConstraints(course, event, term)

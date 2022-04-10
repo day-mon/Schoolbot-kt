@@ -1,13 +1,15 @@
 package me.damon.schoolbot.ext
 
-import dev.minn.jda.ktx.SLF4J
 import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.*
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.IOException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-val logger by SLF4J
+val logger: Logger = LoggerFactory.getLogger("Requester")!!
+
 suspend fun Call.await(): Response {
     return suspendCancellableCoroutine { continuation ->
         enqueue(object : Callback {

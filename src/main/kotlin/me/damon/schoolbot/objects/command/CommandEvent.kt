@@ -172,7 +172,7 @@ class CommandEvent(
      */
     suspend fun sendMenuAndAwait(
         menu: SelectMenu, message: String, timeoutDuration: Long = 1, acknowledge: Boolean = false
-    ) = withTimeoutOrNull(timeoutDuration * 1) {
+    ) = withTimeoutOrNull(timeoutDuration * 60000) {
         hook.editOriginal("$message | Time out is set to $timeoutDuration seconds").setActionRow(menu).queue()
         jda
             .await<SelectMenuInteractionEvent> { it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }
