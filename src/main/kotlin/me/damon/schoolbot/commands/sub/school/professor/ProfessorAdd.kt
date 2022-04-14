@@ -7,6 +7,7 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.school.Professor
+import me.damon.schoolbot.service.ProfessorService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
 
@@ -42,6 +43,7 @@ class ProfessorAdd : SubCommand(
         val firstName = event.getOption<String>("first_name")
         val lastName = event.getOption<String>("last_name")
         val schoolName = event.getOption<String>("school_name")
+        val professorService = event.getService<ProfessorService>()
 
         val service = event.service
         val school = service.findSchoolInGuild(event.guildId, schoolName)
@@ -51,8 +53,8 @@ class ProfessorAdd : SubCommand(
             firstName = firstName, lastName = lastName, school = school
         )
 
-        val prof = service.findProfessorByName(professor.fullName, school)
-        if (prof != null) return run { event.replyErrorEmbed("Error occurred during command runtime") }
+        val prof = professorService.findProfessorByName(professor.fullName, school)
+        if (prof.isEmpty) return run { event.replyErrorEmbed("Error occurred during command runtime") }
 
 
         val savedProfessor = service.saveProfessor(professor) ?: return run {

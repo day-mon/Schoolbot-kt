@@ -25,7 +25,7 @@ import java.util.concurrent.ThreadLocalRandom
 @Service("SchoolService")
 open class SchoolService(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
-)
+) : SpringService
 {
 
     @Autowired
@@ -94,39 +94,21 @@ open class SchoolService(
       }
 
 
-
-    open fun getProfessorsInGuild(guildId: Long): Set<Professor>? =
-        runCatching { professorRepository.findBySchool_GuildId(guildId) }
-            .onFailure { logger.error("Error has occurred while trying to get professors in guild $guildId") }
-            .getOrNull()
-
     open fun saveProfessor(professor: Professor): Professor? = runCatching { professorRepository.save(professor) }
         .onFailure { logger.error("Error occurred while trying to save professor", it) }.getOrNull()
 
 
-    open fun saveProfessors(professors: Collection<Professor>): Result<Iterable<Professor>> =
-        runCatching { professorRepository.saveAll(professors) }
+
 
     open fun removeProfessors(professors: Collection<Professor>): Result<Unit> =
         runCatching { professorRepository.deleteAll(professors) }
 
 
-    open fun findProfessorsBySchool(name: String, guildId: Long): Set<Professor>? =
-        runCatching { professorRepository.findBySchool_NameAndSchool_GuildId(name, guildId) }
-            .onFailure { logger.error("Error has occurred while trying to find professors in guild $guildId") }
-            .getOrNull()
 
     open fun findProfessorsBySchool(school: School): Set<Professor>? =
         runCatching { professorRepository.findProfessorBySchool(school) }
             .onFailure { logger.error("Error occurred while retrieving professors in school {}", school.name) }
             .getOrNull()
-   /*
-    open fun findProfessorsInCourse(course: Course): Professor? =
-        runCatching { professorRepository.findProfessorByCourse(course) }
-            .onFailure { logger.error("Error occurred while retrieving professors in course {}", course.name) }
-            .getOrNull()
-
-    */
 
     open fun findSchoolsWithNoClasses(guildId: Long):List<School>? =
         runCatching { schoolRepository.findByClassesIsEmptyAndGuildId(guildId) }
@@ -136,10 +118,6 @@ open class SchoolService(
     open fun <T : Identifiable> findGenericById(klass: Class<T>, id: UUID) : T? =
         getRepository(klass).findById(id).orElse(null) as T?
 
-
-    open fun findProfessorById(id: UUID): Professor? = runCatching { professorRepository.findById(id).orElse(null) }
-        .onFailure { logger.error("Error occurred while retrieving professor with id {}", id) }
-        .getOrNull()
 
     open fun findProfessorsByGuild(guildId: Long): Set<Professor>? =
         runCatching { professorRepository.findBySchool_GuildId(guildId) }
@@ -152,24 +130,25 @@ open class SchoolService(
     {
 
         val guild = commandEvent.guild
+        val professorService = commandEvent.getService<ProfessorService>()
 
         val course = courseModel.asCourse(
             school = school,
             professorRepository
         )
 
-        val professors = findProfessorsBySchool(school) ?: return run {
-            logger.error("Error occurred while retrieving professors in school {}", school.name)
-            null
+        val professors = try { professorService.findProfessorsBySchool(school) }
+        catch (e: Exception) {
+            logger.error("Error occurred while retrieving professors in school {}", school.name, e)
+            return null
         }
 
 
-
-       val professorDif = course.professors.filter { it !in professors }
+        val professorDif = course.professors.filter { it !in professors }
 
         if (professorDif.isNotEmpty())
         {
-            saveProfessors(professorDif).onFailure {
+            professorService.saveProfessors(professorDif).onFailure {
                 logger.error("Professors cannot be saved", it)
                 return null
             }
@@ -187,20 +166,48 @@ open class SchoolService(
             roleId = role.idLong
         }
 
-        return runCatching { classroomRepository.save(course) }.onFailure {
-            logger.error("Error has occurred during the save", it)
-            runCleanUp(course, commandEvent, professorDif)
-        }.getOrNull()
-
-
+        return runCatching { classroomRepository.save(course) }
+            .onFailure { logger.error("Error has occurred during the save", it)
+            runCleanUp(course, commandEvent, professorDif) }.onSuccess { createReminders(commandEvent, courseModel, it) }.getOrNull()
     }
 
-    open suspend fun deleteCourse(course: Course, commandEvent: CommandEvent): Unit?
+    private suspend fun createReminders(commandEvent: CommandEvent, model: CourseModel, course: Course)
     {
-        return runCatching { classroomRepository.delete(course) }
-            .onFailure { logger.error("Error has occurred while trying to delete {} ", course.name, it) }
-            .onSuccess { runCleanUp(course, commandEvent) }.getOrNull()
+
+
+        /*
+        val startDate = if (course.startDate.isAfter(Instant.now())) course.startDate else Instant.now()
+        val endDate = course.endDate
+        val days = model.meetingDays.map { it.uppercase() }
+
+        while (startDate.isBefore(endDate) || startDate == endDate)
+        {
+            val x = LocalDateTime.ofInstant(startDate, course.school.timeZone)
+            val day = x.dayOfWeek.name
+            if (!days.contains(day)) continue
+
+            val time = x.toLocalTime()
+            val reminders = listOf(
+                CourseReminder(course.id, time.minusHours(1), "1 hour before"),
+            )
+            val reminder = CourseReminder(
+                course = course,
+            )
+
+            
+        }
+
+         */
+
     }
+
+
+
+    open suspend fun deleteCourse(course: Course, commandEvent: CommandEvent): Unit? =
+        runCatching { classroomRepository.delete(course) }
+            .onFailure { logger.error("Error has occurred while trying to delete {} ", course.name, it) }
+            .onSuccess { runCleanUp(course, commandEvent) }
+            .getOrNull()
 
 
     open fun findCoursesByGuild(guildId: Long): Set<Course>? =
@@ -212,9 +219,6 @@ open class SchoolService(
                 )
             }.getOrNull()
 
-    open fun findProfessorByName(name: String, school: School): Professor? =
-        runCatching { professorRepository.findByFullNameEqualsIgnoreCaseAndSchool(name, school) }
-            .onFailure { logger.error("Error occurred while trying to get professor", it) }.getOrNull()
 
     private suspend fun runCleanUp(
         course: Course, event: CommandEvent, professors: Collection<Professor> = mutableSetOf()
@@ -234,8 +238,7 @@ open class SchoolService(
                 logger.info(
                     "{}'s with the channel id {} has been deleted successfully", course.name, course.channelId
                 )
-            }, { logger.error("Error has occurred while attempt to delete channel during clean up.", it) })
-                ?: logger.warn("{}'s channel does not exist", course.name)
+            }, { logger.error("Error has occurred while attempt to delete channel during clean up.", it) }) ?: logger.warn("{}'s channel does not exist", course.name)
 
             removeProfessors(professors = professors).onFailure {
                 logger.error(
@@ -244,7 +247,6 @@ open class SchoolService(
             }
         }
     }
-
 
 
     open suspend fun findDuplicateCourse(name: String, number: Long, termId: String) = withContext(dispatcher) {

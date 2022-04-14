@@ -15,6 +15,10 @@ import me.damon.schoolbot.ext.toUUID
 import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
+import me.damon.schoolbot.service.GuildService
+import me.damon.schoolbot.service.ProfessorService
+import me.damon.schoolbot.service.SchoolService
+import me.damon.schoolbot.service.SpringService
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageEmbed
@@ -240,6 +244,14 @@ class CommandEvent(
         Double::class -> slashEvent.getOption(name)?.asDouble as T
         Boolean::class -> slashEvent.getOption(name)?.asBoolean as T
         Member::class -> slashEvent.getOption(name)?.asMember as T
+        else -> throw IllegalArgumentException("Unknown type ${T::class}")
+    }
+
+    inline fun <reified T: SpringService> getService(): T = when (T::class)
+    {
+        is GuildService -> schoolbot.guildService as T
+        is SchoolService -> schoolbot.schoolService as T
+        is ProfessorService -> schoolbot.professorService as T
         else -> throw IllegalArgumentException("Unknown type ${T::class}")
     }
 

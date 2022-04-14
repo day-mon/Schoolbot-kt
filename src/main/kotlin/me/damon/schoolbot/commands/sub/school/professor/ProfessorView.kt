@@ -6,6 +6,7 @@ import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
+import me.damon.schoolbot.service.ProfessorService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
@@ -29,10 +30,8 @@ class ProfessorView : SubCommand(
     {
         val name = event.getOption<String>("professor_name")
 
-        val service = event.service
-        val professors = service.findProfessorsBySchool(name, event.guildId)
-            ?: return run { event.replyErrorEmbed("Error occurred while trying to get school or school does not exist") }
-
+        val service = event.getService<ProfessorService>()
+        val professors = service.findProfessorsBySchool(name, event.guildId) ?: return
         event.sendPaginator(professors)
     }
 

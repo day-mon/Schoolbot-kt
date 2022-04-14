@@ -7,6 +7,7 @@ import me.damon.schoolbot.listener.GuildListeners
 import me.damon.schoolbot.listener.MessageListeners
 import me.damon.schoolbot.listener.SlashListener
 import me.damon.schoolbot.service.GuildService
+import me.damon.schoolbot.service.ProfessorService
 import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
@@ -18,16 +19,13 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
-import org.springframework.boot.SpringApplication
-import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
 import javax.security.auth.login.LoginException
 import kotlin.system.exitProcess
 
-
+/*
 fun main()
 {
     SpringApplication.run(Schoolbot::class.java)
@@ -35,6 +33,9 @@ fun main()
 
 @EnableCaching
 @SpringBootApplication
+
+ */
+
 @Component
 open class Schoolbot(
     val configHandler: ConfigHandler,
@@ -45,6 +46,7 @@ open class Schoolbot(
     val commandHandler: CommandHandler,
 
     val schoolService: SchoolService,
+    val professorService: ProfessorService,
 
     private val guildListener: GuildListeners,
     private val messageListeners: MessageListeners,
@@ -54,6 +56,42 @@ open class Schoolbot(
 ) : ListenerAdapter()
 {
     private val logger by SLF4J
+
+
+    /*
+    @Bean
+    open fun build() = createJDA(
+        token =  configHandler.config.token,
+        intents = listOf(
+            GatewayIntent.GUILD_MESSAGES,
+            GatewayIntent.GUILD_MESSAGE_REACTIONS,
+            GatewayIntent.GUILD_MEMBERS
+        ),
+        enableCoroutines = true,
+        builder = {
+            this.disableCache(
+                CacheFlag.ACTIVITY,
+                CacheFlag.VOICE_STATE,
+                CacheFlag.EMOTE,
+                CacheFlag.CLIENT_STATUS,
+                CacheFlag.ONLINE_STATUS
+            ).setMemberCachePolicy(MemberCachePolicy.NONE)
+                .setStatus(OnlineStatus.DO_NOT_DISTURB)
+                .setActivity(Activity.watching("JDA Load..."))
+                .addEventListeners(
+                    this,
+                    messageListeners,
+                    guildListener,
+                    slashListener
+                )
+                .setHttpClient(Constants.DEFAULT_CLIENT)
+                 .build()
+
+        }
+    )
+
+     */
+
 
     @Bean
     open fun build(): JDA = try

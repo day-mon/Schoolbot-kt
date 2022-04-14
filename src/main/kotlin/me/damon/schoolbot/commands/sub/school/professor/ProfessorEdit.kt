@@ -6,14 +6,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.replyChoiceAndLimit
-import me.damon.schoolbot.ext.toUUID
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
-import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.school.Professor
 import me.damon.schoolbot.objects.school.School
+import me.damon.schoolbot.service.ProfessorService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.commands.Command
@@ -94,11 +93,12 @@ class ProfessorEdit : SubCommand(
     private fun evaluateChangeRequest(event: CommandEvent, messageResponse: MessageReceivedEvent, choice: String, professor: Professor): Professor?
     {
         val message = messageResponse.message.contentStripped
+        val professorService = event.getService<ProfessorService>()
         return when (choice)
         {
             "first_name" ->{
-                val duplicate = event.service.findProfessorByName("$message ${professor.lastName}", professor.school)
-                if (duplicate != null) return run {
+                val duplicate = professorService.findProfessorByName("$message ${professor.lastName}", professor.school)
+                if (duplicate.isPresent) return run {
                     event.replyErrorEmbed("Professor with this name already exists")
                     null
                 }
@@ -108,8 +108,8 @@ class ProfessorEdit : SubCommand(
                 }
             }
             "last_name" -> {
-                val duplicate =  event.service.findProfessorByName("${professor.firstName} $message", professor.school)
-                if (duplicate != null) return run {
+                val duplicateProfessor =  professorService.findProfessorByName("${professor.firstName} $message", professor.school)
+                if (duplicateProfessor.isPresent) return run {
                     event.replyErrorEmbed("Professor with this name already exists")
                     null
                 }

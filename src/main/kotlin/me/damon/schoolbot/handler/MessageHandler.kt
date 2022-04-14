@@ -132,6 +132,7 @@ class MessageHandler(val service: GuildService)
                     message.editMessage("Body returned unexpected response").queue()
                 }
 
+
                 val pastecordEnding = responseJson.get("key")
 
                 val urlToSend = "https://pastecord.com/${pastecordEnding}"
