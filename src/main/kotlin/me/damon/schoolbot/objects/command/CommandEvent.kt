@@ -11,10 +11,11 @@ import me.damon.schoolbot.Constants
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.empty
 import me.damon.schoolbot.ext.replyErrorEmbed
-import me.damon.schoolbot.ext.toUUID
-import me.damon.schoolbot.objects.misc.Emoji
-import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
+import me.damon.schoolbot.service.GuildService
+import me.damon.schoolbot.service.ProfessorService
+import me.damon.schoolbot.service.SchoolService
+import me.damon.schoolbot.service.SpringService
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageEmbed
@@ -139,19 +140,7 @@ class CommandEvent(
     }
 
 
-    // This function must be inlined and reified so that the compiler can infer the type of the generic
-    inline fun <reified T : Identifiable> findGenericByIdAndGet(optionName: String): T?
-    {
-        val genericStr = getOption<String>(optionName.trim())
-        val id = genericStr.toUUID() ?: return run {
-            replyErrorEmbed("Error occurred while trying to fetch school by id. ${Emoji.THINKING.getAsChat()}")
-            null
-        }
-        return service.findGenericById(T::class.java, id) ?: return run {
-            replyErrorEmbed("Error occurred while trying to fetch school by id. ${Emoji.THINKING.getAsChat()}")
-            null
-        }
-    }
+
 
     fun <T : Pagable> sendPaginator(embeds: Collection<T>) =
         sendPaginator(*embeds.map { it.getAsEmbed() }.toTypedArray())
@@ -171,7 +160,7 @@ class CommandEvent(
      *
      */
     suspend fun sendMenuAndAwait(
-        menu: SelectMenu, message: String, timeoutDuration: Long = 1, acknowledge: Boolean = false
+    menu: SelectMenu, message: String, timeoutDuration: Long = 1, acknowledge: Boolean = false
     ) = withTimeoutOrNull(timeoutDuration * 60000) {
         hook.editOriginal("$message | Time out is set to $timeoutDuration seconds").setActionRow(menu).queue()
         jda
@@ -240,6 +229,14 @@ class CommandEvent(
         Double::class -> slashEvent.getOption(name)?.asDouble as T
         Boolean::class -> slashEvent.getOption(name)?.asBoolean as T
         Member::class -> slashEvent.getOption(name)?.asMember as T
+        else -> throw IllegalArgumentException("Unknown type ${T::class}")
+    }
+
+    inline fun <reified T: SpringService> getService(): T = when (T::class)
+    {
+        GuildService::class -> schoolbot.guildService as T
+        SchoolService::class -> schoolbot.schoolService as T
+        ProfessorService::class -> schoolbot.professorService as T
         else -> throw IllegalArgumentException("Unknown type ${T::class}")
     }
 

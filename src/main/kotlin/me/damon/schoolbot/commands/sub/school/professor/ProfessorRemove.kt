@@ -7,6 +7,7 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.misc.Emoji
+import me.damon.schoolbot.service.ProfessorService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
@@ -27,12 +28,19 @@ class ProfessorRemove : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val professorStringId = event.getOption<String>("professor_name")
+        val service = event.getService<ProfessorService>()
         val professorId = UUID.fromString(professorStringId)
 
 
-        val professor = event.service.findProfessorById(professorId) ?: return run {
+        val professorOptional = service.findById(professorId)
+
+
+        if (professorOptional.isEmpty) return run {
             event.replyErrorEmbed("Professor not found. It must've been deleted during or before this command was executed. ${Emoji.THINKING.getAsChat()}")
         }
+
+        val professor = professorOptional.get()
+
 
 
         event.replyMessage("Are you sure you want to remove ${professor.fullName}? ${Emoji.THINKING.getAsChat()}")
@@ -42,8 +50,9 @@ class ProfessorRemove : SubCommand(
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {
-        val professors =
-            schoolbot.schoolService.findProfessorsByGuild(event.guild!!.idLong) ?: return
+        val service = schoolbot.professorService
+        val guild = event.guild ?: return // shouldn't be possible unless handler is broken
+        val professors = service.findAllInGuild(guild.idLong)
         event.replyChoiceAndLimit(
             professors
                 .map { Command.Choice(it.fullName, it.id.toString()) }

@@ -6,6 +6,7 @@ import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
+import me.damon.schoolbot.service.ProfessorService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
@@ -16,7 +17,7 @@ class ProfessorView : SubCommand(
     category = CommandCategory.SCHOOL,
     options = listOf(
         CommandOptionData<String>(
-            name = "professor_name",
+            name = "school_name",
             description = "Name of the school you wish to view professors from",
             optionType = OptionType.STRING,
             isRequired = true,
@@ -27,23 +28,37 @@ class ProfessorView : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val name = event.getOption<String>("professor_name")
+        val name = event.getOption<String>("school_name")
 
-        val service = event.service
-        val professors = service.findProfessorsBySchool(name, event.guildId)
-            ?: return run { event.replyErrorEmbed("Error occurred while trying to get school or school does not exist") }
+        val service = event.getService<ProfessorService>()
+        val professors = try
+        {
+            service.findBySchoolName(name, event.guildId)
+        }
+        catch (e: Exception)
+        {
+            return run {
+                event.replyErrorEmbed("An error occurred while trying to find professors")
+            }
+        }
+
+        if (professors.isEmpty()) return run {
+            event.replyErrorEmbed("No professors found with the name `$name`")
+        }
 
         event.sendPaginator(professors)
     }
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {
-        val professors = schoolbot.schoolService.findProfessorsByGuild(event.guild!!.idLong)
-            ?: return run { logger.error("Error occurred while trying to get professors") }
+        val guildId = event.guild?.idLong ?: return run {
+            logger.warn("Guild ID was null when trying to auto complete")
+        }
+        val professors = try { schoolbot.schoolService.findSchoolById(guildId) } catch (e: Exception) {
+            logger.warn("An error occurred while trying to find professors", e)
+            return
+        }
 
-
-        event.replyChoiceAndLimit(
-            professors.map { Command.Choice(it.fullName, it.id.toString()) }
-        ).queue()
+        event.replyChoiceAndLimit(professors.map { Command.Choice(it.fullName, it.id.toString()) }).queue()
     }
 }

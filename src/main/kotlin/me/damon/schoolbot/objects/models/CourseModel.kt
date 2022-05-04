@@ -2,10 +2,10 @@ package me.damon.schoolbot.objects.models
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import me.damon.schoolbot.ext.empty
-import me.damon.schoolbot.objects.repository.ProfessorRepository
 import me.damon.schoolbot.objects.school.Course
 import me.damon.schoolbot.objects.school.Professor
 import me.damon.schoolbot.objects.school.School
+import me.damon.schoolbot.service.ProfessorService
 import java.time.Instant
 
 data class CourseModel(
@@ -41,7 +41,7 @@ data class CourseModel(
     @JsonIgnore
     var term: String,
 ) {
-    fun asCourse(school: School, professorRepository: ProfessorRepository)
+    fun asCourse(school: School, professorService: ProfessorService)
     = Course(
         name = name,
         description = description,
@@ -54,14 +54,14 @@ data class CourseModel(
         startDate = Instant.ofEpochMilli(startDateAndStartTime),
         endDate = Instant.ofEpochMilli(endDateAndEndTime),
         guildId = school.guildId, // kinda silly..
-        professors = processProfessors(instructor, school, professorRepository),
+        professors = processProfessors(instructor, school, professorService),
         assignments = mutableSetOf(),
         meetingDays = meetingDays.joinToString { it },
         autoFilled = true,
         school = school
     )
     @JsonIgnore
-    private fun processProfessors(professors: List<String>, school: School, professorRepository: ProfessorRepository): MutableSet<Professor>
+    private fun processProfessors(professors: List<String>, school: School, professorService: ProfessorService): MutableSet<Professor>
     {
         val regex = Regex("\\s+")
         if (professors.isEmpty()) return mutableSetOf(
@@ -97,16 +97,18 @@ data class CourseModel(
                     regex = regex,
                     limit = 2
                 )
+                val newProfessor = Professor(
+                    firstName = split[0],
+                    lastName = split[1],
+                    school = school,
+                )
 
-                val duplicate = professorRepository.findByFullNameEqualsIgnoreCaseAndSchool_GuildIdEquals("${split[0]} ${split[1]}", school.guildId)
-                    .orElse(null)
-
-
-                if (duplicate != null)
-                {
-                    profs.add(duplicate)
-                    continue
+                val duplicate = try {
+                    val professor = professorService.findBySchoolName(name, school.guildId)
+                    if (professor.isEmpty()) continue
+                    profs.add(professor.first())
                 }
+                catch (e: Exception) { profs.add(newProfessor); continue }
 
                 profs.add(
                     Professor(

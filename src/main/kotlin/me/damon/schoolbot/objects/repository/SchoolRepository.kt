@@ -16,4 +16,8 @@ interface SchoolRepository : JpaRepository<School, UUID>
     fun findByProfessorIsNotEmptyAndGuildIdEquals(guildId: Long): List<School>
     fun findByClassesIsEmptyAndGuildId(guildId: Long): List<School>
 
+
+    @Query("select s from School s where s.guildId = ?1")
+    fun findInGuild(guildId: Long): MutableSet<School>
+
 }

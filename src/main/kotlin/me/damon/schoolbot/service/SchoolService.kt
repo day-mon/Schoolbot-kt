@@ -1,23 +1,12 @@
 package me.damon.schoolbot.service
 
 import dev.minn.jda.ktx.SLF4J
-import dev.minn.jda.ktx.await
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import me.damon.schoolbot.objects.command.CommandEvent
-import me.damon.schoolbot.objects.misc.Identifiable
-import me.damon.schoolbot.objects.models.CourseModel
-import me.damon.schoolbot.objects.repository.ClassroomRepository
-import me.damon.schoolbot.objects.repository.ProfessorRepository
 import me.damon.schoolbot.objects.repository.SchoolRepository
-import me.damon.schoolbot.objects.school.Course
-import me.damon.schoolbot.objects.school.Professor
 import me.damon.schoolbot.objects.school.School
-import net.dv8tion.jda.api.Permission
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
@@ -25,15 +14,12 @@ import java.util.concurrent.ThreadLocalRandom
 @Service("SchoolService")
 open class SchoolService(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
-)
+) : SpringService
 {
 
-    @Autowired
-    lateinit var professorRepository: ProfessorRepository
+
     @Autowired
     lateinit var schoolRepository: SchoolRepository
-    @Autowired
-    lateinit var classroomRepository: ClassroomRepository
 
     private val logger by SLF4J
     private val regex = Regex("\\s+")
@@ -60,218 +46,22 @@ open class SchoolService(
 
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun <T: Identifiable> getRepository(identifiable: T): JpaRepository<Any, UUID> = when (identifiable) {
-        is Professor -> professorRepository as JpaRepository<Any, UUID>
-        is School -> schoolRepository as JpaRepository<Any, UUID>
-        is Course -> classroomRepository as JpaRepository<Any, UUID>
-        else -> throw IllegalArgumentException("Unknown identifiable type")
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun <T: Identifiable> getRepository(klass: Class<T>): JpaRepository<Any, UUID> = when (klass.simpleName) {
-        "Professor" -> professorRepository as JpaRepository<Any, UUID>
-        "School" -> schoolRepository as JpaRepository<Any, UUID>
-        "Course" -> classroomRepository as JpaRepository<Any, UUID>
-        else -> throw IllegalArgumentException("Unknown identifiable type")
-    }
-
-    /*
-     * This is very bad probably could be written a bit better.
-     */
-    inline fun <reified T : Identifiable> updateEntity(newEntity: T): T?
-      {
-          val logger by SLF4J
-          val repository = getRepository(newEntity)
-          repository.findByIdOrNull(newEntity.id)  ?: return run {
-              logger.warn("Could not find identifiable with id ${newEntity.id}")
-              null
-          }
-
-          return runCatching { repository.save(newEntity) }
-              .onFailure { logger.error("Error occurred while trying to save the identifiable", it) }
-              .getOrNull()
-      }
-
-
-
-    open fun getProfessorsInGuild(guildId: Long): Set<Professor>? =
-        runCatching { professorRepository.findBySchool_GuildId(guildId) }
-            .onFailure { logger.error("Error has occurred while trying to get professors in guild $guildId") }
-            .getOrNull()
-
-    open fun saveProfessor(professor: Professor): Professor? = runCatching { professorRepository.save(professor) }
-        .onFailure { logger.error("Error occurred while trying to save professor", it) }.getOrNull()
-
-
-    open fun saveProfessors(professors: Collection<Professor>): Result<Iterable<Professor>> =
-        runCatching { professorRepository.saveAll(professors) }
-
-    open fun removeProfessors(professors: Collection<Professor>): Result<Unit> =
-        runCatching { professorRepository.deleteAll(professors) }
-
-
-    open fun findProfessorsBySchool(name: String, guildId: Long): Set<Professor>? =
-        runCatching { professorRepository.findBySchool_NameAndSchool_GuildId(name, guildId) }
-            .onFailure { logger.error("Error has occurred while trying to find professors in guild $guildId") }
-            .getOrNull()
-
-    open fun findProfessorsBySchool(school: School): Set<Professor>? =
-        runCatching { professorRepository.findProfessorBySchool(school) }
-            .onFailure { logger.error("Error occurred while retrieving professors in school {}", school.name) }
-            .getOrNull()
-   /*
-    open fun findProfessorsInCourse(course: Course): Professor? =
-        runCatching { professorRepository.findProfessorByCourse(course) }
-            .onFailure { logger.error("Error occurred while retrieving professors in course {}", course.name) }
-            .getOrNull()
-
-    */
-
     open fun findSchoolsWithNoClasses(guildId: Long):List<School>? =
         runCatching { schoolRepository.findByClassesIsEmptyAndGuildId(guildId) }
             .onFailure { logger.error("Error occurred while retrieving schools with no classrooms in guild {}", guildId) }
             .getOrNull()
 
-    open fun <T : Identifiable> findGenericById(klass: Class<T>, id: UUID) : T? =
-        getRepository(klass).findById(id).orElse(null) as T?
 
-
-    open fun findProfessorById(id: UUID): Professor? = runCatching { professorRepository.findById(id).orElse(null) }
-        .onFailure { logger.error("Error occurred while retrieving professor with id {}", id) }
-        .getOrNull()
-
-    open fun findProfessorsByGuild(guildId: Long): Set<Professor>? =
-        runCatching { professorRepository.findBySchool_GuildId(guildId) }
-            .onFailure { logger.error("Error occurred while retrieving professors in guild {}", guildId) }
-            .getOrNull()
-
-    open suspend fun createPittCourse(
-        commandEvent: CommandEvent, school: School, courseModel: CourseModel
-    ): Course?
-    {
-
-        val guild = commandEvent.guild
-
-        val course = courseModel.asCourse(
-            school = school,
-            professorRepository
-        )
-
-        val professors = findProfessorsBySchool(school) ?: return run {
-            logger.error("Error occurred while retrieving professors in school {}", school.name)
-            null
-        }
-
-
-
-       val professorDif = course.professors.filter { it !in professors }
-
-        if (professorDif.isNotEmpty())
-        {
-            saveProfessors(professorDif).onFailure {
-                logger.error("Professors cannot be saved", it)
-                return null
-            }
-        }
-
-        val role = guild.createRole().setColor(random.nextInt(0xFFFFF))
-            .setName(courseModel.name.replace(regex, "-").lowercase()).await()
-
-        val channel = guild.createTextChannel(courseModel.name.replace(regex, "-").lowercase())
-            .addPermissionOverride(role, Permission.ALL_CHANNEL_PERMISSIONS, 0L)
-            .addPermissionOverride(guild.publicRole, 0L, Permission.ALL_CHANNEL_PERMISSIONS).await()
-
-        course.apply {
-            channelId = channel.idLong
-            roleId = role.idLong
-        }
-
-        return runCatching { classroomRepository.save(course) }.onFailure {
-            logger.error("Error has occurred during the save", it)
-            runCleanUp(course, commandEvent, professorDif)
-        }.getOrNull()
-
-
-    }
-
-    open suspend fun deleteCourse(course: Course, commandEvent: CommandEvent): Unit?
-    {
-        return runCatching { classroomRepository.delete(course) }
-            .onFailure { logger.error("Error has occurred while trying to delete {} ", course.name, it) }
-            .onSuccess { runCleanUp(course, commandEvent) }.getOrNull()
-    }
-
-
-    open fun findCoursesByGuild(guildId: Long): Set<Course>? =
-        runCatching { classroomRepository.findByGuildIdEquals(guildId) }.onFailure {
-                logger.error(
-                    "Error has occurred while trying to get the courses for guild id: {}",
-                    guildId,
-                    it
-                )
-            }.getOrNull()
-
-    open fun findProfessorByName(name: String, school: School): Professor? =
-        runCatching { professorRepository.findByFullNameEqualsIgnoreCaseAndSchool(name, school) }
-            .onFailure { logger.error("Error occurred while trying to get professor", it) }.getOrNull()
-
-    private suspend fun runCleanUp(
-        course: Course, event: CommandEvent, professors: Collection<Professor> = mutableSetOf()
-    )
-    {
-        withContext(dispatcher) {
-            val guild = event.guild
-
-            guild.getRoleById(course.roleId)?.delete()?.queue({
-                logger.info(
-                    "{}'s with the role id {} has been deleted successfully", course.name, course.roleId
-                )
-            }, { logger.error("Error has occurred while attempt to delete role during clean up.", it) }) ?: logger.warn(
-                "{}'s role does not exist", course.name
-            )
-            guild.getTextChannelById(course.channelId)?.delete()?.queue({
-                logger.info(
-                    "{}'s with the channel id {} has been deleted successfully", course.name, course.channelId
-                )
-            }, { logger.error("Error has occurred while attempt to delete channel during clean up.", it) })
-                ?: logger.warn("{}'s channel does not exist", course.name)
-
-            removeProfessors(professors = professors).onFailure {
-                logger.error(
-                    "Error occurred while trying to remove professors added during the add process", it
-                )
-            }
-        }
-    }
-
-
-
-    open suspend fun findDuplicateCourse(name: String, number: Long, termId: String) = withContext(dispatcher) {
-        classroomRepository.findCourseByNameAndNumberAndTermIdentifier(name, number, termId)
-    }
-
-
-    open fun getClassesInGuild(guildId: Long): Set<Course>? =
-        runCatching { classroomRepository.findByGuildIdEquals(guildId) }
-            .onFailure { logger.error("Error has occurred while trying to get the courses for guild id: {}", guildId, it) }.
-            getOrNull()
-
-    open fun findEmptyClassesInGuild(guildId: Long): List<Course>? =
-        runCatching { classroomRepository.findByAssignmentsIsEmptyAndGuildIdEquals(guildId) }
-            .onFailure { logger.error("Error has o") }
-            .getOrNull()
-
-    open fun getClassesBySchool(school: School): Set<Course>? =
-        runCatching { classroomRepository.findBySchool(school = school) }
-            .onFailure { logger.error("Error has occurred while trying to get the courses for school id: {}", school.name, it) }.
-            getOrNull()
-
+    open fun findSchoolsInGuild(guildId: Long): MutableSet<School> =
+        runCatching { schoolRepository.findInGuild(guildId) }
+            .onFailure { logger.error("Error occurred while retrieving schools in guild {}", guildId) }
+            .getOrThrow()
 
     open fun getSchoolsByGuildId(guildId: Long): List<School>? =
         runCatching { schoolRepository.querySchoolsByGuildId(guildId) }
             .onFailure { logger.error("Error occurred while trying to grab the schools for guild {}", guildId, it) }
-            .onSuccess { logger.debug("Schools returned for {} - {}", guildId, it) }.getOrNull()
+            .onSuccess { logger.debug("Schools returned for {} - {}", guildId, it) }
+            .getOrNull()
 
     open fun getSchoolsWithProfessorsInGuild(guildId: Long): List<School>? =
         runCatching { schoolRepository.findByProfessorIsNotEmptyAndGuildIdEquals(guildId) }
@@ -287,9 +77,9 @@ open class SchoolService(
             .onFailure { logger.error("Error occurred while trying to fetch {} in guild {}", name, guildId, it) }
             .getOrNull()
 
-    open fun findSchoolById(id: UUID): Optional<School>? = runCatching { schoolRepository.findById(id) }
+    open fun findSchoolById(id: UUID): School? = runCatching { schoolRepository.getById(id) }
         .onFailure { logger.error("Error occurred while trying to fetch school by id [{}]", id, it) }
-        .getOrNull()
+        .getOrThrow()
 
 
     open fun findDuplicateSchool(guildId: Long, name: String): Boolean? =

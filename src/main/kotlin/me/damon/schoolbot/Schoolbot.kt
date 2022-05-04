@@ -7,6 +7,7 @@ import me.damon.schoolbot.listener.GuildListeners
 import me.damon.schoolbot.listener.MessageListeners
 import me.damon.schoolbot.listener.SlashListener
 import me.damon.schoolbot.service.GuildService
+import me.damon.schoolbot.service.ProfessorService
 import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
@@ -21,7 +22,6 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.cache.annotation.EnableCaching
-import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
 import javax.security.auth.login.LoginException
@@ -45,12 +45,11 @@ open class Schoolbot(
     val commandHandler: CommandHandler,
 
     val schoolService: SchoolService,
+    val professorService: ProfessorService,
 
     private val guildListener: GuildListeners,
     private val messageListeners: MessageListeners,
     private val slashListener: SlashListener,
-
-    val context: ConfigurableApplicationContext
 ) : ListenerAdapter()
 {
     private val logger by SLF4J

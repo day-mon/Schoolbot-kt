@@ -7,6 +7,8 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.school.Professor
+import me.damon.schoolbot.service.ProfessorService
+import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
 
@@ -43,20 +45,23 @@ class ProfessorAdd : SubCommand(
         val lastName = event.getOption<String>("last_name")
         val schoolName = event.getOption<String>("school_name")
 
-        val service = event.service
-        val school = service.findSchoolInGuild(event.guildId, schoolName)
+        val schoolService = event.getService<SchoolService>()
+        val professorService = event.getService<ProfessorService>()
+
+        val school = schoolService.findSchoolInGuild(event.guildId, schoolName)
             ?: return run { event.replyErrorEmbed("Error occurred while trying to get school or school does not exist") }
 
         val professor = Professor(
             firstName = firstName, lastName = lastName, school = school
         )
 
-        val prof = service.findProfessorByName(professor.fullName, school)
-        if (prof != null) return run { event.replyErrorEmbed("Error occurred during command runtime") }
+        val prof = try { professorService.findByNameInSchool(professor.fullName, school) } catch (e: Exception)
+        { return run { event.replyErrorEmbed("Error occurred during command runtime") } }
 
 
-        val savedProfessor = service.saveProfessor(professor) ?: return run {
-            event.replyErrorEmbed("Error occurred while trying to save professor")
+        val savedProfessor = try { professorService.save(professor) } catch (e: Exception) {
+            event.replyErrorEmbed("Error occurred during command runtime")
+            return
         }
 
         event.replyEmbed(
@@ -67,8 +72,8 @@ class ProfessorAdd : SubCommand(
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {
-        val schools = schoolbot.schoolService.getSchoolsByGuildId(event.guild!!.idLong) ?:
-            return run { logger.error("Error occurred during auto complete in Professor Add command") }
+        val guild = event.guild!!.idLong
+        val schools = try { schoolbot.schoolService.findSchoolsInGuild(guild) } catch (e: Exception) { return run { logger.error("Error occurred during auto complete in Professor Add command") } }
 
         event.replyChoiceStringAndLimit(
             schools.map { it.name }

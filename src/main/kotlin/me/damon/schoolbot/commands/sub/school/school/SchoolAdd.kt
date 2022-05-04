@@ -84,6 +84,11 @@ class SchoolAdd : SubCommand(
         val jda = event.jda
         val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = event.user, expiration = 1.minutes) {
 
+            // try catch below?
+            val linkedList = try { cmdEvent.service.saveSchool(school, cmdEvent) } catch (e: Exception) {
+                logger.error("Error has occurred while trying to save the school", e)
+                return@button
+            }
             val savedSchool = cmdEvent.service.saveSchool(school, cmdEvent) ?: return@button run {
                 cmdEvent.replyErrorEmbed("Error has occurred while trying to save school!")
             }

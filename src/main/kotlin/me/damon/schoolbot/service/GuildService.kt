@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
 @Service("GuildService")
 open class GuildService(
     private val guildRepository: GuildSettingsRepository
-)
+) : SpringService
 {
     @Cacheable(cacheNames = ["guild_settings"], key = "#guildId")
     open fun getGuildSettings(guildId: Long): GuildSettings
