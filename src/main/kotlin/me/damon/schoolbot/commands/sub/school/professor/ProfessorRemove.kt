@@ -32,15 +32,14 @@ class ProfessorRemove : SubCommand(
         val professorId = UUID.fromString(professorStringId)
 
 
-        val professorOptional = service.findById(professorId)
-
-
-        if (professorOptional.isEmpty) return run {
-            event.replyErrorEmbed("Professor not found. It must've been deleted during or before this command was executed. ${Emoji.THINKING.getAsChat()}")
+        val professor = try
+        {
+            service.findById(professorId)
         }
-
-        val professor = professorOptional.get()
-
+        catch (e: Exception)
+        {
+            return run { event.replyErrorEmbed("An unexpected error has occurred") }
+        } ?: return run { event.replyErrorEmbed("Professor not found. It must've been deleted during or before this command was executed. ${Emoji.THINKING.getAsChat()}") }
 
 
         event.replyMessage("Are you sure you want to remove ${professor.fullName}? ${Emoji.THINKING.getAsChat()}")
@@ -53,9 +52,6 @@ class ProfessorRemove : SubCommand(
         val service = schoolbot.professorService
         val guild = event.guild ?: return // shouldn't be possible unless handler is broken
         val professors = service.findAllInGuild(guild.idLong)
-        event.replyChoiceAndLimit(
-            professors
-                .map { Command.Choice(it.fullName, it.id.toString()) }
-        ).queue()
+        event.replyChoiceAndLimit(professors.map { Command.Choice(it.fullName, it.id.toString()) }).queue()
     }
 }

@@ -54,11 +54,13 @@ class ProfessorView : SubCommand(
         val guildId = event.guild?.idLong ?: return run {
             logger.warn("Guild ID was null when trying to auto complete")
         }
-        val professors = try { schoolbot.schoolService.findSchoolById(guildId) } catch (e: Exception) {
+        val schools = try { schoolbot.schoolService.findSchoolsInGuild(guildId) } catch (e: Exception) {
             logger.warn("An error occurred while trying to find professors", e)
             return
         }
 
-        event.replyChoiceAndLimit(professors.map { Command.Choice(it.fullName, it.id.toString()) }).queue()
+
+
+        event.replyChoiceAndLimit(schools.map { Command.Choice(it.name, it.id.toString()) }).queue()
     }
 }

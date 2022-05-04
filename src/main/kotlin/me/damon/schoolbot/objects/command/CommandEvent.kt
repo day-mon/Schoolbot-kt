@@ -27,6 +27,7 @@ import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
 
 class CommandEvent(
@@ -183,12 +184,12 @@ class CommandEvent(
         message: String,
         rows: List<ActionRow> = Collections.emptyList(),
         timeoutDuration: Long = 1
-    ): MessageReceivedEvent? = withTimeoutOrNull(timeoutDuration * 60000) {
+    ): MessageReceivedEvent = withTimeoutOrNull(timeoutDuration * 60000) {
         hook.editOriginal(message).setActionRows(rows).queue()
         jda.await { it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }
     } ?: run {
         hook.replyErrorEmbed(body = "Command has timed out try again please")
-        null
+        throw TimeoutException("Command has timed out")
     }
 
 
