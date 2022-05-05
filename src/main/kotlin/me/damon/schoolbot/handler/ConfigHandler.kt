@@ -6,7 +6,6 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Service
 import java.io.File
 import kotlin.system.exitProcess
 
@@ -17,7 +16,7 @@ import kotlin.system.exitProcess
  */
 
 private const val CONFIG_NAME = "schoolbot_cfg.json"
-@Component
+@Component("configHandler")
 class ConfigHandler
 {
     private val formatter = Json { prettyPrint = true; isLenient = true }
