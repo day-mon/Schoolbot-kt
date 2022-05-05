@@ -66,7 +66,8 @@ open class CourseService(
             try
             {
                 professorService.saveAll(professorDif)
-            } catch (e: Exception)
+            }
+            catch (e: Exception)
             {
                 logger.error("Error occurred while trying to save professors", e)
                 return null
@@ -95,7 +96,7 @@ open class CourseService(
     }
 
     @Throws(Exception::class)
-    fun createReminders(commandEvent: CommandEvent, course: Course): List<CourseReminder>
+    fun createReminders(course: Course): List<CourseReminder>
     {
         val timeZone = if (course.school.isPittSchool) "America/New_York" else course.school.timeZone
         val startDate = LocalDateTime.ofInstant(course.startDate, ZoneId.of(timeZone))
@@ -139,10 +140,10 @@ open class CourseService(
                 ),
             )
 
-            logger.info("DATE IS {}", startDateIt)
         }
 
         // todo: look into how to improve this
+
 
        return courseReminderService.saveAll(reminderList)
 
@@ -204,7 +205,7 @@ open class CourseService(
 
     open fun findEmptyClassesInGuild(guildId: Long): List<Course> =
         runCatching { classroomRepository.findByAssignmentsIsEmptyAndGuildIdEquals(guildId) }
-            .onFailure { logger.error("Error has o") }
+            .onFailure { logger.error("Error has occurred") }
             .getOrThrow()
 
     open fun getClassesBySchool(school: School): Set<Course> =

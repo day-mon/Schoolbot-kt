@@ -5,7 +5,7 @@ application {
 
 plugins {
     id("com.github.johnrengelman.shadow") version "7.1.1"
-    kotlin("jvm") version "1.6.20"
+    kotlin("jvm") version "1.7.0-Beta"
     application
 
     id("com.google.cloud.tools.jib") version "3.2.0"
@@ -62,12 +62,12 @@ dependencies {
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.10")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
     implementation(kotlin("stdlib-jdk8"))
 
 
     // Discord
-    implementation("net.dv8tion:JDA:5.0.0-alpha.9")
+    implementation("net.dv8tion:JDA:5.0.0-alpha.11")
     implementation("com.github.minndevelopment:jda-ktx:9f01b74")
 
     // Spring
@@ -77,7 +77,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     // Database
-    implementation("org.postgresql:postgresql:42.3.3")
+    implementation("org.postgresql:postgresql:42.3.4")
 
     // Utils
     implementation("org.reflections:reflections:0.10.2")

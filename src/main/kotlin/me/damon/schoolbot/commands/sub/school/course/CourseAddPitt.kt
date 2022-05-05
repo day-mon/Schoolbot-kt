@@ -3,6 +3,7 @@ package me.damon.schoolbot.commands.sub.school.course
 import dev.minn.jda.ktx.interactions.SelectMenu
 import dev.minn.jda.ktx.interactions.button
 import dev.minn.jda.ktx.interactions.option
+import dev.minn.jda.ktx.messages.reply_
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.damon.schoolbot.Constants
@@ -17,6 +18,7 @@ import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.models.CourseModel
 import me.damon.schoolbot.objects.school.Course
+import me.damon.schoolbot.objects.school.School
 import me.damon.schoolbot.service.CourseService
 import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.Permission
@@ -51,12 +53,10 @@ class CourseAddPitt : SubCommand(
         val courseService = event.getService<CourseService>()
 
         val schoolName = event.getOption<String>("school_name")
-        val pittSchools = schoolService.getPittSchoolsInGuild(event.guild.idLong)
-            ?: return run { event.replyErrorEmbed("Error has occurred while thing to get schools in `${event.guild.name}`") }
-        if (pittSchools.isEmpty()) return run { event.replyErrorEmbed("There are no pitt schools in ${event.guild.name}") }
+        val pittSchools = schoolService.getPittSchoolsInGuild(event.guild.idLong) ?: return  event.replyErrorEmbed("Error has occurred while thing to get schools in `${event.guild.name}`")
+        if (pittSchools.isEmpty()) return event.replyErrorEmbed("There are no pitt schools in ${event.guild.name}")
 
-        val school = pittSchools.find { it.name == schoolName }
-            ?: return run { event.replyErrorEmbed("$schoolName has not been found!") }
+        val school: School = pittSchools.find { it.name == schoolName } ?: return event.replyErrorEmbed("$schoolName has not been found!")
         val terms = getThreeTerms()
         val selectionEvent = event.sendMenuAndAwait(
             SelectMenu("pittschool:menu") { terms.forEach { option(it.first, it.second) } },
@@ -64,7 +64,7 @@ class CourseAddPitt : SubCommand(
         ) ?: return
 
         val termNumber = selectionEvent.values[0]
-        val term = terms.find { it.second == termNumber }!!.first
+        val term = terms.find { it.second == termNumber }?.first ?: return event.replyErrorEmbed("Error has occurred while thing to get term number $termNumber")
 
         val messageReceivedEvent = event.sendMessageAndAwait(
             message = "Nice! You selected `$term`! Please give me your class number"
@@ -80,9 +80,9 @@ class CourseAddPitt : SubCommand(
             logger.error("Error has occurred while trying to get class", response.raw().asException())
         }
 
-        val course = response.body() ?: return run {
+        val course = response.body() ?: run {
             event.replyErrorEmbed("Error occurred while attempting to get the response body")
-            logger.error("Body was null after retrieving it")
+            return logger.error("Body was null after retrieving it")
         }
 
         course.apply {
@@ -96,22 +96,22 @@ class CourseAddPitt : SubCommand(
             return
         }
 
-
-        val savedCourse = courseService.createPittCourse(event, school, course) ?: return run {
-            event.replyErrorEmbed("An error has occurred. I will clean up any of the channels/roles I have created.")
-        }
+        logger.info("{}", school)
 
 
+        val savedCourse = courseService.createPittCourse(event, school, course) ?: return event.replyErrorEmbed("An error has occurred. I will clean up any of the channels/roles I have created.")
         val embed = withContext(Dispatchers.IO) { savedCourse.getAsEmbed(event.guild) }
 
         // todo: fix thing here where it says interaction fails
 
-        event.hook.editOriginal("Course created successfully! Would you like to add reminders for this course? (I will remind you **60**, **30**, **10** and **0 minutes** before class starts)")
+        event.hook.editOriginal("Course created successfully!")
             .setEmbeds(embed)
-            .setActionRow(getActionRows(savedCourse, event, courseService))
             .queue()
 
 
+        event.slashEvent.reply_("Would you like to add reminders for this course? (I will remind you **60**, **30**, **10** and **0 minutes** before class starts)?")
+            .addActionRow(getActionRows(savedCourse, event, courseService))
+            .queue()
 
     }
 
@@ -120,7 +120,7 @@ class CourseAddPitt : SubCommand(
         val jda = event.jda
         val confirm = jda.button(label = "Confirm", style = ButtonStyle.SUCCESS, user = event.user) {
             it.deferReply().queue()
-             val reminders = try { service.createReminders(event, course) } catch (e : Exception) { logger.error("Error occurred while creating reminders", e); return@button }
+             val reminders = try { service.createReminders(course) } catch (e : Exception) { logger.error("Error occurred while creating reminders", e); return@button }
 
              if (reminders.isEmpty())
              {
@@ -183,14 +183,6 @@ class CourseAddPitt : SubCommand(
             term = 1
             date = date.plusYears(1)
         }
-
-        var test: Int
-        for (xg in 1..10 step 3)
-        {
-            test = 3
-            test.toString()
-        }
-
         return list
     }
 
