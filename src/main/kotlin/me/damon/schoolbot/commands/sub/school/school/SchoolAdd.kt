@@ -16,7 +16,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import java.time.ZoneId
-import java.util.*
 import kotlin.time.Duration.Companion.minutes
 
 class SchoolAdd : SubCommand(
@@ -74,7 +73,7 @@ class SchoolAdd : SubCommand(
 
         selectionEvent.reply_("Does this look like the correct school?")
             .addEmbeds(school.getAsEmbed())
-            .addActionRow(getActionRows(selectionEvent, event, school.asSchool(ZoneId.systemDefault())))
+            .addActionRow(getActionRows(selectionEvent, event, school.asSchool(ZoneId.systemDefault().id))) // todo: fix this lol it might break
             .queue()
     }
 
@@ -84,7 +83,7 @@ class SchoolAdd : SubCommand(
         val jda = event.jda
         val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = event.user, expiration = 1.minutes) {
 
-            // try catch below?
+            //todo:  lol wtf is this man change that l8er
             val linkedList = try { cmdEvent.service.saveSchool(school, cmdEvent) } catch (e: Exception) {
                 logger.error("Error has occurred while trying to save the school", e)
                 return@button
@@ -95,7 +94,7 @@ class SchoolAdd : SubCommand(
 
                 event.hook.editOriginal("School has been saved")
                     .setEmbeds(savedSchool.getAsEmbed())
-                    .setActionRows(Collections.emptyList())
+                    .setActionRows(emptyList())
                     .queue()
 
         }

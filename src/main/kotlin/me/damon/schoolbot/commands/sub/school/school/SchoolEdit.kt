@@ -11,6 +11,7 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.school.School
+import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
@@ -35,6 +36,7 @@ class SchoolEdit : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val name = event.getOption<String>("school_name")
+        val service = event.getService<SchoolService>()
 
         val school = event.schoolbot.schoolService.findSchoolInGuild(
             name = name,
@@ -65,8 +67,9 @@ class SchoolEdit : SubCommand(
 
         val changedSchool = evaluateChangeRequest(event, messageResponse, choice, school) ?: return
 
-        val updatedSchool = event.service.updateEntity(changedSchool) ?: return run {
+        val updatedSchool = try { service.update(changedSchool) } catch (e: Exception) {
             event.replyErrorEmbed("`${school.name}` either does not exist or an unexpected error occurred during the update sequence. Please try again. If this error persis please contact `damon#9999` ")
+            return
         }
         val embed = withContext(Dispatchers.IO) { updatedSchool.getAsEmbed() }
 

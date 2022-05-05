@@ -43,8 +43,11 @@ open class SchoolService(
             logger.error("Error occurred while trying to save the school", it)
           //  role.delete().queue()
         }.getOrNull()
-
     }
+    
+    open fun update(school: School): School = runCatching { schoolRepository.save(school) }.onFailure {
+        logger.error("Error occurred while trying to save the school", it)
+    }.getOrThrow()
 
     open fun findSchoolsWithNoClasses(guildId: Long):List<School>? =
         runCatching { schoolRepository.findByClassesIsEmptyAndGuildId(guildId) }

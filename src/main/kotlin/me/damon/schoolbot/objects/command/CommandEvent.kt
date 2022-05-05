@@ -12,10 +12,7 @@ import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.empty
 import me.damon.schoolbot.ext.replyErrorEmbed
 import me.damon.schoolbot.objects.misc.Pagable
-import me.damon.schoolbot.service.GuildService
-import me.damon.schoolbot.service.ProfessorService
-import me.damon.schoolbot.service.SchoolService
-import me.damon.schoolbot.service.SpringService
+import me.damon.schoolbot.service.*
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageEmbed
@@ -51,7 +48,7 @@ class CommandEvent(
 
     fun replyEmbed(embed: MessageEmbed, content: String = String.empty) = when
     {
-        command.deferredEnabled -> hook.editOriginalEmbeds(embed).setActionRows(Collections.emptyList())
+        command.deferredEnabled -> hook.editOriginalEmbeds(embed).setActionRows(emptyList())
             .setContent(content).queue({ }) {
                 logger.error(
                     "Error has occurred while attempting to send embeds for command ${command.name}", it
@@ -75,14 +72,14 @@ class CommandEvent(
             color = Constants.RED
         })
             .setContent(String.empty)
-            .setActionRows(Collections.emptyList())
+            .setActionRows(emptyList())
             .queue(null) { logger.error("Error has occurred while attempting to send embeds for command ${command.name}", it) }
         else -> slashEvent.replyEmbeds(Embed {
             title = tit
             description = error
             color = Constants.RED
         })
-            .addActionRows(Collections.emptyList())
+            .addActionRows(emptyList())
             .setContent("")
             .queue(null) { logger.error("Error has occurred while attempting to send embeds for command ${command.name}", it) }
     }
@@ -110,8 +107,8 @@ class CommandEvent(
     }
 
     fun replyMessageAndClear(message: String) = when  {
-        command.deferredEnabled -> hook.editOriginal(message).setActionRows(Collections.emptyList()).setEmbeds(Collections.emptyList()).queue()
-        else -> slashEvent.reply(message).addActionRows(Collections.emptyList()).addActionRows(Collections.emptyList()).queue()
+        command.deferredEnabled -> hook.editOriginal(message).setActionRows(emptyList()).setEmbeds(emptyList()).queue()
+        else -> slashEvent.reply(message).addActionRows(emptyList()).addActionRows(emptyList()).queue()
     }
 
     fun replyMessageWithErrorEmbed(message: String, exception: Exception)
@@ -163,7 +160,7 @@ class CommandEvent(
     suspend fun sendMenuAndAwait(
     menu: SelectMenu, message: String, timeoutDuration: Long = 1, acknowledge: Boolean = false
     ) = withTimeoutOrNull(timeoutDuration * 60000) {
-        hook.editOriginal("$message | Time out is set to $timeoutDuration seconds").setActionRow(menu).queue()
+        hook.editOriginal("$message | Time out is set to $timeoutDuration minute(s)").setActionRow(menu).queue()
         jda
             .await<SelectMenuInteractionEvent> { it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }
             .also { if (acknowledge) it.deferEdit().queue() }
@@ -182,7 +179,7 @@ class CommandEvent(
      */
     suspend fun sendMessageAndAwait(
         message: String,
-        rows: List<ActionRow> = Collections.emptyList(),
+        rows: List<ActionRow> = emptyList(),
         timeoutDuration: Long = 1
     ): MessageReceivedEvent = withTimeoutOrNull(timeoutDuration * 60000) {
         hook.editOriginal(message).setActionRows(rows).queue()
@@ -238,6 +235,7 @@ class CommandEvent(
         GuildService::class -> schoolbot.guildService as T
         SchoolService::class -> schoolbot.schoolService as T
         ProfessorService::class -> schoolbot.professorService as T
+        CourseService::class -> schoolbot.courseService as T
         else -> throw IllegalArgumentException("Unknown type ${T::class}")
     }
 

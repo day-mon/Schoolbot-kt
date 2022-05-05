@@ -50,8 +50,7 @@ class ProfessorEdit : SubCommand(
             menu = SelectMenu("${event.slashEvent.id}_${event.user.idLong}:SM:EDIT_PROFESSOR") {
                 professors.forEachIndexed { index, professor ->
                     option(
-                        professor.fullName,
-                        index.toString()
+                        professor.fullName, index.toString()
                     )
                 }
             },
@@ -80,22 +79,35 @@ class ProfessorEdit : SubCommand(
         }
         catch (e: NotImplementedError)
         {
-            return run {
-                event.replyErrorEmbed("This action is not yet implemented!")
-            }
+            event.replyErrorEmbed("This action is not yet implemented!")
+            return
         }
         catch (e: TimeoutException)
         {
-            return run {
-                event.replyErrorEmbed("You took too long to respond!")
-            }
+            event.replyErrorEmbed("You took too long to respond!")
+            return
         }
 
-        val changedProfessor = evaluateChangeRequest(event, messageResponse, choice, professor) ?: return
+        val changedProfessor = try { evaluateChangeRequest(event, messageResponse, choice, professor) } catch (e: NotImplementedError)
+        {
+            event.replyErrorEmbed(e.message ?: "An error occurred while trying to edit the professor.")
+            return
+        }
+        catch (e: Exception)
+        {
+            event.replyErrorEmbed(e.message ?: "An error occurred while trying to edit the professor.")
+            return
+        } ?: return
 
 
-        val updatedProfessor = event.service.updateEntity(changedProfessor) ?: return run {
+        val updatedProfessor = try
+        {
+            service.save(changedProfessor)
+        }
+        catch (e: Exception)
+        {
             event.replyErrorEmbed("An unexpected error has occurred while trying to save the entity")
+            return
         }
 
         val embed = withContext(Dispatchers.IO) { updatedProfessor.getAsEmbed() }
@@ -116,10 +128,7 @@ class ProfessorEdit : SubCommand(
     }
 
     private fun evaluateChangeRequest(
-        event: CommandEvent,
-        messageResponse: MessageReceivedEvent,
-        choice: String,
-        professor: Professor
+        event: CommandEvent, messageResponse: MessageReceivedEvent, choice: String, professor: Professor
     ): Professor?
     {
         val message = messageResponse.message.contentStripped
@@ -129,16 +138,24 @@ class ProfessorEdit : SubCommand(
             "first_name", "last_name" ->
             {
                 val name = if (choice == "first_name") "$message ${professor.lastName}" else "${professor.firstName} $message"
-                val duplicate = try { professorService.findByNameInSchool("$message ${professor.lastName}", professor.school) } catch (e: Exception) {  return run {
+                val duplicate = try
+                {
+                    professorService.findByNameInSchool("$message ${professor.lastName}", professor.school)
+                }
+                catch (e: Exception)
+                {
                     event.replyErrorEmbed("An unexpected error has occurred while trying to find the professor")
-                } }
-                if (duplicate != null) return run {
+                    return null
+                }
+
+                if (duplicate != null)
+                {
                     event.replyErrorEmbed("Professor with this name already exists")
-                    null
+                    return null
                 }
 
                 professor.apply {
-                    firstName = message
+                    if (choice == "first_name") firstName = message else lastName = message
                     fullName = name
                 }
             }
@@ -149,7 +166,7 @@ class ProfessorEdit : SubCommand(
             else ->
             {
                 logger.error("{} has not been implemented as a valid choice", choice)
-                null
+                throw NotImplementedError("$choice has not been implemented as a valid choice")
             }
         }
     }

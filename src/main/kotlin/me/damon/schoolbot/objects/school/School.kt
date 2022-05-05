@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.springframework.transaction.annotation.Transactional
-import java.time.ZoneId
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 import javax.persistence.*
@@ -49,7 +48,7 @@ open class School(
     open val classes: MutableSet<Course>,
 
     @Column(name = "timeZone", nullable = false)
-    open val timeZone: ZoneId
+    open val timeZone: String
 
     ) : Pagable, Identifiable
 {

@@ -9,11 +9,16 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.models.CourseModel
 import me.damon.schoolbot.objects.repository.ClassroomRepository
 import me.damon.schoolbot.objects.school.Course
+import me.damon.schoolbot.objects.school.CourseReminder
 import me.damon.schoolbot.objects.school.Professor
 import me.damon.schoolbot.objects.school.School
 import net.dv8tion.jda.api.Permission
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.time.DayOfWeek
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.temporal.TemporalAdjusters
 import java.util.concurrent.ThreadLocalRandom
 
 @Service("CourseService")
@@ -25,12 +30,14 @@ open class CourseService(
     lateinit var classroomRepository: ClassroomRepository
     @Autowired
     lateinit var professorService: ProfessorService
+    @Autowired
+    lateinit var courseReminderService: CourseReminderService
 
     private val logger by SLF4J
     private val regex = Regex("\\s+")
 
     open suspend fun deleteCourse(course: Course, commandEvent: CommandEvent) =
-        runCatching { classroomRepository.delete(course) }
+        runCatching { courseReminderService.deleteAllByCourse(course); classroomRepository.delete(course);  }
         .onFailure { logger.error("Error has occurred while trying to delete {} ", course.name, it) }
         .onSuccess { runCleanUp(course, commandEvent) }
         .getOrThrow()
@@ -46,19 +53,21 @@ open class CourseService(
         val professorService = commandEvent.getService<ProfessorService>()
 
         val course = courseModel.asCourse(
-            school = school,
-            professorService = professorService
+            school = school, professorService = professorService
         )
 
         val professors = professorService.findBySchool(school)
-
 
 
         val professorDif = course.professors.filter { it !in professors }
 
         if (professorDif.isNotEmpty())
         {
-            try { professorService.saveAll(professorDif) } catch (e: Exception) {
+            try
+            {
+                professorService.saveAll(professorDif)
+            } catch (e: Exception)
+            {
                 logger.error("Error occurred while trying to save professors", e)
                 return null
             }
@@ -76,38 +85,74 @@ open class CourseService(
             roleId = role.idLong
         }
 
-        return runCatching { classroomRepository.save(course) }
-            .onFailure { logger.error("Error has occurred during the save", it); runCleanUp(course, commandEvent, professorDif) }
-            .onSuccess { createReminders(commandEvent, courseModel, it) }.getOrNull()
+        return runCatching { classroomRepository.save(course) }.onFailure {
+                logger.error("Error has occurred during the save", it); runCleanUp(
+                course,
+                commandEvent,
+                professorDif
+            )
+            }.getOrNull()
     }
 
-    private suspend fun createReminders(commandEvent: CommandEvent, model: CourseModel, course: Course)
+    @Throws(Exception::class)
+    fun createReminders(commandEvent: CommandEvent, course: Course): List<CourseReminder>
     {
-        /*
-        val startDate = if (course.startDate.isAfter(Instant.now())) course.startDate else Instant.now()
-        val endDate = course.endDate
-        val days = model.meetingDays.map { it.uppercase() }
+        val timeZone = if (course.school.isPittSchool) "America/New_York" else course.school.timeZone
+        val startDate = LocalDateTime.ofInstant(course.startDate, ZoneId.of(timeZone))
+        val endDate = LocalDateTime.ofInstant(course.endDate, ZoneId.of(timeZone))
+        val meetingDays =  course.meetingDays
 
-        while (startDate.isBefore(endDate) || startDate == endDate)
+        if (meetingDays.split(",").isEmpty())
         {
-            val x = LocalDateTime.ofInstant(startDate, course.school.timeZone)
-            val day = x.dayOfWeek.name
-            if (!days.contains(day)) continue
-
-            val time = x.toLocalTime()
-            val reminders = listOf(
-                CourseReminder(course.id, time.minusHours(1), "1 hour before"),
-            )
-            val reminder = CourseReminder(
-                course = course,
-            )
-
-
+            logger.error("No meeting days found for {} or they are not stored in a correct format", course.name)
+            return listOf()
         }
-         */
+
+        var startDateIt = if (startDate.isBefore(LocalDateTime.now())) LocalDateTime.now() else startDate
+
+        val days = meetingDays.split(",").map { it.uppercase().trim() }
+        val reminderList = mutableListOf<CourseReminder>()
+
+        while (startDateIt.isBefore(endDate) || startDateIt.isEqual(endDate))
+        {
+            val day = startDateIt.dayOfWeek.name.uppercase()
+            if (day !in days)  { startDateIt = startDateIt.plusDays(1); continue } // only for the first iteration
+
+            startDateIt = if (days[days.size - 1] == day)
+            {
+                val start = days[0]
+                startDateIt.with(TemporalAdjusters.next(DayOfWeek.valueOf(start)))
+            }
+            else
+            {
+                val next = days.indexOf(day) + 1
+                startDateIt.with(TemporalAdjusters.next(DayOfWeek.valueOf(days[next])))
+
+            }
+
+            reminderList.addAll(
+                listOf(
+                    CourseReminder(course = course, remindTime = startDateIt.minusMinutes(60)),
+                    CourseReminder(course = course, remindTime = startDateIt.minusMinutes(30)),
+                    CourseReminder(course = course, remindTime = startDateIt.minusMinutes(10)),
+                    CourseReminder(course = course, remindTime = startDateIt)
+                ),
+            )
+
+            logger.info("DATE IS {}", startDateIt)
+        }
+
+        // todo: look into how to improve this
+
+       return courseReminderService.saveAll(reminderList)
+
     }
 
 
+    // update course
+    open fun update (course: Course): Course = runCatching { classroomRepository.save(course) }
+        .onFailure { logger.error("Error has occurred while trying to update {} ", course.name, it) }
+        .getOrThrow()
 
 
 

@@ -8,6 +8,7 @@ import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.school.Course
+import me.damon.schoolbot.service.CourseService
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
@@ -22,12 +23,11 @@ class CourseRemove : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-
+        val courseService = event.getService<CourseService>()
         val courses =
-            event.schoolbot.schoolService.findEmptyClassesInGuild(event.guild.idLong)
-                ?: return run {
-                    event.replyErrorEmbed("Error occurred while attempting to grab the courses for the `${event.guild.name}`")
-                }
+           try { courseService.findEmptyClassesInGuild(event.guild.idLong) }
+           catch (e: Exception) { event.replyErrorEmbed("Error occurred while attempting to grab the courses for the `${event.guild.name}`"); return }
+
 
         if (courses.isEmpty()) return run {
             event.replyErrorEmbed("There are no courses with no assignments in the `${event.guild.name}`")
@@ -51,17 +51,18 @@ class CourseRemove : SubCommand(
 
 
         selection.reply("Are you sure you want to remove `${course.name}` from `${course.school.name}`")
-            .addActionRow(getActionRows(event, selection, course))
+            .addActionRow(getActionRows(event, selection, course, courseService))
             .queue()
 
     }
 
-    private fun getActionRows(cmdEvent: CommandEvent, event: SelectMenuInteractionEvent, course: Course): List<Button>
+    private fun getActionRows(cmdEvent: CommandEvent, event: SelectMenuInteractionEvent, course: Course, service: CourseService): List<Button>
     {
         val jda = event.jda
         val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = event.user, expiration = 1.minutes) {
-            cmdEvent.schoolbot.schoolService.deleteCourse(course, cmdEvent) ?: return@button run {
+            try { service.deleteCourse(course, cmdEvent) } catch (e: Exception) {
                 event.hook.replyErrorEmbed(body = "Error occurred while trying delete ${course.name}")
+                return@button
             }
             event.hook.editOriginal("Course has been deleted successfully")
                 .setEmbeds(course.getAsEmbed())

@@ -43,7 +43,7 @@ open class Course(
     open val endDate: Instant,
 
     @Column(name = "meeting_days", nullable = false)
-    open val meetingDays: String,
+    open val meetingDays: String, // days comma delimited
 
     //@Column(name = "term")
     //val term: ClassTerm,

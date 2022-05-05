@@ -6,6 +6,7 @@ import me.damon.schoolbot.handler.*
 import me.damon.schoolbot.listener.GuildListeners
 import me.damon.schoolbot.listener.MessageListeners
 import me.damon.schoolbot.listener.SlashListener
+import me.damon.schoolbot.service.CourseService
 import me.damon.schoolbot.service.GuildService
 import me.damon.schoolbot.service.ProfessorService
 import me.damon.schoolbot.service.SchoolService
@@ -46,6 +47,7 @@ open class Schoolbot(
 
     val schoolService: SchoolService,
     val professorService: ProfessorService,
+    val courseService: CourseService,
 
     private val guildListener: GuildListeners,
     private val messageListeners: MessageListeners,

@@ -6,7 +6,6 @@ import dev.minn.jda.ktx.Embed
 import me.damon.schoolbot.objects.misc.Pagable
 import me.damon.schoolbot.objects.school.School
 import net.dv8tion.jda.api.entities.MessageEmbed
-import java.time.ZoneId
 
 data class SchoolModel(
     @JsonProperty("alpha_two_code")
@@ -27,7 +26,7 @@ data class SchoolModel(
     @JsonProperty("web_pages")
     val webPages: List<String>?
 ) : Pagable {
-    fun asSchool(timeZone: ZoneId) = School(
+    fun asSchool(timeZone: String) = School(
         name = name,
         url = if (webPages.isNullOrEmpty()) "https://schoolbot.dev" else webPages[0],
         emailSuffix = if (domains.isEmpty()) "N/A" else " @${domains[0]}",

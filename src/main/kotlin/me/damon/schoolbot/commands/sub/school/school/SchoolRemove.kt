@@ -1,19 +1,17 @@
 package me.damon.schoolbot.commands.sub.school.school
 
 import dev.minn.jda.ktx.interactions.button
-import dev.minn.jda.ktx.messages.reply_
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.replyChoiceAndLimit
-import me.damon.schoolbot.ext.replyChoiceStringAndLimit
-import me.damon.schoolbot.ext.toUUID
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.school.School
+import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.Command.Choice
 import net.dv8tion.jda.api.interactions.commands.OptionType
@@ -39,8 +37,17 @@ class SchoolRemove : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
+        val service = event.getService<SchoolService>()
 
-        val school = event.findGenericByIdAndGet<School>("school_name") ?: return
+        val schoolId = event.getOption<String>("school_name")
+        val id = UUID.fromString(schoolId)
+        val school = service.findSchoolById(id)
+
+        if (school == null)
+        {
+            event.replyErrorEmbed("${Emoji.ERROR} School not found")
+            return
+        }
 
         event.hook.editOriginal("Are you sure you want to remove ${school.name}")
             .setEmbeds(school.getAsEmbed())
