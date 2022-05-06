@@ -81,6 +81,7 @@ class CommandHandler(private val context: ConfigurableApplicationContext)
             sub.process(
                 CommandEvent(scope = scope, schoolbot =  schoolbot, command = sub, slashEvent = event)
             )
+
         }
         else scope.launch {
             command.process(
