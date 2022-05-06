@@ -1,8 +1,8 @@
 package me.damon.schoolbot.commands.sub.school.course
 
-import dev.minn.jda.ktx.interactions.SelectMenu
-import dev.minn.jda.ktx.interactions.button
-import dev.minn.jda.ktx.interactions.option
+import dev.minn.jda.ktx.interactions.components.SelectMenu
+import dev.minn.jda.ktx.interactions.components.button
+import dev.minn.jda.ktx.interactions.components.option
 import me.damon.schoolbot.ext.replyErrorEmbed
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent

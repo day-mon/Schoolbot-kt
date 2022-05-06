@@ -1,6 +1,6 @@
 package me.damon.schoolbot.listener
 
-import dev.minn.jda.ktx.SLF4J
+import dev.minn.jda.ktx.util.SLF4J
 import me.damon.schoolbot.objects.guild.GuildSettings
 import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.school.Course

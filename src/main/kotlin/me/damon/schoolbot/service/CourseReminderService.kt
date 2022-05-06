@@ -1,6 +1,6 @@
 package me.damon.schoolbot.service
 
-import dev.minn.jda.ktx.SLF4J
+import dev.minn.jda.ktx.util.SLF4J
 import me.damon.schoolbot.objects.repository.CourseReminderRepository
 import me.damon.schoolbot.objects.school.Course
 import me.damon.schoolbot.objects.school.CourseReminder

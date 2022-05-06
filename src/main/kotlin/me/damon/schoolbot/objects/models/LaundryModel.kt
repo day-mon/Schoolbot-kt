@@ -1,6 +1,6 @@
 package me.damon.schoolbot.objects.models
 
-import dev.minn.jda.ktx.Embed
+import dev.minn.jda.ktx.messages.Embed
 import me.damon.schoolbot.Constants
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed

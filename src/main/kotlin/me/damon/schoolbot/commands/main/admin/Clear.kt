@@ -1,6 +1,6 @@
 package me.damon.schoolbot.commands.main.admin
 
-import dev.minn.jda.ktx.interactions.button
+import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.reply_
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory

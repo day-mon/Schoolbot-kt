@@ -1,6 +1,6 @@
 package me.damon.schoolbot.handler
 
-import dev.minn.jda.ktx.SLF4J
+import dev.minn.jda.ktx.util.SLF4J
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.OnlineStatus
 import net.dv8tion.jda.api.entities.Activity

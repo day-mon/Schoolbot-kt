@@ -1,6 +1,6 @@
 package me.damon.schoolbot.objects.command
 
-import dev.minn.jda.ktx.SLF4J
+import dev.minn.jda.ktx.util.SLF4J
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.OptionData

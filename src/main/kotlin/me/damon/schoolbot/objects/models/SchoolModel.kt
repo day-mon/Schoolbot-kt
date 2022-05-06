@@ -2,7 +2,7 @@ package me.damon.schoolbot.objects.models
 
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import dev.minn.jda.ktx.Embed
+import dev.minn.jda.ktx.messages.Embed
 import me.damon.schoolbot.objects.misc.Pagable
 import me.damon.schoolbot.objects.school.School
 import net.dv8tion.jda.api.entities.MessageEmbed

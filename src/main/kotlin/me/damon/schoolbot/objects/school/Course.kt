@@ -1,6 +1,6 @@
 package me.damon.schoolbot.objects.school
 
-import dev.minn.jda.ktx.Embed
+import dev.minn.jda.ktx.messages.Embed
 import me.damon.schoolbot.ext.empty
 import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable

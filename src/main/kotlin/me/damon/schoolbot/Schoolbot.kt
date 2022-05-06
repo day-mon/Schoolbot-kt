@@ -1,7 +1,8 @@
 package me.damon.schoolbot
 
-import dev.minn.jda.ktx.SLF4J
-import dev.minn.jda.ktx.injectKTX
+
+import dev.minn.jda.ktx.jdabuilder.injectKTX
+import dev.minn.jda.ktx.util.SLF4J
 import me.damon.schoolbot.handler.*
 import me.damon.schoolbot.listener.GuildListeners
 import me.damon.schoolbot.listener.MessageListeners

@@ -1,8 +1,9 @@
 package me.damon.schoolbot.commands.sub.school.course
 
-import dev.minn.jda.ktx.interactions.SelectMenu
-import dev.minn.jda.ktx.interactions.button
-import dev.minn.jda.ktx.interactions.option
+import dev.minn.jda.ktx.interactions.components.SelectMenu
+import dev.minn.jda.ktx.interactions.components.button
+import dev.minn.jda.ktx.interactions.components.option
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.damon.schoolbot.Constants
@@ -97,18 +98,20 @@ class CourseAddPitt : SubCommand(
         }
 
 
-        val savedCourse = courseService.createPittCourse(event, school, course) ?: return run {
-            event.replyErrorEmbed("An error has occurred. I will clean up any of the channels/roles I have created.")
+        val savedCourse = try { courseService.createPittCourse(event, school, course) } catch (e: Exception) {
+           return event.replyErrorEmbed("An error has occurred. I will clean up any of the channels/roles I have created.")
         }
 
 
         val embed = withContext(Dispatchers.IO) { savedCourse.getAsEmbed(event.guild) }
 
-        // todo: fix thing here where it says interaction fails
 
-        event.hook.editOriginal("Course created successfully! Would you like to add reminders for this course? (I will remind you **60**, **30**, **10** and **0 minutes** before class starts)")
+        event.hook.editOriginal("Course created successfully! ")
             .setEmbeds(embed)
-            .setActionRow(getActionRows(savedCourse, event, courseService))
+            .queue()
+
+        event.hook.sendMessage("Would you like to add reminders for this course? (I will remind you **60**, **30**, **10** and **0 minutes** before class starts)")
+            .addActionRow(getActionRows(savedCourse, event, courseService))
             .queue()
 
 
@@ -120,15 +123,17 @@ class CourseAddPitt : SubCommand(
         val jda = event.jda
         val confirm = jda.button(label = "Confirm", style = ButtonStyle.SUCCESS, user = event.user) {
             it.deferReply().queue()
-             val reminders = try { service.createReminders(event, course) } catch (e : Exception) { logger.error("Error occurred while creating reminders", e); return@button }
 
-             if (reminders.isEmpty())
+             try { service.createReminders(course) }
+             catch (e : Exception)
              {
                  event.replyErrorEmbed("Reminders were not created. Please try again")
+                 logger.error("Error occurred while creating reminders", e);
                  return@button
              }
 
-             event.replyMessageAndClear("${reminders.size} reminders have been created for ${course.name}!")
+
+             event.replyMessageAndClear("Reminders have been created for ${course.name}!")
         }
 
         val exit = jda.button(label = "Exit", style = ButtonStyle.DANGER, user = event.user) {
@@ -183,14 +188,6 @@ class CourseAddPitt : SubCommand(
             term = 1
             date = date.plusYears(1)
         }
-
-        var test: Int
-        for (xg in 1..10 step 3)
-        {
-            test = 3
-            test.toString()
-        }
-
         return list
     }
 
@@ -204,9 +201,11 @@ class CourseAddPitt : SubCommand(
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {
-        val pittSchools = schoolbot.schoolService.getPittSchoolsInGuild(event.guild!!.idLong) ?: return
+        val id = event.guild?.idLong ?: return logger.error("Error has occurred while fetching guild id in autocomplete")
+        val pittSchools =  try { schoolbot.schoolService.getPittSchoolsInGuild(id) } catch (e: Exception)  { return }
         event.replyChoiceStringAndLimit(pittSchools.map { it.name }
-            .filter { it.startsWith(event.focusedOption.value, ignoreCase = true) }).queue()
+            .filter { it.startsWith(event.focusedOption.value, ignoreCase = true) })
+            .queue()
 
     }
 }

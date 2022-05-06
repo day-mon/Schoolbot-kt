@@ -1,6 +1,5 @@
 package me.damon.schoolbot.service
-
-import dev.minn.jda.ktx.SLF4J
+import dev.minn.jda.ktx.util.SLF4J
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import me.damon.schoolbot.objects.command.CommandEvent
@@ -73,7 +72,8 @@ open class SchoolService(
 
     open fun getPittSchoolsInGuild(guildId: Long) =
         runCatching { schoolRepository.findSchoolsByIsPittSchoolAndGuildId(guildId = guildId) }
-            .onFailure { logger.error("Error has occurred while trying to get schools by id") }.getOrNull()
+            .onFailure { logger.error("Error has occurred while trying to get schools by id") }
+            .getOrThrow()
 
     open fun findSchoolInGuild(guildId: Long, name: String): School? =
         runCatching { schoolRepository.findSchoolByNameIgnoreCaseAndGuildId(name, guildId) }

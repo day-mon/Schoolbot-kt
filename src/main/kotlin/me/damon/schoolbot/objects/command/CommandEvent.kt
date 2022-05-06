@@ -1,10 +1,10 @@
 package me.damon.schoolbot.objects.command
 
-import dev.minn.jda.ktx.Embed
-import dev.minn.jda.ktx.SLF4J
-import dev.minn.jda.ktx.await
-import dev.minn.jda.ktx.interactions.replyPaginator
-import dev.minn.jda.ktx.interactions.sendPaginator
+import dev.minn.jda.ktx.events.await
+import dev.minn.jda.ktx.interactions.components.replyPaginator
+import dev.minn.jda.ktx.interactions.components.sendPaginator
+import dev.minn.jda.ktx.messages.Embed
+import dev.minn.jda.ktx.util.SLF4J
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withTimeoutOrNull
 import me.damon.schoolbot.Constants

@@ -1,6 +1,6 @@
 package me.damon.schoolbot.service
 
-import dev.minn.jda.ktx.SLF4J
+import dev.minn.jda.ktx.util.SLF4J
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import me.damon.schoolbot.objects.repository.ProfessorRepository

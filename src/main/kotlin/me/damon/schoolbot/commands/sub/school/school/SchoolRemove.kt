@@ -1,6 +1,7 @@
 package me.damon.schoolbot.commands.sub.school.school
 
-import dev.minn.jda.ktx.interactions.button
+import dev.minn.jda.ktx.interactions.components.button
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.damon.schoolbot.Schoolbot

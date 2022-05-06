@@ -1,12 +1,11 @@
 package me.damon.schoolbot.handler
 
-import dev.minn.jda.ktx.SLF4J
+import dev.minn.jda.ktx.util.SLF4J
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Service
 import java.io.File
 import kotlin.system.exitProcess
 

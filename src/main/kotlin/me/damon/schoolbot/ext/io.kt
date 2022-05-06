@@ -1,7 +1,7 @@
 package me.damon.schoolbot.ext
 
-import dev.minn.jda.ktx.Embed
-import dev.minn.jda.ktx.SLF4J
+import dev.minn.jda.ktx.messages.Embed
+import dev.minn.jda.ktx.util.SLF4J
 import me.damon.schoolbot.Constants
 import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.components.ActionRow

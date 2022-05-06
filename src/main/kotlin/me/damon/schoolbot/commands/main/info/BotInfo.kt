@@ -1,6 +1,6 @@
 package me.damon.schoolbot.commands.main.info
 
-import dev.minn.jda.ktx.Embed
+import dev.minn.jda.ktx.messages.Embed
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent

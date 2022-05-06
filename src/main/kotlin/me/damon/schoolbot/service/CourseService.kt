@@ -1,7 +1,8 @@
 package me.damon.schoolbot.service
 
-import dev.minn.jda.ktx.SLF4J
-import dev.minn.jda.ktx.await
+
+import dev.minn.jda.ktx.coroutines.await
+import dev.minn.jda.ktx.util.SLF4J
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -45,7 +46,7 @@ open class CourseService(
 
     open suspend fun createPittCourse(
         commandEvent: CommandEvent, school: School, courseModel: CourseModel
-    ): Course?
+    ): Course
     {
 
 
@@ -63,14 +64,7 @@ open class CourseService(
 
         if (professorDif.isNotEmpty())
         {
-            try
-            {
-                professorService.saveAll(professorDif)
-            } catch (e: Exception)
-            {
-                logger.error("Error occurred while trying to save professors", e)
-                return null
-            }
+            professorService.saveAll(professorDif)
         }
 
         val role = guild.createRole().setColor(ThreadLocalRandom.current().nextInt(0xFFFFF))
@@ -85,17 +79,13 @@ open class CourseService(
             roleId = role.idLong
         }
 
-        return runCatching { classroomRepository.save(course) }.onFailure {
-                logger.error("Error has occurred during the save", it); runCleanUp(
-                course,
-                commandEvent,
-                professorDif
-            )
-            }.getOrNull()
+        return runCatching { classroomRepository.save(course) }
+            .onFailure { logger.error("Error has occurred during the save", it); runCleanUp(course, commandEvent, professorDif) }
+            .getOrThrow()
     }
 
     @Throws(Exception::class)
-    fun createReminders(commandEvent: CommandEvent, course: Course): List<CourseReminder>
+    fun createReminders(course: Course)
     {
         val timeZone = if (course.school.isPittSchool) "America/New_York" else course.school.timeZone
         val startDate = LocalDateTime.ofInstant(course.startDate, ZoneId.of(timeZone))
@@ -104,14 +94,12 @@ open class CourseService(
 
         if (meetingDays.split(",").isEmpty())
         {
-            logger.error("No meeting days found for {} or they are not stored in a correct format", course.name)
-            return listOf()
+            return logger.error("No meeting days found for {} or they are not stored in a correct format", course.name)
         }
 
         var startDateIt = if (startDate.isBefore(LocalDateTime.now())) LocalDateTime.now() else startDate
 
         val days = meetingDays.split(",").map { it.uppercase().trim() }
-        val reminderList = mutableListOf<CourseReminder>()
 
         while (startDateIt.isBefore(endDate) || startDateIt.isEqual(endDate))
         {
@@ -130,7 +118,7 @@ open class CourseService(
 
             }
 
-            reminderList.addAll(
+            courseReminderService.saveAll(
                 listOf(
                     CourseReminder(course = course, remindTime = startDateIt.minusMinutes(60)),
                     CourseReminder(course = course, remindTime = startDateIt.minusMinutes(30)),
@@ -139,13 +127,7 @@ open class CourseService(
                 ),
             )
 
-            logger.info("DATE IS {}", startDateIt)
         }
-
-        // todo: look into how to improve this
-
-       return courseReminderService.saveAll(reminderList)
-
     }
 
 

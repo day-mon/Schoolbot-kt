@@ -1,6 +1,6 @@
 package me.damon.schoolbot.ext
 
-import dev.minn.jda.ktx.Embed
+import dev.minn.jda.ktx.messages.Embed
 import me.damon.schoolbot.objects.misc.Emoji
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
