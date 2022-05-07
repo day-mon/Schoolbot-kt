@@ -77,7 +77,7 @@ open class SchoolService(
             .onFailure { logger.error("Error occurred while trying to fetch {} in guild {}", name, guildId, it) }
             .getOrThrow()
 
-    open fun findSchoolById(id: UUID): School? = runCatching { schoolRepository.getById(id) }
+    open fun findSchoolById(id: UUID): School? = runCatching { schoolRepository.findById(id).orElse(null) }
         .onFailure { logger.error("Error occurred while trying to fetch school by id [{}]", id, it) }
         .getOrThrow()
 

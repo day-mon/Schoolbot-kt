@@ -1,12 +1,12 @@
 package me.damon.schoolbot.commands.main.dev
 
+import me.damon.schoolbot.Constants
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.requests.ErrorResponse
 import java.io.File
-import java.time.Instant
 import kotlin.io.path.Path
 import kotlin.io.path.fileSize
 
@@ -46,7 +46,7 @@ class ExportErrorLog : Command(
         }
 
         event.user.openPrivateChannel().queue {
-            it.sendMessage("Log file as of <t:${Instant.now().epochSecond}>. It currently has a size of `$size` bytes")
+            it.sendMessage("Log file as of ${Constants.CURRENT_TIME}. It currently has a size of `$size` bytes")
                 .addFile(file)
                 .queue({
                        event.replyMessage("Log sent in PMs.")

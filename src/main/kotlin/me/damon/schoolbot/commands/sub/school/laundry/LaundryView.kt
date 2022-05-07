@@ -17,7 +17,7 @@ class LaundryView : SubCommand(
         CommandOptionData<String>(
             optionType = OptionType.STRING,
             name = "dormitory",
-            choices = Constants.dorms.map { it.asCommandChoice() }.toList(),
+            choices = Constants.DORMS.map { it.asCommandChoice() }.toList(),
             description = "Target dormitory you want check",
             isRequired = true
         )

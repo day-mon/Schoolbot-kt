@@ -127,7 +127,7 @@ class CourseAddPitt : SubCommand(
         val jda = event.jda
         val confirm = jda.button(label = "Confirm", style = ButtonStyle.SUCCESS, user = event.user) {
 
-            it.message.edit(content = "Adding reminders... While we wait here's a joke. `${Constants.jokes[ThreadLocalRandom.current().nextInt(0, Constants.jokes.size - 1)]}`", components = emptyList()).queue()
+            it.message.edit(content = "Adding reminders... While we wait here's a joke. `${Constants.JOKES[ThreadLocalRandom.current().nextInt(0, Constants.JOKES.size - 1)]}`", components = emptyList()).queue()
 
              try { service.createReminders(course) }
              catch (e : Exception)

@@ -80,7 +80,7 @@ class CommandEvent(
             color = Constants.RED
         })
             .addActionRows(emptyList())
-            .setContent("")
+            .setContent(String.empty)
             .queue(null) { logger.error("Error has occurred while attempting to send embeds for command ${command.name}", it) }
     }
 

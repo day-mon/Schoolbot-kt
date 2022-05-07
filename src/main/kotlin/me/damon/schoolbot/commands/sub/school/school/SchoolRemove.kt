@@ -42,13 +42,8 @@ class SchoolRemove : SubCommand(
 
         val schoolId = event.getOption<String>("school_name")
         val id = UUID.fromString(schoolId)
-        val school = service.findSchoolById(id)
+        val school = try {  service.findSchoolById(id) } catch (e: Exception) { return  event.replyErrorEmbed("Error occurred while searching for school")} ?: return event.replyErrorEmbed("${Emoji.ERROR} School not found")
 
-        if (school == null)
-        {
-            event.replyErrorEmbed("${Emoji.ERROR} School not found")
-            return
-        }
 
         event.hook.editOriginal("Are you sure you want to remove ${school.name}")
             .setEmbeds(school.getAsEmbed())

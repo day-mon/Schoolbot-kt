@@ -41,14 +41,18 @@ fun Stock.getAsQEmbed(): MessageEmbed
 
         field {
             name = "Price"
-            value = "$${quote.price?.parseNumbersWithCommas() ?: "N/A"}"
+            value = "$${quote.price?.parseNumbersWithCommas() ?: "N/A".removePrefix("$")}"
             inline = false
 
         }
 
         field {
             name = "Today's Change"
-            value = if (quote.change.toLong() < 0)
+            value = if (quote.change == null)
+            {
+                "N/A"
+            }
+            else if (quote.change.toLong() < 0)
             {
                 " ${Emoji.DOWNWARD_TREND.getAsChat()} $${quote.change.parseNumbersWithCommas()}"
             }
@@ -67,29 +71,33 @@ fun Stock.getAsQEmbed(): MessageEmbed
 
         field {
             name = "Previous Close"
-            value = " $${quote.previousClose.parseNumbersWithCommas()}"
+            value = " $${quote?.previousClose?.parseNumbersWithCommas() ?: "N/A".removePrefix("$")}"
             inline = false
         }
 
         field {
             name = "Market Cap"
-            value = "$${security.stats.marketCap.parseNumbersWithCommas()}"
+            value = "$${security?.stats?.marketCap?.parseNumbersWithCommas() ?: "N/A".removePrefix("$")}"
             inline = false
         }
 
         field {
             name = "52 Week High"
-            value = quote.yearHigh.parseNumbersWithCommas()
+            value = quote?.yearHigh?.parseNumbersWithCommas() ?: "N/A"
         }
 
         field {
             name = "52 Week Low"
-            value = quote.yearLow.parseNumbersWithCommas()
+            value = quote?.yearLow?.parseNumbersWithCommas() ?: "N/A"
         }
 
         field {
             name = "52 Week Change"
-            value = if (quote.changeFromYearHigh.toLong() < 0)
+            value = if (quote.changeFromYearHigh == null)
+            {
+                "N/A"
+            }
+            else if (quote.changeFromYearHigh.toLong() < 0)
             {
                 " ${Emoji.DOWNWARD_TREND.getAsChat()} ${quote.changeFromYearHigh.parseNumbersWithCommas()}"
             }

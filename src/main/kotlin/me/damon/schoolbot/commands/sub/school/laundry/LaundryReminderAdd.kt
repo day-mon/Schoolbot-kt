@@ -21,7 +21,7 @@ class LaundryReminderAdd : SubCommand(
         CommandOptionData<String>(
             optionType = OptionType.STRING,
             name = "dormitory",
-            choices = Constants.dorms.map { it.asCommandChoice() }.toList(),
+            choices = Constants.DORMS.map { it.asCommandChoice() }.toList(),
             description = "Target dormitory you want to choose to get reminded from",
             isRequired = true
         )

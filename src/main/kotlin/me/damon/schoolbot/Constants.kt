@@ -1,11 +1,12 @@
 package me.damon.schoolbot
 
 import okhttp3.OkHttpClient
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 object Constants
 {
-    val dorms = listOf(
+    val DORMS = listOf(
         "willow",
         "hickory",
         "buckhorn",
@@ -21,7 +22,36 @@ object Constants
         "cpas",
     )
 
-    val jokes = listOf(
+    val TIMEZONES = mapOf(
+        "Pacific Time - Los Angeles" to "America/Los_Angeles",
+        "Mountain Time - Denver" to "America/Denver",
+        "Central Time - Chicago" to "America/Chicago",
+        "Eastern Time - New York" to "America/New_York",
+        "Atlantic Time - Halifax" to "America/Halifax",
+        "Brazil Time - Brasilia" to "America/Sao_Paulo",
+
+        "Western Europe - London" to "Europe/London",
+        "Central Europe - Berlin" to "Europe/Berlin",
+        "Eastern Europe - Bucharest" to "Europe/Bucharest",
+        "Russia - Moscow" to "Europe/Moscow",
+        "Turkey - Istanbul" to "Turkey",
+
+        "India - Kolkata" to "Asia/Kolkata",
+        "Bangladesh - Dhaka" to "Asia/Dhaka",
+        "Asia - Hong Kong" to "Asia/Hong_Kong",
+        "Korea - Seoul" to "Asia/Seoul",
+        "Japan - Tokyo" to "Asia/Tokyo",
+
+        "Western Australia - Sydney" to "Australia/Sydney",
+        "Northern Territory - Darwin" to "Australia/Darwin",
+        "Queensland - Brisbane" to "Australia/Brisbane",
+        "East Australia - Queensland" to "Australia/Queensland",
+        "South Australia - Adelaide" to "Australia/Adelaide",
+        "New Zealand - Auckland" to "Pacific/Auckland",
+
+    )
+
+    val JOKES = listOf(
         "I overdosed on Viagra once. The hardest day of my life.",
         "I am on a seafood diet. Every time I see food, I eat it.",
         "I'm no photographer, but I can picture us together.",
@@ -138,6 +168,7 @@ object Constants
         "How does Moses make his tea? Hebrews it.",
     )
 
+    val CURRENT_TIME = "<t:${Instant.now().epochSecond}>"
     const val RED = 0x990f0f
     const val MAX_ROLE_COUNT = 250
     const val MAX_CHANNEL_COUNT = 500
