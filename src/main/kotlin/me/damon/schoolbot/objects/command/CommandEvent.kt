@@ -48,14 +48,14 @@ class CommandEvent(
 
     fun replyEmbed(embed: MessageEmbed, content: String = String.empty) = when
     {
-        command.deferredEnabled -> hook.editOriginalEmbeds(embed).setActionRows(emptyList())
-            .setContent(content).queue({ }) {
+        command.deferredEnabled -> hook.editOriginalEmbeds(embed).setActionRows(Collections.emptyList())
+            .setContent(content).queue(null) {
                 logger.error(
                     "Error has occurred while attempting to send embeds for command ${command.name}", it
                 )
                 hook.editOriginal("Error has occurred while attempting to send embeds").queue()
             }
-        else -> slashEvent.replyEmbeds(embed).setContent(content).queue({ }) {
+        else -> slashEvent.replyEmbeds(embed).setContent(content).queue(null) {
             logger.error(
                 "Error has occurred while attempting to send embeds for command ${command.name}", it
             )
@@ -136,7 +136,6 @@ class CommandEvent(
                 .addEmbeds(embed).queue()
         }
     }
-
 
 
 
