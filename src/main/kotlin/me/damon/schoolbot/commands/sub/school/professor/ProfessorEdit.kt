@@ -174,8 +174,8 @@ class ProfessorEdit : SubCommand(
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {
-        val schools = schoolbot.schoolService.getSchoolsWithProfessorsInGuild(event.guild!!.idLong) ?: return
-
+        val guildId = event.guild?.idLong ?: return logger.error("Guild is null")
+        val schools = schoolbot.schoolService.findByEmptyProfessors(guildId)
         event.replyChoiceAndLimit(schools.map { Command.Choice(it.name, it.id.toString()) }).queue()
     }
 }

@@ -1,4 +1,5 @@
 package me.damon.schoolbot.service
+import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.util.SLF4J
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -26,69 +27,65 @@ open class SchoolService(
 
 
     // @Cacheable
-    open suspend fun saveSchool(school: School, commandEvent: CommandEvent): School?
+    open suspend fun saveSchool(school: School, commandEvent: CommandEvent): School
     {
         val guild = commandEvent.guild
-       // val role = guild.createRole().setColor(random.nextInt(0xFFFFF)).setName(school.name.replace(regex, "-")).await()
+        val role = guild.createRole().setColor(random.nextInt(0xFFFFF)).setName(school.name.replace(regex, "-")).await()
 
 
 
         school.apply {
-           // roleId = 0L
+            roleId = role.idLong
             guildId = guild.idLong
         }
 
         return runCatching { schoolRepository.save(school) }.onFailure {
             logger.error("Error occurred while trying to save the school", it)
-          //  role.delete().queue()
-        }.getOrNull()
+            role.delete().queue()
+        }.getOrThrow()
     }
     
     open fun update(school: School): School = runCatching { schoolRepository.save(school) }.onFailure {
         logger.error("Error occurred while trying to save the school", it)
     }.getOrThrow()
 
-    open fun findSchoolsWithNoClasses(guildId: Long):List<School>? =
-        runCatching { schoolRepository.findByClassesIsEmptyAndGuildId(guildId) }
+    open fun findSchoolsWithNoClasses(guildId: Long):List<School> =
+        runCatching { schoolRepository.findEmptyClassesInGuild(guildId) }
             .onFailure { logger.error("Error occurred while retrieving schools with no classrooms in guild {}", guildId) }
-            .getOrNull()
+            .getOrThrow()
 
 
-    open fun findSchoolsInGuild(guildId: Long): MutableSet<School> =
+    open fun findSchoolsInGuild(guildId: Long): List<School> =
         runCatching { schoolRepository.findInGuild(guildId) }
             .onFailure { logger.error("Error occurred while retrieving schools in guild {}", guildId) }
             .getOrThrow()
 
-    open fun getSchoolsByGuildId(guildId: Long): List<School>? =
-        runCatching { schoolRepository.querySchoolsByGuildId(guildId) }
-            .onFailure { logger.error("Error occurred while trying to grab the schools for guild {}", guildId, it) }
-            .onSuccess { logger.debug("Schools returned for {} - {}", guildId, it) }
-            .getOrNull()
 
-    open fun getSchoolsWithProfessorsInGuild(guildId: Long): List<School>? =
-        runCatching { schoolRepository.findByProfessorIsNotEmptyAndGuildIdEquals(guildId) }
+
+    open fun findByEmptyProfessors(guildId: Long): List<School> =
+        runCatching { schoolRepository.findByEmptyProfessorsInGuild(guildId) }
             .onFailure { logger.error("Error occurred while trying to grab the schools for guild {}", guildId, it) }
-            .getOrNull()
+            .getOrThrow()
 
     open fun getPittSchoolsInGuild(guildId: Long) =
-        runCatching { schoolRepository.findSchoolsByIsPittSchoolAndGuildId(guildId = guildId) }
+        runCatching { schoolRepository.findByPittSchoolInGuild(guildId = guildId) }
             .onFailure { logger.error("Error has occurred while trying to get schools by id") }
             .getOrThrow()
 
     open fun findSchoolInGuild(guildId: Long, name: String): School? =
-        runCatching { schoolRepository.findSchoolByNameIgnoreCaseAndGuildId(name, guildId) }
+        runCatching { schoolRepository.findByNameInGuild(name, guildId) }
             .onFailure { logger.error("Error occurred while trying to fetch {} in guild {}", name, guildId, it) }
-            .getOrNull()
+            .getOrThrow()
 
     open fun findSchoolById(id: UUID): School? = runCatching { schoolRepository.getById(id) }
         .onFailure { logger.error("Error occurred while trying to fetch school by id [{}]", id, it) }
         .getOrThrow()
 
 
-    open fun findDuplicateSchool(guildId: Long, name: String): Boolean? =
-        runCatching { schoolRepository.findSchoolByNameIgnoreCaseAndGuildId(name, guildId) }
+    open fun findDuplicateSchool(guildId: Long, name: String): Boolean =
+        runCatching { schoolRepository.findByNameInGuild(name, guildId) == null }
             .onFailure { logger.error("Error occurred while trying to fetch {} in guild {}", name, guildId, it) }
-            .getOrNull() == null
+            .getOrThrow()
 
     // @CacheEvict(cacheNames = ["schoolsByGuild"], key = "#school.guildId")
     open fun deleteSchool(school: School, event: CommandEvent)

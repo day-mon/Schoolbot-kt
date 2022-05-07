@@ -65,16 +65,14 @@ class SchoolAdd : SubCommand(
         val selectionEvent = event.sendMenuAndAwait(menu, "Select an item from the menu to choose a school") ?: return
         val school = models[selectionEvent.values[0].toInt()]
 
-        val duplicate = event.schoolbot.schoolService.findSchoolInGuild(event.guild.idLong, school.name)
+        val duplicate = try { event.schoolbot.schoolService.findSchoolInGuild(event.guild.idLong, school.name) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while attempting to check if ${school.name} is a duplicate.. Try again!") }
         if (duplicate != null) return run { event.replyErrorEmbed("`${school.name}` already exist. You cannot add duplicate schools!") }
 
         event.hook.sendMessage("Does this look like the correct school?").addEmbeds(school.getAsEmbed()).addActionRow(
-                getActionRows(
-                    selectionEvent,
-                    event,
-                    school.asSchool(ZoneId.systemDefault().id)
-                )
-            ) // todo: fix this lol it might break
+            getActionRows(
+                selectionEvent, event, school.asSchool(ZoneId.systemDefault().id)
+            )
+        ) // todo: come bck to this and ask for timezone.
             .queue()
     }
 
@@ -84,23 +82,18 @@ class SchoolAdd : SubCommand(
         val jda = event.jda
         val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = event.user, expiration = 1.minutes) {
 
-            try
+            val savedSchool = try
             {
                 cmdEvent.service.saveSchool(school, cmdEvent)
-            }
-            catch (e: Exception)
+            } catch (e: Exception)
             {
                 logger.error("Error has occurred while trying to save the school", e)
+                cmdEvent.replyErrorEmbed("Error has occurred while trying to save school!")
                 return@button
             }
-            val savedSchool = cmdEvent.service.saveSchool(school, cmdEvent) ?: return@button run {
-                cmdEvent.replyErrorEmbed("Error has occurred while trying to save school!")
-            }
 
-            event.hook.editOriginal("School has been saved")
-                .setEmbeds(savedSchool.getAsEmbed())
-                .setActionRows(emptyList())
-                .queue()
+            event.hook.editOriginal("School has been saved").setEmbeds(savedSchool.getAsEmbed())
+                .setActionRows(emptyList()).queue()
 
         }
 

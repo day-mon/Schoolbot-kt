@@ -10,14 +10,16 @@ import java.util.*
 interface SchoolRepository : JpaRepository<School, UUID>
 {
 
-    fun querySchoolsByGuildId(guildId: Long): List<School>
-    fun findSchoolByNameIgnoreCaseAndGuildId(name: String, guildId: Long): School?
-    fun findSchoolsByIsPittSchoolAndGuildId(isPittSchool: Boolean = true, guildId: Long): List<School>
-    fun findByProfessorIsNotEmptyAndGuildIdEquals(guildId: Long): List<School>
-    fun findByClassesIsEmptyAndGuildId(guildId: Long): List<School>
 
-
+    @Query("select s from School s where upper(s.name) = upper(?1) and s.guildId = ?2")
+    fun findByNameInGuild(name: String, guildId: Long): School?
+    @Query("select s from School s where s.isPittSchool = ?1 and s.guildId = ?2")
+    fun findByPittSchoolInGuild(isPittSchool: Boolean = true, guildId: Long): List<School>
+    @Query("select s from School s where s.professor is not empty and s.guildId = ?1")
+    fun findByEmptyProfessorsInGuild(guildId: Long): List<School>
+    @Query("select s from School s where s.classes is empty and s.guildId = ?1")
+    fun findEmptyClassesInGuild(guildId: Long): List<School>
     @Query("select s from School s where s.guildId = ?1")
-    fun findInGuild(guildId: Long): MutableSet<School>
+    fun findInGuild(guildId: Long): List<School>
 
 }

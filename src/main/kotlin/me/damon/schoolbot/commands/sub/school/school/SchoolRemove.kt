@@ -67,7 +67,7 @@ class SchoolRemove : SubCommand(
             val embed = withContext(Dispatchers.IO) { school.getAsEmbed() }
             hook.editOriginal("School has been deleted")
                 .setEmbeds(embed)
-                .setActionRows(Collections.emptyList())
+                .setActionRows(emptyList())
                 .queue()
 
 
@@ -75,8 +75,8 @@ class SchoolRemove : SubCommand(
 
         val no = jda.button(label = "No", style = ButtonStyle.DANGER, user = cmdEvent.user, expiration = 1.minutes) {
             hook.editOriginal("Aborting.. Thank you for using Schoolbot!")
-                .setActionRows(Collections.emptyList())
-                .setEmbeds(Collections.emptyList())
+                .setActionRows(emptyList())
+                .setEmbeds(emptyList())
                 .queue()
         }
 
@@ -85,7 +85,8 @@ class SchoolRemove : SubCommand(
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {
-        val schools = schoolbot.schoolService.findSchoolsWithNoClasses(guildId = event.guild!!.idLong) ?: return
+        val guildId = event.guild?.idLong ?: return logger.error("Event should have not been processed in a non-guild environment")
+        val schools = schoolbot.schoolService.findSchoolsWithNoClasses(guildId)
         event.replyChoiceAndLimit(
             schools.map { Choice(it.name, it.id.toString()) },
         ).queue()

@@ -48,8 +48,6 @@ open class CourseService(
         commandEvent: CommandEvent, school: School, courseModel: CourseModel
     ): Course
     {
-
-
         val guild = commandEvent.guild
         val professorService = commandEvent.getService<ProfessorService>()
 
@@ -87,10 +85,14 @@ open class CourseService(
     @Throws(Exception::class)
     fun createReminders(course: Course)
     {
+        val startTime = System.currentTimeMillis()
+        logger.info("Starting to create reminders for {}", course.name)
+
+        // just in case something silly has happened.
         val timeZone = if (course.school.isPittSchool) "America/New_York" else course.school.timeZone
         val startDate = LocalDateTime.ofInstant(course.startDate, ZoneId.of(timeZone))
         val endDate = LocalDateTime.ofInstant(course.endDate, ZoneId.of(timeZone))
-        val meetingDays =  course.meetingDays
+        val meetingDays = course.meetingDays
 
         if (meetingDays.split(",").isEmpty())
         {
@@ -126,8 +128,9 @@ open class CourseService(
                     CourseReminder(course = course, remindTime = startDateIt)
                 ),
             )
-
         }
+
+        logger.info("Reminder sequence for {} has concluded it took {} s", course.name, (System.currentTimeMillis() - startTime ) / 1000)
     }
 
 
@@ -175,7 +178,7 @@ open class CourseService(
 
 
     open suspend fun findDuplicateCourse(name: String, number: Long, termId: String) = withContext(dispatcher) {
-        classroomRepository.findCourseByNameAndNumberAndTermIdentifier(name, number, termId)
+        classroomRepository.findByNameAndNumberAndTerm(name, number, termId)
     }
 
 
@@ -185,7 +188,7 @@ open class CourseService(
             .getOrThrow()
 
     open fun findEmptyClassesInGuild(guildId: Long): List<Course> =
-        runCatching { classroomRepository.findByAssignmentsIsEmptyAndGuildIdEquals(guildId) }
+        runCatching { classroomRepository.findAllByEmptyAssignmentsInGuild(guildId) }
             .onFailure { logger.error("Error has o") }
             .getOrThrow()
 

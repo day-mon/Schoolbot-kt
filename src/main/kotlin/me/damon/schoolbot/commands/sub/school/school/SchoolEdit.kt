@@ -38,11 +38,11 @@ class SchoolEdit : SubCommand(
         val name = event.getOption<String>("school_name")
         val service = event.getService<SchoolService>()
 
-        val school = event.schoolbot.schoolService.findSchoolInGuild(
+        val school = try {event.schoolbot.schoolService.findSchoolInGuild(
             name = name,
             guildId = event.guildId
-        ) ?: return run {
-            event.replyErrorEmbed("Error has occurred while trying to get schools or $name was deleted during/after the autocomplete process!")
+        )  } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find $name in our database!") } ?: return run {
+            event.replyErrorEmbed("$name was deleted during/after the autocomplete process!")
         }
 
         // This could error if names are too large I assume
@@ -85,9 +85,9 @@ class SchoolEdit : SubCommand(
         {
             "name" ->
             {
-                val duplicate = event.service.findDuplicateSchool(event.guildId, message) ?: return run {
+                val duplicate = try { event.service.findDuplicateSchool(event.guildId, message) } catch (e: Exception) {  event.replyErrorEmbed("Error has occurred while trying to find duplicate school. Please try again"); return null} ?:  run {
                     event.replyErrorEmbed("Error occurred while trying to determine if $message is a duplicate school")
-                    null
+                    return null
                 }
 
                 if (!duplicate) return run {
@@ -153,9 +153,8 @@ class SchoolEdit : SubCommand(
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {
-        val schools: List<School> = schoolbot.schoolService.getSchoolsByGuildId(event.guild!!.idLong) ?: return run {
-            logger.error("Was null")
-        }
+        val guildId = event.guild?.idLong ?: return logger.error("Guild is null")
+        val schools: List<School> =  schoolbot.schoolService.findSchoolsInGuild(guildId)
         event.replyChoiceStringAndLimit(
             schools.map { it.name }
         ).queue()

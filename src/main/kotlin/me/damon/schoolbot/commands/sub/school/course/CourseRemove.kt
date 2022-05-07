@@ -12,7 +12,6 @@ import me.damon.schoolbot.service.CourseService
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
-import java.util.*
 import kotlin.time.Duration.Companion.minutes
 
 class CourseRemove : SubCommand(
@@ -66,14 +65,14 @@ class CourseRemove : SubCommand(
             }
             event.hook.editOriginal("Course has been deleted successfully")
                 .setEmbeds(course.getAsEmbed())
-                .setActionRows(Collections.emptyList())
+                .setActionRows(emptyList())
                 .queue()
         }
 
         val no = jda.button(label = "No", style = ButtonStyle.DANGER, user = event.user, expiration = 1.minutes) {
             event.hook.editOriginal("Aborting.. Thank you for using Schoolbot!")
-                .setActionRows(Collections.emptyList())
-                .setEmbeds(Collections.emptyList())
+                .setActionRows(emptyList())
+                .setEmbeds(emptyList())
                 .queue()
         }
 

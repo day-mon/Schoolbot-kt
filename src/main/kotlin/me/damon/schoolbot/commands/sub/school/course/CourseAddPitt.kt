@@ -3,7 +3,8 @@ package me.damon.schoolbot.commands.sub.school.course
 import dev.minn.jda.ktx.interactions.components.SelectMenu
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.interactions.components.option
-
+import dev.minn.jda.ktx.messages.edit
+import dev.minn.jda.ktx.messages.editMessage_
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.damon.schoolbot.Constants
@@ -22,10 +23,13 @@ import me.damon.schoolbot.service.CourseService
 import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
+import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import net.dv8tion.jda.api.requests.ErrorResponse
 import java.time.LocalDate
+import java.util.concurrent.ThreadLocalRandom
 
 class CourseAddPitt : SubCommand(
     name = "pitt",
@@ -50,10 +54,10 @@ class CourseAddPitt : SubCommand(
     {
         val schoolService = event.getService<SchoolService>()
         val courseService = event.getService<CourseService>()
-
         val schoolName = event.getOption<String>("school_name")
-        val pittSchools = schoolService.getPittSchoolsInGuild(event.guild.idLong)
-            ?: return run { event.replyErrorEmbed("Error has occurred while thing to get schools in `${event.guild.name}`") }
+
+        val pittSchools = try { schoolService.getPittSchoolsInGuild(event.guild.idLong) }
+            catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while thing to get schools in `${event.guild.name}`") }
         if (pittSchools.isEmpty()) return run { event.replyErrorEmbed("There are no pitt schools in ${event.guild.name}") }
 
         val school = pittSchools.find { it.name == schoolName }
@@ -122,22 +126,25 @@ class CourseAddPitt : SubCommand(
     {
         val jda = event.jda
         val confirm = jda.button(label = "Confirm", style = ButtonStyle.SUCCESS, user = event.user) {
-            it.deferReply().queue()
+
+            it.message.edit(content = "Adding reminders... While we wait here's a joke. `${Constants.jokes[ThreadLocalRandom.current().nextInt(0, Constants.jokes.size - 1)]}`", components = emptyList()).queue()
 
              try { service.createReminders(course) }
              catch (e : Exception)
              {
-                 event.replyErrorEmbed("Reminders were not created. Please try again")
-                 logger.error("Error occurred while creating reminders", e);
+                 // to future me:  error handling is supposed to here
+                 it.message.editMessage("Reminders were not created. Please try again")
+                     .queue()
+                 logger.error("Error occurred while creating reminders", e)
                  return@button
              }
 
 
-             event.replyMessageAndClear("Reminders have been created for ${course.name}!")
+             it.message.edit("Reminders have been created for `${course.name}`! Have a nice day ${Emoji.THUMB_UP.getAsChat()}").queue(null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION))
         }
 
         val exit = jda.button(label = "Exit", style = ButtonStyle.DANGER, user = event.user) {
-            event.replyMessageAndClear("Alright. Have a nice day! ${Emoji.THUMB_UP.getAsChat()}")
+            it.editMessage_(components = emptyList(), content = "Okay have a nice day ${Emoji.THUMB_UP.getAsChat()}").queue()
         }
 
         return listOf(confirm, exit)

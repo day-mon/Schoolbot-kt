@@ -6,6 +6,7 @@ import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
+import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.school.Professor
 import me.damon.schoolbot.service.ProfessorService
 import me.damon.schoolbot.service.SchoolService
@@ -48,8 +49,8 @@ class ProfessorAdd : SubCommand(
         val schoolService = event.getService<SchoolService>()
         val professorService = event.getService<ProfessorService>()
 
-        val school = schoolService.findSchoolInGuild(event.guildId, schoolName)
-            ?: return run { event.replyErrorEmbed("Error occurred while trying to get school or school does not exist") }
+        val school = try { schoolService.findSchoolInGuild(event.guildId, schoolName) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while attempting to find school with name $schoolName ${Emoji.THINKING.getAsChat()}") }
+            ?: return event.replyErrorEmbed("Error occurred while trying to get school or school does not exist")
 
         val professor = Professor(
             firstName = firstName, lastName = lastName, school = school
@@ -57,6 +58,11 @@ class ProfessorAdd : SubCommand(
 
         val prof = try { professorService.findByNameInSchool(professor.fullName, school) } catch (e: Exception)
         { return run { event.replyErrorEmbed("Error occurred during command runtime") } }
+
+        if (prof != null)
+        {
+            return event.replyErrorEmbed("${prof.fullName} already exist. You cannot re-add him.")
+        }
 
 
         val savedProfessor = try { professorService.save(professor) } catch (e: Exception) {
