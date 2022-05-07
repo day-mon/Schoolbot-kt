@@ -29,7 +29,7 @@ class SchoolView : SubCommand(
             event.sentWithAnyOptions() ->
             {
                 val name = event.getOption<String>("school_name")
-                val school = event.schoolbot.schoolService.findSchoolInGuild(event.guildId, name) ?: return run {
+                val school = try { event.schoolbot.schoolService.findSchoolInGuild(event.guildId, name) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find school with the name $name") } ?: return run {
                     event.replyErrorEmbed("School does not exist")
                 }
 
@@ -38,12 +38,12 @@ class SchoolView : SubCommand(
             }
             else ->
             {
-                val schools = event.schoolbot.schoolService.getSchoolsByGuildId(event.guildId) ?:
-                   return run { event.replyErrorEmbed("Error occurred while retrieving schools") }
+                val schools = try { event.schoolbot.schoolService.findSchoolsInGuild(event.guildId)  } catch (e: Exception) {
+                   return  event.replyErrorEmbed("Error occurred while retrieving schools")  }
 
-                if (schools.isEmpty()) return run {
-                    event.replyErrorEmbed("There are no schools in `${event.guild.name}`")
-                }
+                if (schools.isEmpty())
+                    return event.replyErrorEmbed("There are no schools in `${event.guild.name}`")
+
 
                 event.sendPaginatorColor(schools)
             }
@@ -52,7 +52,8 @@ class SchoolView : SubCommand(
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {
-       val schools = schoolbot.schoolService.getSchoolsByGuildId(event.guild!!.idLong) ?: return
+        val guildId = event.guild?.idLong ?: return logger.error("Guild is null")
+        val schools = schoolbot.schoolService.findSchoolsInGuild(guildId)
         event.replyChoiceStringAndLimit(
             schools.map { it.name }
                 .filter { it.startsWith(event.focusedOption.value, ignoreCase = true) }

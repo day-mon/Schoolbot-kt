@@ -1,9 +1,8 @@
 package me.damon.schoolbot.commands.sub.school.school
 
-import dev.minn.jda.ktx.interactions.SelectMenu
-import dev.minn.jda.ktx.interactions.button
-import dev.minn.jda.ktx.interactions.option
-import dev.minn.jda.ktx.messages.reply_
+import dev.minn.jda.ktx.interactions.components.SelectMenu
+import dev.minn.jda.ktx.interactions.components.button
+import dev.minn.jda.ktx.interactions.components.option
 import me.damon.schoolbot.ext.asException
 import me.damon.schoolbot.ext.editOriginalAndClear
 import me.damon.schoolbot.objects.command.CommandCategory
@@ -16,12 +15,10 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import java.time.ZoneId
-import java.util.*
 import kotlin.time.Duration.Companion.minutes
 
 class SchoolAdd : SubCommand(
-    name = "add",
-    description = "Adds a school", category = CommandCategory.SCHOOL, options = listOf(
+    name = "add", description = "Adds a school", category = CommandCategory.SCHOOL, options = listOf(
         CommandOptionData<String>(
             optionType = OptionType.STRING,
             name = "school_name",
@@ -58,10 +55,9 @@ class SchoolAdd : SubCommand(
         val menu = SelectMenu("school:menu") {
             models.forEachIndexed { index, schoolModel ->
                 option(
-                    schoolModel.name,
-                    index.toString()
-                //damon, its ryan. u forgot a ';'. not sure if u need in kotlin. but just checking :)-
-                // xd
+                    schoolModel.name, index.toString()
+                    //damon, its ryan. u forgot a ';'. not sure if u need in kotlin. but just checking :)-
+                    // xd
                 )
             }
         }
@@ -69,12 +65,14 @@ class SchoolAdd : SubCommand(
         val selectionEvent = event.sendMenuAndAwait(menu, "Select an item from the menu to choose a school") ?: return
         val school = models[selectionEvent.values[0].toInt()]
 
-        val duplicate = event.schoolbot.schoolService.findSchoolInGuild(event.guild.idLong, school.name)
+        val duplicate = try { event.schoolbot.schoolService.findSchoolInGuild(event.guild.idLong, school.name) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while attempting to check if ${school.name} is a duplicate.. Try again!") }
         if (duplicate != null) return run { event.replyErrorEmbed("`${school.name}` already exist. You cannot add duplicate schools!") }
 
-        selectionEvent.reply_("Does this look like the correct school?")
-            .addEmbeds(school.getAsEmbed())
-            .addActionRow(getActionRows(selectionEvent, event, school.asSchool(ZoneId.systemDefault())))
+        event.hook.sendMessage("Does this look like the correct school?").addEmbeds(school.getAsEmbed()).addActionRow(
+            getActionRows(
+                selectionEvent, event, school.asSchool(ZoneId.systemDefault().id)
+            )
+        ) // todo: come bck to this and ask for timezone.
             .queue()
     }
 
@@ -84,17 +82,20 @@ class SchoolAdd : SubCommand(
         val jda = event.jda
         val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = event.user, expiration = 1.minutes) {
 
-            val savedSchool = cmdEvent.service.saveSchool(school, cmdEvent) ?: return@button run {
+            val savedSchool = try
+            {
+                cmdEvent.service.saveSchool(school, cmdEvent)
+            } catch (e: Exception)
+            {
+                logger.error("Error has occurred while trying to save the school", e)
                 cmdEvent.replyErrorEmbed("Error has occurred while trying to save school!")
+                return@button
             }
 
-                event.hook.editOriginal("School has been saved")
-                    .setEmbeds(savedSchool.getAsEmbed())
-                    .setActionRows(Collections.emptyList())
-                    .queue()
+            event.hook.editOriginal("School has been saved").setEmbeds(savedSchool.getAsEmbed())
+                .setActionRows(emptyList()).queue()
 
         }
-
 
 
         val no = jda.button(label = "No", style = ButtonStyle.DANGER, user = event.user, expiration = 1.minutes) {

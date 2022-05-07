@@ -1,7 +1,7 @@
 package me.damon.schoolbot.commands.sub.school.laundry
 
-import dev.minn.jda.ktx.interactions.SelectMenu
-import dev.minn.jda.ktx.interactions.option
+import dev.minn.jda.ktx.interactions.components.SelectMenu
+import dev.minn.jda.ktx.interactions.components.option
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.replyChoiceStringAndLimit
 import me.damon.schoolbot.objects.command.CommandCategory

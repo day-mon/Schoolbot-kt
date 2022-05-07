@@ -1,7 +1,7 @@
 package me.damon.schoolbot.objects.command
 
-import dev.minn.jda.ktx.Embed
-import dev.minn.jda.ktx.SLF4J
+import dev.minn.jda.ktx.messages.Embed
+import dev.minn.jda.ktx.util.SLF4J
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.Permission

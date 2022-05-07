@@ -1,6 +1,6 @@
 package me.damon.schoolbot.handler
 
-import dev.minn.jda.ktx.SLF4J
+import dev.minn.jda.ktx.util.SLF4J
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -131,6 +131,7 @@ class MessageHandler(val service: GuildService)
                     )
                     message.editMessage("Body returned unexpected response").queue()
                 }
+
 
                 val pastecordEnding = responseJson.get("key")
 

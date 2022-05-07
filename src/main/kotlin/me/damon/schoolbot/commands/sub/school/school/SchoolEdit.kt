@@ -1,7 +1,7 @@
 package me.damon.schoolbot.commands.sub.school.school
 
-import dev.minn.jda.ktx.interactions.SelectMenu
-import dev.minn.jda.ktx.interactions.option
+import dev.minn.jda.ktx.interactions.components.SelectMenu
+import dev.minn.jda.ktx.interactions.components.option
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.damon.schoolbot.Schoolbot
@@ -11,6 +11,7 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.school.School
+import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
@@ -35,12 +36,13 @@ class SchoolEdit : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val name = event.getOption<String>("school_name")
+        val service = event.getService<SchoolService>()
 
-        val school = event.schoolbot.schoolService.findSchoolInGuild(
+        val school = try {event.schoolbot.schoolService.findSchoolInGuild(
             name = name,
             guildId = event.guildId
-        ) ?: return run {
-            event.replyErrorEmbed("Error has occurred while trying to get schools or $name was deleted during/after the autocomplete process!")
+        )  } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find $name in our database!") } ?: return run {
+            event.replyErrorEmbed("$name was deleted during/after the autocomplete process!")
         }
 
         // This could error if names are too large I assume
@@ -65,8 +67,9 @@ class SchoolEdit : SubCommand(
 
         val changedSchool = evaluateChangeRequest(event, messageResponse, choice, school) ?: return
 
-        val updatedSchool = event.service.updateEntity(changedSchool) ?: return run {
+        val updatedSchool = try { service.update(changedSchool) } catch (e: Exception) {
             event.replyErrorEmbed("`${school.name}` either does not exist or an unexpected error occurred during the update sequence. Please try again. If this error persis please contact `damon#9999` ")
+            return
         }
         val embed = withContext(Dispatchers.IO) { updatedSchool.getAsEmbed() }
 
@@ -82,9 +85,9 @@ class SchoolEdit : SubCommand(
         {
             "name" ->
             {
-                val duplicate = event.service.findDuplicateSchool(event.guildId, message) ?: return run {
+                val duplicate = try { event.service.findDuplicateSchool(event.guildId, message) } catch (e: Exception) {  event.replyErrorEmbed("Error has occurred while trying to find duplicate school. Please try again"); return null} ?:  run {
                     event.replyErrorEmbed("Error occurred while trying to determine if $message is a duplicate school")
-                    null
+                    return null
                 }
 
                 if (!duplicate) return run {
@@ -150,9 +153,8 @@ class SchoolEdit : SubCommand(
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {
-        val schools: List<School> = schoolbot.schoolService.getSchoolsByGuildId(event.guild!!.idLong) ?: return run {
-            logger.error("Was null")
-        }
+        val guildId = event.guild?.idLong ?: return logger.error("Guild is null")
+        val schools: List<School> =  schoolbot.schoolService.findSchoolsInGuild(guildId)
         event.replyChoiceStringAndLimit(
             schools.map { it.name }
         ).queue()

@@ -1,20 +1,18 @@
 package me.damon.schoolbot.objects.command
 
-import dev.minn.jda.ktx.Embed
-import dev.minn.jda.ktx.SLF4J
-import dev.minn.jda.ktx.await
-import dev.minn.jda.ktx.interactions.replyPaginator
-import dev.minn.jda.ktx.interactions.sendPaginator
+import dev.minn.jda.ktx.events.await
+import dev.minn.jda.ktx.interactions.components.replyPaginator
+import dev.minn.jda.ktx.interactions.components.sendPaginator
+import dev.minn.jda.ktx.messages.Embed
+import dev.minn.jda.ktx.util.SLF4J
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withTimeoutOrNull
 import me.damon.schoolbot.Constants
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.empty
 import me.damon.schoolbot.ext.replyErrorEmbed
-import me.damon.schoolbot.ext.toUUID
-import me.damon.schoolbot.objects.misc.Emoji
-import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
+import me.damon.schoolbot.service.*
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageEmbed
@@ -26,6 +24,7 @@ import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
 
 class CommandEvent(
@@ -73,14 +72,14 @@ class CommandEvent(
             color = Constants.RED
         })
             .setContent(String.empty)
-            .setActionRows(Collections.emptyList())
+            .setActionRows(emptyList())
             .queue(null) { logger.error("Error has occurred while attempting to send embeds for command ${command.name}", it) }
         else -> slashEvent.replyEmbeds(Embed {
             title = tit
             description = error
             color = Constants.RED
         })
-            .addActionRows(Collections.emptyList())
+            .addActionRows(emptyList())
             .setContent("")
             .queue(null) { logger.error("Error has occurred while attempting to send embeds for command ${command.name}", it) }
     }
@@ -108,8 +107,8 @@ class CommandEvent(
     }
 
     fun replyMessageAndClear(message: String) = when  {
-        command.deferredEnabled -> hook.editOriginal(message).setActionRows(Collections.emptyList()).setEmbeds(Collections.emptyList()).queue()
-        else -> slashEvent.reply(message).addActionRows(Collections.emptyList()).addActionRows(Collections.emptyList()).queue()
+        command.deferredEnabled -> hook.editOriginal(message).setActionRows(emptyList()).setEmbeds(emptyList()).queue()
+        else -> slashEvent.reply(message).addActionRows(emptyList()).addActionRows(emptyList()).queue()
     }
 
     fun replyMessageWithErrorEmbed(message: String, exception: Exception)
@@ -139,19 +138,6 @@ class CommandEvent(
     }
 
 
-    // This function must be inlined and reified so that the compiler can infer the type of the generic
-    inline fun <reified T : Identifiable> findGenericByIdAndGet(optionName: String): T?
-    {
-        val genericStr = getOption<String>(optionName.trim())
-        val id = genericStr.toUUID() ?: return run {
-            replyErrorEmbed("Error occurred while trying to fetch school by id. ${Emoji.THINKING.getAsChat()}")
-            null
-        }
-        return service.findGenericById(T::class.java, id) ?: return run {
-            replyErrorEmbed("Error occurred while trying to fetch school by id. ${Emoji.THINKING.getAsChat()}")
-            null
-        }
-    }
 
     fun <T : Pagable> sendPaginator(embeds: Collection<T>) =
         sendPaginator(*embeds.map { it.getAsEmbed() }.toTypedArray())
@@ -171,9 +157,9 @@ class CommandEvent(
      *
      */
     suspend fun sendMenuAndAwait(
-        menu: SelectMenu, message: String, timeoutDuration: Long = 1, acknowledge: Boolean = false
+    menu: SelectMenu, message: String, timeoutDuration: Long = 1, acknowledge: Boolean = false
     ) = withTimeoutOrNull(timeoutDuration * 60000) {
-        hook.editOriginal("$message | Time out is set to $timeoutDuration seconds").setActionRow(menu).queue()
+        hook.editOriginal("$message | Time out is set to $timeoutDuration minute(s)").setActionRow(menu).queue()
         jda
             .await<SelectMenuInteractionEvent> { it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }
             .also { if (acknowledge) it.deferEdit().queue() }
@@ -192,14 +178,14 @@ class CommandEvent(
      */
     suspend fun sendMessageAndAwait(
         message: String,
-        rows: List<ActionRow> = Collections.emptyList(),
+        rows: List<ActionRow> = emptyList(),
         timeoutDuration: Long = 1
-    ): MessageReceivedEvent? = withTimeoutOrNull(timeoutDuration * 60000) {
+    ): MessageReceivedEvent = withTimeoutOrNull(timeoutDuration * 60000) {
         hook.editOriginal(message).setActionRows(rows).queue()
         jda.await { it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }
     } ?: run {
         hook.replyErrorEmbed(body = "Command has timed out try again please")
-        null
+        throw TimeoutException("Command has timed out")
     }
 
 
@@ -240,6 +226,15 @@ class CommandEvent(
         Double::class -> slashEvent.getOption(name)?.asDouble as T
         Boolean::class -> slashEvent.getOption(name)?.asBoolean as T
         Member::class -> slashEvent.getOption(name)?.asMember as T
+        else -> throw IllegalArgumentException("Unknown type ${T::class}")
+    }
+
+    inline fun <reified T: SpringService> getService(): T = when (T::class)
+    {
+        GuildService::class -> schoolbot.guildService as T
+        SchoolService::class -> schoolbot.schoolService as T
+        ProfessorService::class -> schoolbot.professorService as T
+        CourseService::class -> schoolbot.courseService as T
         else -> throw IllegalArgumentException("Unknown type ${T::class}")
     }
 

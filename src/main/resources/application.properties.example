@@ -1,0 +1,10 @@
+spring.datasource.url=
+spring.datasource.username=
+spring.datasource.password=
+spring.datasource.driver-class-name=
+spring.jpa.properties.hibernate.dialect=
+spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=
+spring.jpa.show-sql=
+spring.jpa.hibernate.ddl-auto=
+spring.jpa.properties.hibernate.jdbc.batch_size=4
+spring.jpa.properties.hibernate.order_inserts=

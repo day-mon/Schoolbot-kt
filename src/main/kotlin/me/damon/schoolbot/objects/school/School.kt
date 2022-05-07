@@ -1,16 +1,13 @@
 package me.damon.schoolbot.objects.school
 
-import dev.minn.jda.ktx.Embed
-import me.damon.schoolbot.Schoolbot
+import dev.minn.jda.ktx.messages.Embed
 import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.MessageEmbed
-import org.hibernate.Hibernate
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.springframework.transaction.annotation.Transactional
-import java.time.ZoneId
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 import javax.persistence.*
@@ -50,8 +47,8 @@ open class School(
     @Fetch(value = FetchMode.SELECT)
     open val classes: MutableSet<Course>,
 
-    @Column(name = "timeZone", nullable = false, updatable = true)
-    open val timeZone: ZoneId
+    @Column(name = "timeZone", nullable = false)
+    open val timeZone: String
 
     ) : Pagable, Identifiable
 {

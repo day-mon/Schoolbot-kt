@@ -9,9 +9,10 @@ import java.util.*
 interface ClassroomRepository : JpaRepository<Course, UUID>
 {
     @Query("select c from courses c where c.name = ?1 and c.number = ?2 and c.termIdentifier = ?3")
-    fun findCourseByNameAndNumberAndTermIdentifier(name: String, number: Long, termIdentifier: String): Course?
+    fun findByNameAndNumberAndTerm(name: String, number: Long, termIdentifier: String): Course?
     @Query("select c from courses c where c.guildId = ?1")
     fun findByGuildIdEquals(guildId: Long): Set<Course>
     fun findBySchool(school: School): Set<Course>
-    fun findByAssignmentsIsEmptyAndGuildIdEquals(guildId: Long): List<Course>
+    @Query("select c from courses c where c.assignments is empty and c.guildId = ?1")
+    fun findAllByEmptyAssignmentsInGuild(guildId: Long): List<Course>
 }

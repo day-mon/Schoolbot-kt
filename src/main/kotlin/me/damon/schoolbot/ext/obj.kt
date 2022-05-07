@@ -1,6 +1,6 @@
 package me.damon.schoolbot.ext
 
-import dev.minn.jda.ktx.Embed
+import dev.minn.jda.ktx.messages.Embed
 import me.damon.schoolbot.objects.misc.Emoji
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.interactions.commands.Command
 import yahoofinance.Stock
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.*
 
 fun Stock.getAsQEmbed(): MessageEmbed
 {
@@ -109,8 +108,8 @@ fun Stock.getAsQEmbed(): MessageEmbed
 
 
 fun InteractionHook.editOriginalAndClear(content: String) = editMessageById("@original", content)
-    .setActionRows(Collections.emptyList())
-    .setEmbeds(Collections.emptyList())
+    .setActionRows(emptyList())
+    .setEmbeds(emptyList())
     .queue()
 
 

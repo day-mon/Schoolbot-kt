@@ -1,6 +1,6 @@
 package me.damon.schoolbot.commands.main.admin
 
-import dev.minn.jda.ktx.interactions.button
+import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.reply_
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
@@ -13,7 +13,6 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
 import java.time.OffsetDateTime
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 
@@ -72,7 +71,7 @@ class Clear : Command(
                     return@thenApplyAsync subList.size
                 }.thenAcceptAsync { size ->
                     event.hook.editOriginal("Successfully purged `${size}` messages!")
-                        .setActionRows(Collections.emptyList())
+                        .setActionRows(emptyList())
                         .queue {
                         it.delete()
                             .queueAfter(5, TimeUnit.SECONDS, null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))
@@ -83,7 +82,7 @@ class Clear : Command(
 
         val exit = jda.button(label = "Exit", style = ButtonStyle.DANGER, user = event.user) {
             event.hook.editOriginal("Operation was successfully cancelled")
-                .setActionRows(Collections.emptyList())
+                .setActionRows(emptyList())
                 .queue()
         }
         return listOf(confirm, exit)

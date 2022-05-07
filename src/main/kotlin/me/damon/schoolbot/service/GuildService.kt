@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
 @Service("GuildService")
 open class GuildService(
     private val guildRepository: GuildSettingsRepository
-)
+) : SpringService
 {
     @Cacheable(cacheNames = ["guild_settings"], key = "#guildId")
     open fun getGuildSettings(guildId: Long): GuildSettings
@@ -21,13 +21,12 @@ open class GuildService(
         }
         else
         {
-            guildRepository.save( GuildSettings(guildId = guildId ) )
+            guildRepository.save(GuildSettings(guildId = guildId ))
         }
     }
 
-    open fun createSettings(settings: GuildSettings): GuildSettings? =
-        runCatching { guildRepository.save(settings) }
-        .getOrNull()
+    open fun createSettings(settings: GuildSettings): GuildSettings? = guildRepository.save(settings)
+
 
     @CacheEvict(cacheNames = ["guild_settings"], key = "#guildId")
     open fun removeGuildInstance(guildId: Long) = guildRepository.deleteById(guildId)
