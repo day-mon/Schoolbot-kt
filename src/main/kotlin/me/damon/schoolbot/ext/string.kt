@@ -1,5 +1,6 @@
 package me.damon.schoolbot.ext
 
+import me.damon.schoolbot.Constants
 import me.damon.schoolbot.objects.command.CommandChoice
 import java.math.BigDecimal
 import java.security.MessageDigest
@@ -8,7 +9,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-fun LocalDateTime.formatDate(): String = this.format(DateTimeFormatter.ofPattern("M/dd/yyyy"))
+fun LocalDateTime.formatDate(): String = this.format(DateTimeFormatter.ofPattern("M/dd/yyyy @ hh:mm a", Constants.DEFAULT_LOCALE))
 fun BigDecimal.parseNumbersWithCommas() = DecimalFormat("#,###.00").format(this).toString()
 fun String.toUUID(): UUID? =  try {  UUID.fromString(this) } catch (e: Exception) { null }
 fun String.asHyperText(url: String) = "[${this}](${url})"

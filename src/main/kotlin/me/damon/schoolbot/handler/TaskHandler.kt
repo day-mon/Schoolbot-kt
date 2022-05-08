@@ -8,11 +8,18 @@ import org.springframework.stereotype.Component
 import java.util.concurrent.*
 
 @Component
-class TaskHandler()
+class TaskHandler
 {
+    private val activityList = listOf(
+        Activity.watching("mark sleep"),
+        Activity.streaming("warner growing", "https://www.youtube.com/watch?v=PLOPygVcaVE"),
+        Activity.watching("damon bench joesphs weight"),
+        Activity.streaming("chakra balancing seminar", "https://www.youtube.com/watch?v=vqklftk89Nw")
+    )
     private val scheduler = Executors.newScheduledThreadPool(10) { Thread(it, "Schoolbot TaskHandler-Thread") }
-    val tasks = mutableMapOf<String, Future<*>>()
     private val logger by SLF4J
+    val tasks = mutableMapOf<String, Future<*>>()
+
 
 
     fun addRepeatingTask(
@@ -53,14 +60,8 @@ class TaskHandler()
             timeUnit = TimeUnit.MINUTES,
             duration = 5,
             block = {
-                val random = ThreadLocalRandom.current()
-                val activityList = listOf(
-                    Activity.watching("mark sleep"),
-                    Activity.streaming("warner growing", "https://www.youtube.com/watch?v=PLOPygVcaVE"),
-                    Activity.watching("damon bench joesphs weight"),
-                    Activity.streaming("chakra balancing seminar", "https://www.youtube.com/watch?v=vqklftk89Nw")
-                )
-            jda.presence.setPresence(OnlineStatus.ONLINE, activityList[random.nextInt(activityList.size)])
+            jda.presence.setPresence(OnlineStatus.ONLINE, activityList[ThreadLocalRandom.current()
+                .nextInt(activityList.size)])
         })
 
         addRepeatingTask(

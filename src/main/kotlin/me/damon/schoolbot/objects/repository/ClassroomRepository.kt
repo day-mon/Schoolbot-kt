@@ -12,7 +12,7 @@ interface ClassroomRepository : JpaRepository<Course, UUID>
     fun findByNameAndNumberAndTerm(name: String, number: Long, termIdentifier: String): Course?
     @Query("select c from courses c where c.guildId = ?1")
     fun findByGuildIdEquals(guildId: Long): Set<Course>
-    fun findBySchool(school: School): Set<Course>
+    fun findBySchool(school: School): List<Course>
     @Query("select c from courses c where c.assignments is empty and c.guildId = ?1")
     fun findAllByEmptyAssignmentsInGuild(guildId: Long): List<Course>
 }

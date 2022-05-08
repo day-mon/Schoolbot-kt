@@ -1,11 +1,12 @@
 package me.damon.schoolbot.objects.school
 
 import dev.minn.jda.ktx.messages.Embed
+import me.damon.schoolbot.ext.formatDate
 import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
+import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
 
@@ -27,14 +28,14 @@ open class Assignment (
     open val points: Int,
 
     @Column(name = "dueDate")
-    open  val dueDate: Instant,
+    open val dueDate: LocalDateTime,
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
     open val course: Course,
 
     @OneToMany(mappedBy = "assignment", fetch = FetchType.LAZY)
-    open val assignments: MutableSet<AssignmentReminder> = mutableSetOf(),
+    open val reminders: List<AssignmentReminder> = emptyList()
 
     ) : Comparable<Assignment>, Pagable, Identifiable
 {
@@ -44,6 +45,7 @@ open class Assignment (
     override fun getAsEmbed(): MessageEmbed = Embed {
         title = name
         description = this@Assignment.description
-
+        field("Points", points.toString(), true)
+        field("Due Date", dueDate.formatDate(), true)
     }
 }

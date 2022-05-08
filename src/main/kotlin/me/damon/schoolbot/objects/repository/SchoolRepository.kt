@@ -21,5 +21,7 @@ interface SchoolRepository : JpaRepository<School, UUID>
     fun findEmptyClassesInGuild(guildId: Long): List<School>
     @Query("select s from School s where s.guildId = ?1")
     fun findInGuild(guildId: Long): List<School>
+    @Query("select s from School s where s.classes is not empty and s.guildId = ?1")
+    fun findByNonEmptyInAndGuildId(guildId: Long): List<School>
 
 }

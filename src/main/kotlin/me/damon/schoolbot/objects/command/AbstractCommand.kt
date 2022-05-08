@@ -61,7 +61,7 @@ abstract class AbstractCommand : Pagable
             if (!i.validate(event.getOption(i.name)!!))
             {
                 event.replyErrorEmbed(
-                    tit = "Validation failed on field ```${i.asOptionData().name}```",
+                    embedTitle = "Validation failed on field ```${i.asOptionData().name}```",
                     error = "```${i.validationFailed}```"
                 )
                 return

@@ -6,7 +6,7 @@ import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed
 
 data class LaundryModel(
-    val applianceID: String,
+    val applianceID: String?,
     val type: String,
     val isWorking: Boolean,
     val timeRemaining: String,
@@ -17,7 +17,7 @@ data class LaundryModel(
     override fun getAsEmbed(): MessageEmbed
     {
         return Embed {
-            title = "Appliance ID [#${applianceID.replace("0", "")}]"
+            title = "Appliance ID [#${applianceID?.replace("0", "") ?: "N/A"}]"
 
 
             field {

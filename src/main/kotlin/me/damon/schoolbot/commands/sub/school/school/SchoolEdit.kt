@@ -33,6 +33,7 @@ class SchoolEdit : SubCommand(
     )
 )
 {
+    // todo: be able to edit timezone.. its a bit more complicated because you have to check if there are any reminders and if there are any, you have to edit the timezone of the reminders as well.. which could be a bit of a pain..
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val name = event.getOption<String>("school_name")
@@ -85,10 +86,7 @@ class SchoolEdit : SubCommand(
         {
             "name" ->
             {
-                val duplicate = try { event.service.findDuplicateSchool(event.guildId, message) } catch (e: Exception) {  event.replyErrorEmbed("Error has occurred while trying to find duplicate school. Please try again"); return null} ?:  run {
-                    event.replyErrorEmbed("Error occurred while trying to determine if $message is a duplicate school")
-                    return null
-                }
+                val duplicate = try { event.service.findDuplicateSchool(event.guildId, message) } catch (e: Exception) {  event.replyErrorEmbed("Error has occurred while trying to find duplicate school. Please try again"); return null }
 
                 if (!duplicate) return run {
                     event.replyErrorEmbed("$message already exist as a school name")

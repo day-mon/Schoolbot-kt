@@ -97,7 +97,7 @@ class CourseAddPitt : SubCommand(
         val constraints = evaluateConstraints(course, event, term, courseService)
         if (constraints != String.empty)
         {
-            event.replyErrorEmbed(tit = "An error has occurred while trying to add a class", error = constraints)
+            event.replyErrorEmbed(error = constraints)
             return
         }
 

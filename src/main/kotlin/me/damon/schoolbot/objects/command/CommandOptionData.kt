@@ -64,8 +64,7 @@ data class CommandOptionData<T>(
         description, /* isRequired = */
         isRequired, /* isAutoComplete = */
         autoCompleteEnabled
-    )
-        .addChoices(choices.map { it.asCommandChoice() })
+    ).addChoices(choices.map { it.asCommandChoice() })
 
 
 }

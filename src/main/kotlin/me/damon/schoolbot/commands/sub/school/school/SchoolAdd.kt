@@ -18,7 +18,10 @@ import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import kotlin.time.Duration.Companion.minutes
 
 class SchoolAdd : SubCommand(
-    name = "add", description = "Adds a school", category = CommandCategory.SCHOOL, options = listOf(
+    name = "add",
+    description = "Adds a school",
+    category = CommandCategory.SCHOOL,
+    options = listOf(
         CommandOptionData<String>(
             optionType = OptionType.STRING,
             name = "school_name",

@@ -1,21 +1,28 @@
 package me.damon.schoolbot.objects.school
 
 import me.damon.schoolbot.ext.empty
-import java.time.Instant
+import org.hibernate.annotations.GenericGenerator
+import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
 
 @Table(name = "assignment_reminders")
 @Entity(name = "AssignmentReminder")
 open class AssignmentReminder(
-    @Id
-    open val id: UUID = UUID.randomUUID(),
-
     @ManyToOne
     @JoinColumn(name = "assignment_id")
     open val assignment: Assignment,
 
-    open val remindTime: Instant,
+    open val remindTime: LocalDateTime,
 
     open val message: String = String.empty
-)
+) {
+    @Id
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(
+        name = "UUID",
+        strategy = "org.hibernate.id.UUIDGenerator"
+    )
+    @Column(name = "id", updatable = false, nullable = false)
+    open var id: UUID? = null
+}

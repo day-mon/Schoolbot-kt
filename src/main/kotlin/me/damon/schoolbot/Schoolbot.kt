@@ -7,10 +7,7 @@ import me.damon.schoolbot.handler.*
 import me.damon.schoolbot.listener.GuildListeners
 import me.damon.schoolbot.listener.MessageListeners
 import me.damon.schoolbot.listener.SlashListener
-import me.damon.schoolbot.service.CourseService
-import me.damon.schoolbot.service.GuildService
-import me.damon.schoolbot.service.ProfessorService
-import me.damon.schoolbot.service.SchoolService
+import me.damon.schoolbot.service.*
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.OnlineStatus
@@ -49,6 +46,8 @@ open class Schoolbot(
     val schoolService: SchoolService,
     val professorService: ProfessorService,
     val courseService: CourseService,
+    val assignmentService: AssignmentService,
+    val assignmentReminderService: AssignmentReminderService,
 
     private val guildListener: GuildListeners,
     private val messageListeners: MessageListeners,

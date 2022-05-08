@@ -27,7 +27,7 @@ class LaundryView : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val dorm = event.getOption("dormitory")?.asString!!
+        val dorm = event.getOption<String>("dormitory")
         val response = event.schoolbot.apiHandler.johnstownAPI.getLaundryItems(dorm)
 
         if (!response.isSuccessful)
@@ -36,9 +36,9 @@ class LaundryView : SubCommand(
             event.replyErrorEmbed("An error has occurred while getting the response")
             return
         }
-        val models = response.body() ?: return run {
-            event.replyErrorEmbed("Error has occurred while trying to get the response body")
-        }
+
+        val models = response.body() ?: return event.replyErrorEmbed("Error has occurred while trying to get the response body")
+
 
         event.sendPaginator(models)
 

@@ -11,21 +11,27 @@ import me.damon.schoolbot.Constants
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.empty
 import me.damon.schoolbot.ext.replyErrorEmbed
+import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.misc.Pagable
 import me.damon.schoolbot.service.*
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageEmbed
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.interactions.callbacks.IModalCallback
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.Modal
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 class CommandEvent(
     val schoolbot: Schoolbot,
@@ -46,48 +52,58 @@ class CommandEvent(
 
     val options: MutableList<OptionMapping> = slashEvent.options
 
-    fun replyEmbed(embed: MessageEmbed, content: String = String.empty) = when
-    {
-        command.deferredEnabled -> hook.editOriginalEmbeds(embed).setActionRows(Collections.emptyList())
-            .setContent(content).queue(null) {
-                logger.error(
-                    "Error has occurred while attempting to send embeds for command ${command.name}", it
-                )
-                hook.editOriginal("Error has occurred while attempting to send embeds").queue()
-            }
-        else -> slashEvent.replyEmbeds(embed).setContent(content).queue(null) {
+
+
+    fun replyEmbed(embed: MessageEmbed, content: String = String.empty) = replyEmbed(slashEvent, embed, content)
+    fun replyErrorEmbed(error: String, embedTitle: String = "Error has occurred") = replyErrorEmbed(slashEvent, "${Emoji.RED_CIRCLE.getAsChat()} $error", embedTitle)
+
+
+
+    fun <T: IReplyCallback> replyEmbed(interaction: T, embed: MessageEmbed, content: String = String.empty) = when {
+        command.deferredEnabled || slashEvent.isAcknowledged -> interaction.hook.sendMessageEmbeds(embed).queue(null) {
             logger.error(
                 "Error has occurred while attempting to send embeds for command ${command.name}", it
             )
-            slashEvent.reply("Error has occurred while attempting to send embeds").queue()
+            hook.editOriginal("Error has occurred while attempting to send embeds").queue()
+        }
+        else -> interaction.replyEmbeds(embed).setContent(content).queue(null) {
+            logger.error(
+                "Error has occurred while attempting to send embeds for command ${command.name}", it
+            )
+            interaction.reply("Error has occurred while attempting to send embeds").queue()
 
         }
     }
-
-    fun replyErrorEmbed(error: String, tit: String = "Error has occurred") = when
+    fun <T: IReplyCallback> replyErrorEmbed(interaction: T, error: String, tit: String = "Error has occurred") = when
     {
-        command.deferredEnabled -> hook.editOriginalEmbeds(Embed {
+        command.deferredEnabled || interaction.isAcknowledged -> interaction.hook.sendMessageEmbeds(Embed {
             title = tit
             description = error
             color = Constants.RED
-        })
-            .setContent(String.empty)
-            .setActionRows(emptyList())
-            .queue(null) { logger.error("Error has occurred while attempting to send embeds for command ${command.name}", it) }
-        else -> slashEvent.replyEmbeds(Embed {
+        }).queue(null) {
+                logger.error(
+                    "Error has occurred while attempting to send embeds for command ${command.name}",
+                    it
+                )
+            }
+        else -> interaction.replyEmbeds(Embed {
             title = tit
             description = error
             color = Constants.RED
-        })
-            .addActionRows(emptyList())
-            .setContent(String.empty)
-            .queue(null) { logger.error("Error has occurred while attempting to send embeds for command ${command.name}", it) }
+        }).queue(null) {
+                logger.error(
+                    "Error has occurred while attempting to send embeds for command ${command.name}",
+                    it
+                )
+            }
     }
+
+
 
     fun replyAndEditWithDelay(message: String, delayMessage: String, unit: TimeUnit, time: Long)
     {
         // expression body looks meh
-        if (command.deferredEnabled)
+        if (command.deferredEnabled || slashEvent.isAcknowledged)
         {
             hook.editOriginal(message).queue {
                 it.editMessage(delayMessage).queueAfter(time, unit)
@@ -102,12 +118,12 @@ class CommandEvent(
     }
 
     fun replyMessage(message: String) = when  {
-        command.deferredEnabled -> hook.editOriginal(message).queue()
+        command.deferredEnabled || slashEvent.isAcknowledged -> hook.sendMessage(message).queue()
         else -> slashEvent.reply(message).queue()
     }
 
     fun replyMessageAndClear(message: String) = when  {
-        command.deferredEnabled -> hook.editOriginal(message).setActionRows(emptyList()).setEmbeds(emptyList()).queue()
+        command.deferredEnabled || slashEvent.isAcknowledged -> hook.editOriginal(message).setActionRows(emptyList()).setEmbeds(emptyList()).queue()
         else -> slashEvent.reply(message).addActionRows(emptyList()).addActionRows(emptyList()).queue()
     }
 
@@ -146,6 +162,23 @@ class CommandEvent(
         sendPaginator(*embeds.map { it.getAsEmbed(guild) }.toTypedArray())
 
 
+    suspend fun <T: IModalCallback> awaitModal(interaction: T, modal: Modal, duration: Duration = 1.minutes, deferReply: Boolean = false): ModalInteractionEvent?
+    {
+        if (interaction.isAcknowledged)
+        {
+            replyErrorEmbed("Interaction is already acknowledged")
+            return null
+        }
+
+        return withTimeoutOrNull<ModalInteractionEvent>(duration.inWholeMilliseconds) {
+             interaction.replyModal(modal).queue()
+             jda.await { it.member?.idLong == slashEvent.member?.idLong && it.modalId == modal.id }
+        }.also { if (deferReply) it?.deferReply()?.queue() } ?: run {
+            replyErrorEmbed("Command timed out")
+            null
+        }
+    }
+
 
 
     /**
@@ -159,14 +192,16 @@ class CommandEvent(
     suspend fun sendMenuAndAwait(
     menu: SelectMenu, message: String, timeoutDuration: Long = 1, acknowledge: Boolean = false
     ) = withTimeoutOrNull(timeoutDuration * 60000) {
-        hook.editOriginal("$message | Time out is set to $timeoutDuration minute(s)").setActionRow(menu).queue()
-        jda
-            .await<SelectMenuInteractionEvent> { it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }
+       if (slashEvent.isAcknowledged || command.deferredEnabled) hook.sendMessage("$message | Time out is set to $timeoutDuration minute(s)").addActionRow(menu).queue()
+       else  slashEvent.reply("$message | Timeout is set to $timeoutDuration minute(s)").addActionRow(menu).queue()
+
+        jda.await<SelectMenuInteractionEvent> { it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }
             .also { if (acknowledge) it.deferEdit().queue() }
     } ?: run {
         replyErrorEmbed("Command has timed out try again please")
         null
     }
+
 
     /**
      * This function is used to send a paginator of embeds.
@@ -235,6 +270,8 @@ class CommandEvent(
         SchoolService::class -> schoolbot.schoolService as T
         ProfessorService::class -> schoolbot.professorService as T
         CourseService::class -> schoolbot.courseService as T
+        AssignmentService::class -> schoolbot.assignmentService as T
+        AssignmentReminderService::class -> schoolbot.assignmentReminderService as T
         else -> throw IllegalArgumentException("Unknown type ${T::class}")
     }
 

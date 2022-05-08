@@ -68,7 +68,24 @@ class CommandHandler(private val context: ConfigurableApplicationContext)
         val subCommand = event.subcommandName
         val command = commands[cmdName] ?: return
 
-        if (command.deferredEnabled) event.deferReply().queue()
+
+        if (group != null)
+        {
+            val sub = command.group[group]!!.find { it.name ==  subCommand }!!
+            if (sub.deferredEnabled)
+                event.deferReply().queue()
+        }
+        else if (subCommand != null)
+        {
+            val sub = command.children.find { it.name == event.subcommandName }!!
+            if (sub.deferredEnabled)
+                event.deferReply().queue()
+        }
+        else
+        {
+            if (command.deferredEnabled)
+                event.deferReply().queue()
+        }
 
         if (group != null) scope.launch {
             val sub = command.group[group]!!.find { it.name ==  subCommand }!!

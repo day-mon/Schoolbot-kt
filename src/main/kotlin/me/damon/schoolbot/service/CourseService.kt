@@ -192,7 +192,7 @@ open class CourseService(
             .onFailure { logger.error("Error has o") }
             .getOrThrow()
 
-    open fun getClassesBySchool(school: School): Set<Course> =
+    open fun getClassesBySchool(school: School): List<Course> =
         runCatching { classroomRepository.findBySchool(school = school) }
             .onFailure { logger.error("Error has occurred while trying to get the courses for school id: {}", school.name, it) }
             .getOrThrow()

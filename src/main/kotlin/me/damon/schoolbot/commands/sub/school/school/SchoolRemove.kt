@@ -12,6 +12,7 @@ import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.school.School
+import me.damon.schoolbot.service.CourseService
 import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.Command.Choice
@@ -41,9 +42,11 @@ class SchoolRemove : SubCommand(
         val service = event.getService<SchoolService>()
 
         val schoolId = event.getOption<String>("school_name")
-        val id = UUID.fromString(schoolId)
+        val id = try { UUID.fromString(schoolId) } catch (e: Exception) { return event.replyErrorEmbed("That is not a valid school to be deleted at this time.\nIn order for a school to be deleted it must have no classes and be added to your guild")}
         val school = try {  service.findSchoolById(id) } catch (e: Exception) { return  event.replyErrorEmbed("Error occurred while searching for school")} ?: return event.replyErrorEmbed("${Emoji.ERROR} School not found")
 
+        val courses = try { event.getService<CourseService>().getClassesBySchool(school) } catch (e: Exception) { return event.replyErrorEmbed("Error occurred while checking if this school has any courses. \n Why would we check? Idk some of you are sneaky.")}
+        if (courses.isNotEmpty()) return event.replyErrorEmbed("School has courses. Remove them first. Nice try.")
 
         event.hook.editOriginal("Are you sure you want to remove ${school.name}")
             .setEmbeds(school.getAsEmbed())

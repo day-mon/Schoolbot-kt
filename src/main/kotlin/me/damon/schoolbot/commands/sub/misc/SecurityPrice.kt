@@ -32,7 +32,7 @@ class SecurityPrice : SubCommand(
 
                 field {
                     name = "Price"
-                    value = quote.price.toString()
+                    value = quote.price?.toString() ?: "N/A"
                     inline = true
                 }
 

@@ -9,7 +9,7 @@ abstract class Command(
     override val description: String,
     override val commandPrerequisites: String = String.empty,
     override val coolDown: Long = 1000L,
-    override val deferredEnabled: Boolean = true,
+    override val deferredEnabled: Boolean = false,
     override val memberPermissions: List<Permission> = listOf(),
     override val selfPermission: List<Permission> = listOf(),
     override val children: List<SubCommand> = listOf(),

@@ -5,9 +5,12 @@ import me.damon.schoolbot.objects.misc.Emoji
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.InteractionHook
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback
 import net.dv8tion.jda.api.interactions.commands.Command
+import net.dv8tion.jda.api.interactions.components.ActionComponent
 import yahoofinance.Stock
 import java.math.BigDecimal
+import java.time.Instant
 import java.time.LocalDateTime
 
 fun Stock.getAsQEmbed(): MessageEmbed
@@ -120,6 +123,10 @@ fun InteractionHook.editOriginalAndClear(content: String) = editMessageById("@or
     .setEmbeds(emptyList())
     .queue()
 
+fun Instant.toDiscordTimeZone() = "<t:${this.epochSecond}>"
+
+fun IReplyCallback.send(content: String, embeds: List<MessageEmbed> = emptyList(), actionRows: List<ActionComponent> = emptyList()) =
+    if (this.isAcknowledged) this.hook.sendMessage(content).addActionRow(actionRows).addEmbeds(embeds).queue() else this.reply(content).addActionRow(actionRows).addEmbeds(embeds).queue()
 
 private const val interactionLimit: Int = 25
 fun CommandAutoCompleteInteractionEvent.replyChoiceAndLimit(commands: Collection<Command.Choice>) = this.replyChoices(

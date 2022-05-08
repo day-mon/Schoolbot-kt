@@ -54,10 +54,14 @@ open class SchoolService(
             .onFailure { logger.error("Error occurred while retrieving schools with no classrooms in guild {}", guildId) }
             .getOrThrow()
 
-
     open fun findSchoolsInGuild(guildId: Long): List<School> =
         runCatching { schoolRepository.findInGuild(guildId) }
             .onFailure { logger.error("Error occurred while retrieving schools in guild {}", guildId) }
+            .getOrThrow()
+
+    open fun findNonEmptySchoolsInGuild(guildId: Long): List<School> =
+        runCatching { schoolRepository.findByNonEmptyInAndGuildId(guildId) }
+            .onFailure { logger.error("Error has occurred while trying to find non-empty classes.", it) }
             .getOrThrow()
 
 
