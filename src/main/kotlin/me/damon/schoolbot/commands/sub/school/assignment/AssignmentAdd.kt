@@ -153,15 +153,15 @@ class AssignmentAdd : SubCommand(
                 AssignmentReminder(assignment, assignment.dueDate.minusHours(1)),
                 AssignmentReminder(assignment, assignment.dueDate.minusMinutes(10)),
                 AssignmentReminder(assignment, assignment.dueDate)
-            )
+            ).filter { reminder -> reminder.remindTime.isAfter(LocalDateTime.now()) }
 
-          try { event.getService<AssignmentReminderService>().saveAll(reminders) }
+          val addedReminders = try { event.getService<AssignmentReminderService>().saveAll(reminders) }
           catch (e: Exception)
           {
               return@button it.message.editMessage("Error has occurred while trying to save the reminders.").queue()
           }
 
-            it.message.editMessage("Reminders added! Have a nice day ${Emoji.SMILEY.getAsChat()}").queue()
+            it.message.editMessage("**${addedReminders.size}** Reminders added! Have a nice day ${Emoji.SMILEY.getAsChat()} ! ${ if(addedReminders.size > 5) "\n **WAIT** Just in case you are wondering the reason why you didnt get all of the times added is because one or more of the times added has already happened." else "" }").queue()
 
         }
 
