@@ -57,7 +57,7 @@ class ProfessorAdd : SubCommand(
         )
 
         val prof = try { professorService.findByNameInSchool(professor.fullName, school) } catch (e: Exception)
-        { return run { event.replyErrorEmbed("Error occurred during command runtime") } }
+        { return event.replyErrorEmbed("Error occurred during command runtime") }
 
         if (prof != null)
         {

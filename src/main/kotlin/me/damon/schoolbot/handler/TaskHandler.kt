@@ -5,7 +5,11 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.OnlineStatus
 import net.dv8tion.jda.api.entities.Activity
 import org.springframework.stereotype.Component
-import java.util.concurrent.*
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 @Component
 class TaskHandler
@@ -60,7 +64,7 @@ class TaskHandler
             timeUnit = TimeUnit.MINUTES,
             duration = 5,
             block = {
-            jda.presence.setPresence(OnlineStatus.ONLINE, activityList[ThreadLocalRandom.current()
+            jda.presence.setPresence(OnlineStatus.ONLINE, activityList[Random
                 .nextInt(activityList.size)])
         })
 

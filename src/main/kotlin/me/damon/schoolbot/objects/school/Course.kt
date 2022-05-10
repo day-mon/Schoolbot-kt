@@ -6,12 +6,13 @@ import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.MessageEmbed
+import org.springframework.scheduling.annotation.Async
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.*
 import javax.persistence.*
 
-@Table(name = "Courses")
+@Table(name = "courses")
 @Entity(name = "courses")
 @Transactional
 open class Course(
@@ -31,10 +32,10 @@ open class Course(
     open val reminders: MutableList<CourseReminder> = mutableListOf(),
 
     @ManyToMany(mappedBy = "courses", fetch = FetchType.LAZY)
-    open val professors: MutableSet<Professor>,
+    open val professors: List<Professor>,
 
-    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
-    open val assignments: MutableSet<Assignment>,
+    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
+    open val assignments: List<Assignment>,
 
     @Column(name = "startDate", nullable = false)
     open val startDate: Instant,
@@ -44,9 +45,6 @@ open class Course(
 
     @Column(name = "meeting_days", nullable = false)
     open val meetingDays: String, // days comma delimited
-
-    //@Column(name = "term")
-    //val term: ClassTerm,
 
     @Column(name = "termId")
     open val termIdentifier: String = String.empty,
@@ -71,12 +69,12 @@ open class Course(
 
     @Column(name = "autoFilled")
     /**
-     * A class that was auto populated via api
+     * A class that was autopopulated via api
      */
     open val autoFilled: Boolean = false,
 
     @ManyToOne
-    @JoinColumn(name = "school_id")
+    @JoinColumn(name = "school")
     open val school: School,
 
     @Id
@@ -85,6 +83,7 @@ open class Course(
     ) : Pagable, Identifiable
 
 {
+    @Async
     override fun getAsEmbed(): MessageEmbed = Embed {
         title = "$name | $subjectAndIdentifier"
         url = this@Course.url
@@ -112,23 +111,6 @@ open class Course(
             value = number.toString()
             inline = true
         }
-
-        /*
-        field {
-            name = "Professors"
-            value = professors.joinToString { "`${it.firstName}, ${it.lastName}`" }
-        }
-
-
-
-        field {
-            name = "Assignment Count"
-            value = assignments.size.toString()
-        }
-
-         */
-
-
     }
 
 

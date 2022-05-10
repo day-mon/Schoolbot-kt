@@ -5,18 +5,16 @@ import me.damon.schoolbot.ext.formatDate
 import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed
+import org.hibernate.annotations.GenericGenerator
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
 
 @Table(name = "assignments")
-@Entity(name = "Assignment")
+@Entity(name = "assignment")
 @Transactional
 open class Assignment (
-    @Id
-    @Column(name = "id", unique = true, nullable = false, updatable = false)
-    override val id: UUID = UUID.randomUUID(),
 
     @Column(name = "name")
     open val name: String,
@@ -31,7 +29,7 @@ open class Assignment (
     open val dueDate: LocalDateTime,
 
     @ManyToOne
-    @JoinColumn(name = "course_id", nullable = false)
+    @JoinColumn(name = "course", nullable = false)
     open val course: Course,
 
     @OneToMany(mappedBy = "assignment", fetch = FetchType.LAZY)
@@ -39,6 +37,14 @@ open class Assignment (
 
     ) : Comparable<Assignment>, Pagable, Identifiable
 {
+    @Id
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(
+        name = "UUID",
+        strategy = "org.hibernate.id.UUIDGenerator"
+    )
+    @Column(name = "id", updatable = false, nullable = false)
+    override var id: UUID? = null
     override fun compareTo(other: Assignment): Int
     =  dueDate.compareTo(other.dueDate)
 

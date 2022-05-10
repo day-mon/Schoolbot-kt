@@ -5,6 +5,7 @@ import me.damon.schoolbot.ext.empty
 import me.damon.schoolbot.objects.school.Course
 import me.damon.schoolbot.objects.school.Professor
 import me.damon.schoolbot.objects.school.School
+import me.damon.schoolbot.objects.school.emptyProfessor
 import me.damon.schoolbot.service.ProfessorService
 import java.time.Instant
 
@@ -41,7 +42,7 @@ data class CourseModel(
     @JsonIgnore
     var term: String,
 ) {
-    fun asCourse(school: School, professorService: ProfessorService)
+    suspend fun asCourse(school: School, professorService: ProfessorService)
     = Course(
         name = name,
         description = description,
@@ -55,93 +56,72 @@ data class CourseModel(
         endDate = Instant.ofEpochMilli(endDateAndEndTime),
         guildId = school.guildId, // kinda silly..
         professors = processProfessors(instructor, school, professorService),
-        assignments = mutableSetOf(),
+        assignments = listOf(),
         meetingDays = meetingDays.joinToString { it },
         autoFilled = true,
         school = school
     )
     @JsonIgnore
-    private fun processProfessors(professors: List<String>, school: School, professorService: ProfessorService): MutableSet<Professor>
+    private suspend fun processProfessors(professors: List<String>, school: School, professorService: ProfessorService): List<Professor>
     {
-        val regex = Regex("\\s+")
-        if (professors.isEmpty()) return mutableSetOf(
-            Professor(
-                firstName = "N/A",
-                lastName = "N/A",
-                emailPrefix = "N/A",
-                school = school,
-                courses = mutableSetOf()
-            )
-        )
+        if (professors.isEmpty()) return listOf(emptyProfessor(school))
 
-        val profs: MutableSet<Professor> = mutableSetOf()
+        val regex = Regex("\\s+")
+
+
+        val profs: MutableList<Professor> = mutableListOf()
 
         for (professor in professors)
         {
             if (professor == "To be Announced")
             {
-                profs.add(
-                    Professor(
-                        firstName = "To be Announced",
-                        lastName = String.empty,
-                        courses = mutableSetOf(),
-                        school = school,
-                        emailPrefix = "tba"
-                    )
-                )
+                profs.add(emptyProfessor(school))
                 continue
             }
-            if (professor.contains(regex))
-            {
-                val split = professor.split(
-                    regex = regex,
-                    limit = 2
-                )
-                val newProfessor = Professor(
-                    firstName = split[0],
-                    lastName = split[1],
-                    school = school,
-                )
-
-                val duplicate = try {
-                    val professor = professorService.findBySchoolName(name, school.guildId)
-                    if (professor.isEmpty()) continue
-                    profs.add(professor.first())
-                }
-                catch (e: Exception) { profs.add(newProfessor); continue }
-
-                profs.add(
-                    Professor(
-                        firstName = split[0],
-                        lastName = split[1],
-                        courses = mutableSetOf(),
-                        emailPrefix = split[1],
-                        school = school
-                    )
-                )
-            }
-            else
-            {
-                val prof = school.professor.find { it.firstName == professor && it.lastName == String.empty  }
-
-
-                if (prof != null)
-                {
-                    profs.add(prof)
-                    continue
-                }
-
-                profs.add(
-                    Professor(
-                        firstName =  professor,
-                        lastName = String.empty,
-                        courses = mutableSetOf(),
-                        emailPrefix = "unknown",
-                        school = school
-                    )
-                )
-            }
+            val professorToAdd =
+                if (professor.contains(regex)) handleCorrectPattern(professor, school, professorService) ?: continue
+                else handleIncorrectPattern(school, professor)
+            profs.add(professorToAdd)
         }
         return profs
     }
+
+
+    private suspend fun handleCorrectPattern(professor: String, school: School, professorService: ProfessorService): Professor?
+    {
+        val regex = Regex("\\s+")
+
+        val split = professor.split(
+            regex = regex,
+            limit = 2
+        )
+        val newProfessor = Professor(
+            firstName = split[0],
+            lastName = split[1],
+            school = school,
+        )
+
+        return try
+        {
+            val professorFound = professorService.findBySchoolName(name, school.guildId)
+            if (professorFound.isEmpty()) newProfessor
+            else professorFound.first()
+        }
+        catch (e: Exception) { newProfessor }
+
+
+    }
+
+    private fun handleIncorrectPattern(school: School, professorName: String): Professor
+    {
+    return school.professor.find { it.firstName == professorName && it.lastName == String.empty  } ?: Professor(
+            firstName =  professorName,
+            lastName = String.empty,
+            courses = listOf(),
+            emailPrefix = "unknown",
+            school = school
+        )
+
+    }
+
 }

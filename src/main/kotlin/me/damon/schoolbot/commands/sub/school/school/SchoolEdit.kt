@@ -54,7 +54,7 @@ class SchoolEdit : SubCommand(
                 option("Suffix - ${school.emailSuffix}", "suffix")
                 option("Role - ${event.jda.getRoleById(school.roleId)?.name ?: "N/A"}", "role")
         }
-        val selectionEvent = event.sendMenuAndAwait(
+        val selectionEvent = event.awaitMenu(
             menu = menu,
             message = "Please select the attribute you wish you edit"
         ) ?: return
@@ -79,7 +79,7 @@ class SchoolEdit : SubCommand(
 
     }
 
-    private fun evaluateChangeRequest(event: CommandEvent, messageResponse: MessageReceivedEvent, choice: String, school: School): School?
+    private suspend fun evaluateChangeRequest(event: CommandEvent, messageResponse: MessageReceivedEvent, choice: String, school: School): School?
     {
         val message = messageResponse.message.contentStripped
         return when (choice)

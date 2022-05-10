@@ -4,5 +4,5 @@ import java.util.*
 
 interface Identifiable
 {
-    val id: UUID
+    val id: UUID?
 }

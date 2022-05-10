@@ -37,26 +37,21 @@ class ProfessorView : SubCommand(
         }
         catch (e: Exception)
         {
-            return run {
-                event.replyErrorEmbed("An error occurred while trying to find professors")
-            }
+            return event.replyErrorEmbed("An error occurred while trying to find professors")
+
         }
 
-        if (professors.isEmpty()) return run {
-            event.replyErrorEmbed("No professors found with the name `$name`")
-        }
+        if (professors.isEmpty()) return event.replyErrorEmbed("No professors found with the name `$name`")
+
 
         event.sendPaginator(professors)
     }
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {
-        val guildId = event.guild?.idLong ?: return run {
-            logger.warn("Guild ID was null when trying to auto complete")
-        }
+        val guildId = event.guild?.idLong ?: return logger.warn("Guild ID was null when trying to auto complete")
         val schools = try { schoolbot.schoolService.findSchoolsInGuild(guildId) } catch (e: Exception) {
-            logger.warn("An error occurred while trying to find professors", e)
-            return
+            return logger.warn("An error occurred while trying to find professors", e)
         }
 
 

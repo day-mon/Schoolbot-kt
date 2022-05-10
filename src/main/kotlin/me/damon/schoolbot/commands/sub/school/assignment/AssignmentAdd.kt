@@ -6,6 +6,7 @@ import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.interactions.components.option
 import dev.minn.jda.ktx.messages.edit
 import dev.minn.jda.ktx.messages.editMessage_
+import dev.minn.jda.ktx.messages.into
 import me.damon.schoolbot.Constants
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.empty
@@ -27,7 +28,7 @@ import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
-import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -83,7 +84,7 @@ class AssignmentAdd : SubCommand(
             courses.forEachIndexed { index, course -> option(course.name, index.toString()) }
         }
 
-        val menuEvent = event.sendMenuAndAwait(menu, "Please select the course that you wish to add the assignment to.") ?: return
+        val menuEvent = event.awaitMenu(menu, "Please select the course that you wish to add the assignment to.") ?: return
         val index = menuEvent.values[0].toInt()
         val course = courses[index]
 
@@ -140,7 +141,7 @@ class AssignmentAdd : SubCommand(
         )
     }
 
-    private fun getActionRows(event: CommandEvent, assignment: Assignment): List<Button>
+    private fun getActionRows(event: CommandEvent, assignment: Assignment): List<ActionRow>
     {
         val jda = event.jda
 
@@ -169,7 +170,7 @@ class AssignmentAdd : SubCommand(
             it.editMessage_(components = emptyList(), content = "Okay have a nice day ${Emoji.THUMB_UP.getAsChat()}").queue()
         }
 
-        return listOf(yes, no)
+        return listOf(yes, no).into()
     }
 
     private fun evaluateModalFields(

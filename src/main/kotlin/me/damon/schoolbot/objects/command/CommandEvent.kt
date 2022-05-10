@@ -20,6 +20,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.callbacks.IModalCallback
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
@@ -27,6 +28,7 @@ import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.Modal
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
+import net.dv8tion.jda.api.requests.ErrorResponse
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -81,21 +83,21 @@ class CommandEvent(
             description = error
             color = Constants.RED
         }).queue(null) {
-                logger.error(
-                    "Error has occurred while attempting to send embeds for command ${command.name}",
-                    it
-                )
-            }
+            logger.error(
+                "Error has occurred while attempting to send embeds for command ${command.name}",
+                it
+            )
+        }
         else -> interaction.replyEmbeds(Embed {
             title = tit
             description = error
             color = Constants.RED
         }).queue(null) {
-                logger.error(
-                    "Error has occurred while attempting to send embeds for command ${command.name}",
-                    it
-                )
-            }
+            logger.error(
+                "Error has occurred while attempting to send embeds for command ${command.name}",
+                it
+            )
+        }
     }
 
 
@@ -171,8 +173,8 @@ class CommandEvent(
         }
 
         return withTimeoutOrNull<ModalInteractionEvent>(duration.inWholeMilliseconds) {
-             interaction.replyModal(modal).queue()
-             jda.await { it.member?.idLong == slashEvent.member?.idLong && it.modalId == modal.id }
+            interaction.replyModal(modal).queue()
+            jda.await { it.member?.idLong == slashEvent.member?.idLong && it.modalId == modal.id }
         }.also { if (deferReply) it?.deferReply()?.queue() } ?: run {
             replyErrorEmbed("Command timed out")
             null
@@ -189,14 +191,14 @@ class CommandEvent(
      * @return The interaction event
      *
      */
-    suspend fun sendMenuAndAwait(
-    menu: SelectMenu, message: String, timeoutDuration: Long = 1, acknowledge: Boolean = false
+    suspend fun awaitMenu(
+        menu: SelectMenu, message: String, timeoutDuration: Long = 1, acknowledge: Boolean = false, throwAway: Boolean = false
     ) = withTimeoutOrNull(timeoutDuration * 60000) {
-       if (slashEvent.isAcknowledged || command.deferredEnabled) hook.sendMessage("$message | Time out is set to $timeoutDuration minute(s)").addActionRow(menu).queue()
-       else  slashEvent.reply("$message | Timeout is set to $timeoutDuration minute(s)").addActionRow(menu).queue()
+        if (slashEvent.isAcknowledged || command.deferredEnabled) hook.sendMessage("$message | Time out is set to $timeoutDuration minute(s)").addActionRow(menu).queue()
+        else  slashEvent.reply("$message | Timeout is set to $timeoutDuration minute(s)").addActionRow(menu).queue()
 
         jda.await<SelectMenuInteractionEvent> { it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }
-            .also { if (acknowledge) it.deferEdit().queue() }
+            .also { if (acknowledge) it.deferEdit().queue(); if (throwAway) it.message.delete().queue(null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE)) }
     } ?: run {
         replyErrorEmbed("Command has timed out try again please")
         null

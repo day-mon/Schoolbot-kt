@@ -5,6 +5,7 @@ import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.interactions.components.option
 import dev.minn.jda.ktx.messages.edit
 import dev.minn.jda.ktx.messages.editMessage_
+import dev.minn.jda.ktx.messages.into
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.damon.schoolbot.Constants
@@ -25,11 +26,11 @@ import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.commands.OptionType
-import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
 import java.time.LocalDate
-import java.util.concurrent.ThreadLocalRandom
+import kotlin.random.Random
 
 class CourseAddPitt : SubCommand(
     name = "pitt",
@@ -58,12 +59,12 @@ class CourseAddPitt : SubCommand(
 
         val pittSchools = try { schoolService.getPittSchoolsInGuild(event.guild.idLong) }
             catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while thing to get schools in `${event.guild.name}`") }
-        if (pittSchools.isEmpty()) return run { event.replyErrorEmbed("There are no pitt schools in ${event.guild.name}") }
+        if (pittSchools.isEmpty()) return event.replyErrorEmbed("There are no pitt schools in ${event.guild.name}")
 
         val school = pittSchools.find { it.name == schoolName }
             ?: return run { event.replyErrorEmbed("$schoolName has not been found!") }
         val terms = getThreeTerms()
-        val selectionEvent = event.sendMenuAndAwait(
+        val selectionEvent = event.awaitMenu(
             SelectMenu("pittschool:menu") { terms.forEach { option(it.first, it.second) } },
             "Awesome we have selected `${school.name}`! Please select a term from the following term list!"
         ) ?: return
@@ -79,15 +80,14 @@ class CourseAddPitt : SubCommand(
         event.replyMessageAndClear("Okay, looks good. I will now do the search for the class in the term: `$term` and with the number: `${message}`")
         val response = event.schoolbot.apiHandler.johnstownAPI.getCourse(termNumber, message)
 
-        if (!response.isSuccessful)
-        {
+        if (!response.isSuccessful) run {
             event.replyErrorEmbed("Error has occurred while trying to get class")
-            logger.error("Error has occurred while trying to get class", response.raw().asException())
+            return logger.error("Error has occurred while trying to get class", response.raw().asException())
         }
 
-        val course = response.body() ?: return run {
+        val course = response.body() ?: run {
             event.replyErrorEmbed("Error occurred while attempting to get the response body")
-            logger.error("Body was null after retrieving it")
+            return logger.error("Body was null after retrieving it")
         }
 
         course.apply {
@@ -115,19 +115,19 @@ class CourseAddPitt : SubCommand(
             .queue()
 
         event.hook.sendMessage("Would you like to add reminders for this course? (I will remind you **60**, **30**, **10** and **0 minutes** before class starts)")
-            .addActionRow(getActionRows(savedCourse, event, courseService))
+            .addActionRows(getActionRows(savedCourse, event, courseService))
             .queue()
 
 
 
     }
 
-    private fun getActionRows(course: Course, event: CommandEvent, service: CourseService): List<Button>
+    private fun getActionRows(course: Course, event: CommandEvent, service: CourseService): List<ActionRow>
     {
         val jda = event.jda
         val confirm = jda.button(label = "Confirm", style = ButtonStyle.SUCCESS, user = event.user) {
 
-            it.message.edit(content = "Adding reminders... While we wait here's a joke. `${Constants.JOKES[ThreadLocalRandom.current().nextInt(0, Constants.JOKES.size - 1)]}`", components = emptyList()).queue()
+            it.message.edit(content = "Adding reminders... While we wait here's a joke. `${Constants.JOKES[Random.nextInt(0, Constants.JOKES.size - 1)]}`", components = emptyList()).queue()
 
              try { service.createReminders(course) }
              catch (e : Exception)
@@ -147,7 +147,7 @@ class CourseAddPitt : SubCommand(
             it.editMessage_(components = emptyList(), content = "Okay have a nice day ${Emoji.THUMB_UP.getAsChat()}").queue()
         }
 
-        return listOf(confirm, exit)
+        return listOf(confirm, exit).into()
 
     }
 

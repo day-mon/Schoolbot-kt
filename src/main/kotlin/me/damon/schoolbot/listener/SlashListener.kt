@@ -1,6 +1,5 @@
 package me.damon.schoolbot.listener
 
-import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.handler.CommandHandler
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
@@ -12,7 +11,8 @@ class SlashListener(private val commandHandler: CommandHandler) : ListenerAdapte
 {
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent)
     {
-        if (event.guild == null) return
+        if (event.guild == null)
+            return event.reply("This command can only be used in a server.").queue()
         commandHandler.handle(event)
     }
 

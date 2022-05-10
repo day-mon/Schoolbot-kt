@@ -1,5 +1,6 @@
 package me.damon.schoolbot.service
 
+import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.util.SLF4J
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -20,8 +21,8 @@ open class ProfessorService(
     private val logger by SLF4J
 
     @Throws(Exception::class)
-    open fun findAllInGuild(guildId: Long): MutableSet<Professor> =
-        runCatching { professorRepository.findAllInGuild(guildId) }
+    open suspend fun findAllInGuild(guildId: Long): List<Professor> =
+        runCatching { professorRepository.findAllInGuild(guildId).await() }
             .onFailure { logger.error("Error has occurred while trying to get professors in guild $guildId") }
             .getOrThrow()
     @Throws
@@ -30,14 +31,14 @@ open class ProfessorService(
         .getOrThrow()
 
     @Throws
-    open fun saveAll(professors: Collection<Professor>): Iterable<Professor> = run { professorRepository.saveAll(professors) }
+    open fun saveAll(professors: Collection<Professor>): Iterable<Professor> = professorRepository.saveAll(professors)
 
-    open fun removeAll(professors: Collection<Professor>) = run { professorRepository.deleteAll(professors) }
+    open fun removeAll(professors: Collection<Professor>) = professorRepository.deleteAll(professors)
 
 
     @Throws
-    open fun findBySchool(school: School): MutableSet<Professor> =
-        runCatching { professorRepository.findAllBySchool(school) }
+    open suspend fun findBySchool(school: School): List<Professor> =
+        runCatching { professorRepository.findAllBySchool(school).await() }
             .onFailure { logger.error("Error occurred while retrieving professors in school {}", school.name) }
             .getOrThrow()
 
@@ -46,8 +47,8 @@ open class ProfessorService(
         .getOrThrow()
 
     @Throws
-    open fun findBySchoolName(name: String, guildId: Long): MutableSet<Professor>  =
-        runCatching { professorRepository.findAllBySchoolNameInGuild(name, guildId) }
+    open suspend fun findBySchoolName(name: String, guildId: Long): List<Professor>  =
+        runCatching { professorRepository.findAllBySchoolNameInGuild(name, guildId).await() }
             .onFailure { logger.error("Error has occurred while trying to find professors in guild $guildId") }
             .getOrThrow()
     @Throws
@@ -56,8 +57,8 @@ open class ProfessorService(
         .getOrThrow()
 
     @Throws
-    open fun findByNameInSchool(name: String, school: School): Professor? =
-        runCatching { professorRepository.findProfessorByName(name, school) }
+    open suspend fun findByNameInSchool(name: String, school: School): Professor? =
+        runCatching { professorRepository.findProfessorByName(name, school).await() }
             .onFailure { logger.error("Error occurred while trying to get professor", it) }
             .getOrThrow()
 

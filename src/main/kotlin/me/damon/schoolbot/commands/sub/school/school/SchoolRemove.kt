@@ -1,7 +1,8 @@
 package me.damon.schoolbot.commands.sub.school.school
 
 import dev.minn.jda.ktx.interactions.components.button
-
+import dev.minn.jda.ktx.messages.into
+import dev.minn.jda.ktx.messages.send
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.damon.schoolbot.Schoolbot
@@ -17,7 +18,7 @@ import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.Command.Choice
 import net.dv8tion.jda.api.interactions.commands.OptionType
-import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import java.util.*
 import kotlin.time.Duration.Companion.minutes
@@ -48,20 +49,18 @@ class SchoolRemove : SubCommand(
         val courses = try { event.getService<CourseService>().getClassesBySchool(school) } catch (e: Exception) { return event.replyErrorEmbed("Error occurred while checking if this school has any courses. \n Why would we check? Idk some of you are sneaky.")}
         if (courses.isNotEmpty()) return event.replyErrorEmbed("School has courses. Remove them first. Nice try.")
 
-        event.hook.editOriginal("Are you sure you want to remove ${school.name}")
-            .setEmbeds(school.getAsEmbed())
-            .setActionRow(getActionRows( event, school))
-            .queue()
+        event.hook.send(content = "Are you sure you want to remove ${school.name}", embed = school.getAsEmbed(), components = getActionRows(event, school)).queue()
+
     }
 
-    private suspend fun getActionRows( cmdEvent: CommandEvent, school: School): List<Button>
+    private suspend fun getActionRows( cmdEvent: CommandEvent, school: School): List<ActionRow>
     {
         val hook = cmdEvent.hook
         val jda = cmdEvent.jda
         val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = cmdEvent.user, expiration = 1.minutes) {
 
 
-            cmdEvent.schoolbot.schoolService.deleteSchool(school, cmdEvent)
+            cmdEvent.getService<SchoolService>().deleteSchool(school, cmdEvent)
             val embed = withContext(Dispatchers.IO) { school.getAsEmbed() }
             hook.editOriginal("School has been deleted")
                 .setEmbeds(embed)
@@ -78,7 +77,7 @@ class SchoolRemove : SubCommand(
                 .queue()
         }
 
-        return listOf(yes, no)
+        return listOf(yes, no).into()
     }
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)

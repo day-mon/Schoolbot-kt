@@ -9,8 +9,8 @@ import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
-import java.util.concurrent.ThreadLocalRandom
 import javax.persistence.*
+import kotlin.random.Random
 
 @Entity(name = "School")
 @Table(name = "schools")
@@ -40,12 +40,11 @@ open class School(
 
     @OneToMany(mappedBy = "school", fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SELECT)
-
-    open val professor: MutableSet<Professor>,
+    open val professor: List<Professor>,
 
     @OneToMany(mappedBy = "school", fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SELECT)
-    open val classes: MutableSet<Course>,
+    open val classes: List<Course>,
 
     @Column(name = "timeZone", nullable = false)
     open val timeZone: String
@@ -66,7 +65,7 @@ open class School(
             inline = false
         }
 
-        color = ThreadLocalRandom.current().nextInt(0xFFFFFF)
+        color = Random.nextInt(0xFFFFFF)
     }
 
 
@@ -81,7 +80,7 @@ open class School(
             inline = false
         }
 
-        color = guild.getRoleById(roleId)?.colorRaw ?:  ThreadLocalRandom.current().nextInt(0xFFFFFF)
+        color = guild.getRoleById(roleId)?.colorRaw ?:  Random.nextInt(0xFFFFFF)
     }
     override fun toString(): String = name
 }

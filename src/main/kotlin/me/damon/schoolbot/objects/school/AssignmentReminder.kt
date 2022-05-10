@@ -10,7 +10,7 @@ import javax.persistence.*
 @Entity(name = "AssignmentReminder")
 open class AssignmentReminder(
     @ManyToOne
-    @JoinColumn(name = "assignment_id")
+    @JoinColumn(name = "assignment")
     open val assignment: Assignment,
 
     open val remindTime: LocalDateTime,

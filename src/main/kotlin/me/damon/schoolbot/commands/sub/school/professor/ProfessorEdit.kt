@@ -46,7 +46,7 @@ class ProfessorEdit : SubCommand(
             return run { event.replyErrorEmbed("Error occurred while trying to fetch professors by school.") }
         }
 
-        val selection = event.sendMenuAndAwait(
+        val selection = event.awaitMenu(
             menu = SelectMenu("${event.slashEvent.id}_${event.user.idLong}:SM:EDIT_PROFESSOR") {
                 professors.forEachIndexed { index, professor ->
                     option(
@@ -66,7 +66,7 @@ class ProfessorEdit : SubCommand(
             option("Email Prefix - ${professor.emailPrefix}", "email_prefix")
         }
 
-        val finalSelection = event.sendMenuAndAwait(
+        val finalSelection = event.awaitMenu(
             menu = menu,
             message = "Select a field to edit",
         ) ?: return
@@ -127,7 +127,7 @@ class ProfessorEdit : SubCommand(
         }
     }
 
-    private fun evaluateChangeRequest(
+    private suspend fun evaluateChangeRequest(
         event: CommandEvent, messageResponse: MessageReceivedEvent, choice: String, professor: Professor
     ): Professor?
     {

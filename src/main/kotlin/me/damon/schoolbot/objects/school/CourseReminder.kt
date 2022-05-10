@@ -12,7 +12,7 @@ open class CourseReminder(
 
 
     @ManyToOne
-    @JoinColumn(name = "course_id")
+    @JoinColumn(name = "course")
     open val course: Course,
 
     open val remindTime: LocalDateTime,

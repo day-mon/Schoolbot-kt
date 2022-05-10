@@ -20,7 +20,7 @@ import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.TemporalAdjusters
-import java.util.concurrent.ThreadLocalRandom
+import kotlin.random.Random
 
 @Service("CourseService")
 open class CourseService(
@@ -65,7 +65,7 @@ open class CourseService(
             professorService.saveAll(professorDif)
         }
 
-        val role = guild.createRole().setColor(ThreadLocalRandom.current().nextInt(0xFFFFF))
+        val role = guild.createRole().setColor(Random.nextInt(0xFFFFF))
             .setName(courseModel.name.replace(regex, "-").lowercase()).await()
 
         val channel = guild.createTextChannel(courseModel.name.replace(regex, "-").lowercase())
@@ -178,7 +178,7 @@ open class CourseService(
 
 
     open suspend fun findDuplicateCourse(name: String, number: Long, termId: String) = withContext(dispatcher) {
-        classroomRepository.findByNameAndNumberAndTerm(name, number, termId)
+        classroomRepository.findByNameAndNumberAndTerm(name, number, termId).await()
     }
 
 
@@ -187,13 +187,21 @@ open class CourseService(
             .onFailure { logger.error("Error has occurred while trying to get the courses for guild id: {}", guildId, it) }
             .getOrThrow()
 
-    open fun findEmptyClassesInGuild(guildId: Long): List<Course> =
-        runCatching { classroomRepository.findAllByEmptyAssignmentsInGuild(guildId) }
-            .onFailure { logger.error("Error has o") }
+    open suspend fun findEmptyAssignmentsInGuild(guildId: Long): List<Course> =
+        runCatching { classroomRepository.findAllByEmptyAssignmentsInGuild(guildId).await() }
+            .onFailure { logger.error("Error has occurred while searching for the classes with no assignments") }
+            .onSuccess { logger.debug("CourseService#findEmptyClassesInGuild has returned a size of {}", it.size) }
             .getOrThrow()
 
-    open fun getClassesBySchool(school: School): List<Course> =
-        runCatching { classroomRepository.findBySchool(school = school) }
+    open suspend fun findEmptyAssignmentsBySchoolInGuild(school: School): List<Course> =
+        runCatching { classroomRepository.findByNonEmptyAssignmentsInSchool(school).await() }
+            .onFailure { logger.error("Error has occurred while searching for the classes with no assignments") }
+            .onSuccess { logger.debug("CourseService#findEmptyAssignmentsBySchoolInGuild has returned a size of {}", it.size) }
+            .getOrThrow()
+
+
+    open suspend fun getClassesBySchool(school: School): List<Course> =
+        runCatching { classroomRepository.findBySchool(school = school).await() }
             .onFailure { logger.error("Error has occurred while trying to get the courses for school id: {}", school.name, it) }
             .getOrThrow()
 

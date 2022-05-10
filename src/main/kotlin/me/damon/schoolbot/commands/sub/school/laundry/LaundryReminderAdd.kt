@@ -43,9 +43,9 @@ class LaundryReminderAdd : SubCommand(
         }
 
         val models = response.body()?.filter { it.isInUse && !(it.timeRemaining.contains("Ext") || it.timeRemaining.contains("Offline")) }?.toList()
-            ?: return run {
+            ?: run {
                 logger.debug("{}", response.errorBody())
-            event.replyMessage("Error has occurred while trying to get the response body")
+              return event.replyMessage("Error has occurred while trying to get the response body")
         }
 
         if (models.isEmpty()) return run { event.replyMessage("There is no machine that is in use for you to be reminded about")}
@@ -53,17 +53,16 @@ class LaundryReminderAdd : SubCommand(
         val menu = SelectMenu("laundry:menu")
         { models.forEachIndexed { index, model -> option("${model.type} - ${model.timeRemaining}", index.toString()) } }
 
-        val selectionEvent = event.sendMenuAndAwait(
+        val selectionEvent = event.awaitMenu(
             menu = menu,
             message = "Please select the machine you would like to be reminded of"
         ) ?: return
-        val option = models[selectionEvent.values[0].toInt()]
-        val timeLeft = option.timeRemaining.split(Regex("\\s+"))[0].toInt()
+        val option = models[selectionEvent.values.first().toInt()]
+        val timeLeft = option.timeRemaining.split(Regex("\\s+")).first().toInt()
         val id = "${event.user.idLong}_${option.location}_${option.type}_${option.applianceID}"
 
-        if (taskHandler.taskExist(id)) return run {
-            event.replyMessage("You already have a reminder for this ${option.location} ${option.applianceID}")
-        }
+        if (taskHandler.taskExist(id)) return event.replyMessage("You already have a reminder for this ${option.location} ${option.applianceID}")
+
 
         taskHandler.addTask(
             name = id,

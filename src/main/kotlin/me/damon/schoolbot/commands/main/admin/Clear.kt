@@ -1,6 +1,7 @@
 package me.damon.schoolbot.commands.main.admin
 
 import dev.minn.jda.ktx.interactions.components.button
+import dev.minn.jda.ktx.messages.into
 import dev.minn.jda.ktx.messages.reply_
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
@@ -9,7 +10,7 @@ import me.damon.schoolbot.objects.command.CommandOptionData
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.commands.OptionType
-import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
 import java.time.OffsetDateTime
@@ -47,14 +48,14 @@ class Clear : Command(
 
        slash
             .reply_("You are about to delete `$amount` messages, click the checkmark to continue, click `Exit` to cancel. (30 seconds to make a choice)")
-            .addActionRow(getActionRows(event, amount))
+            .addActionRows(getActionRows(event, amount))
             .queue { it.deleteOriginal().queueAfter(30, TimeUnit.SECONDS) }
 
 
     }
 
 
-    private fun getActionRows(event: CommandEvent, amount: Long): List<Button>
+    private fun getActionRows(event: CommandEvent, amount: Long): List<ActionRow>
     {
         val jda = event.jda
         val confirm = jda.button(label = "Confirm", style = ButtonStyle.SUCCESS, user = event.user) { button ->
@@ -85,7 +86,7 @@ class Clear : Command(
                 .setActionRows(emptyList())
                 .queue()
         }
-        return listOf(confirm, exit)
+        return listOf(confirm, exit).into()
 
 
     }

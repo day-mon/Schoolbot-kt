@@ -5,9 +5,19 @@ import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.MessageEmbed
+import org.hibernate.annotations.GenericGenerator
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 import javax.persistence.*
+
+fun emptyProfessor(school: School) = Professor(
+    firstName = "N/A",
+    lastName = "N/A",
+    emailPrefix = "N/A",
+    school = school,
+    courses = listOf()
+)
+
 
 @Entity(name = "Professor")
 @Table(name = "professors")
@@ -21,9 +31,9 @@ open class Professor(
 
     @Column(name = "emailPrefix", nullable = false, columnDefinition = "TEXT")
     open var emailPrefix: String = lastName,
-    
+
     @ManyToOne
-    @JoinColumn(name = "school_id")
+    @JoinColumn(name = "school")
     open val school: School,
 
 
@@ -33,13 +43,18 @@ open class Professor(
         joinColumns = [JoinColumn(name = "professor_id", referencedColumnName = "id")],
         inverseJoinColumns = [JoinColumn(name = "course_id", referencedColumnName = "id")]
     )
-    open val courses: MutableSet<Course> = mutableSetOf(),
+    open val courses: List<Course> = listOf(),
 
     ) : Pagable, Identifiable
 {
     @Id
-    @Column(name = "id", unique = true, updatable = false)
-    override val id: UUID = UUID.randomUUID()
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(
+        name = "UUID",
+        strategy = "org.hibernate.id.UUIDGenerator"
+    )
+    @Column(name = "id", updatable = false, nullable = false)
+    override var id: UUID? = null
 
     @Column(name = "fullName", unique = true)
     open var fullName: String = "$firstName $lastName"
@@ -60,8 +75,9 @@ open class Professor(
         field("Last Name", lastName)
         field("Full Name", fullName)
         field("School", school.name)
-      //  field("Course count", courses.size.toString())
         color = guild.getRoleById(school.roleId)?.colorRaw
 
     }
+
+
 }

@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback
 import net.dv8tion.jda.api.interactions.commands.Command
-import net.dv8tion.jda.api.interactions.components.ActionComponent
+import net.dv8tion.jda.api.interactions.components.ActionRow
 import yahoofinance.Stock
 import java.math.BigDecimal
 import java.time.Instant
@@ -125,8 +125,10 @@ fun InteractionHook.editOriginalAndClear(content: String) = editMessageById("@or
 
 fun Instant.toDiscordTimeZone() = "<t:${this.epochSecond}>"
 
-fun IReplyCallback.send(content: String, embeds: List<MessageEmbed> = emptyList(), actionRows: List<ActionComponent> = emptyList()) =
-    if (this.isAcknowledged) this.hook.sendMessage(content).addActionRow(actionRows).addEmbeds(embeds).queue() else this.reply(content).addActionRow(actionRows).addEmbeds(embeds).queue()
+fun IReplyCallback.send(content: String, embeds: List<MessageEmbed> = emptyList(), actionRows: List<ActionRow> = emptyList()) =
+    if (this.isAcknowledged) this.hook.sendMessage(content).addActionRows(actionRows).addEmbeds(embeds).queue() else this.reply(content).addActionRows(actionRows).addEmbeds(embeds).queue()
+
+
 
 private const val interactionLimit: Int = 25
 fun CommandAutoCompleteInteractionEvent.replyChoiceAndLimit(commands: Collection<Command.Choice>) = this.replyChoices(
