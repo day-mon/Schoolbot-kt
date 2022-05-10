@@ -2,12 +2,5 @@
     "developerIds": [
         "-1-1-1"
     ],
-    "token": "",
-    "databaseConfig": {
-        "dbUser": "",
-        "dbHostName": "",
-        "dbPassword": "",
-        "dbJdbcUrl": "",
-        "dbDriver": ""
-    }
+    "token": "token"
 }

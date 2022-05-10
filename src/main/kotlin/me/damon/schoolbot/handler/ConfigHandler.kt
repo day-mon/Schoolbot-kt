@@ -36,14 +36,6 @@ class ConfigHandler
                 Config(
                     token = "token",
                     developerIds = listOf("-1".repeat(3)),
-
-                    databaseConfig = DatabaseConfig(
-                        dbUser = "",
-                        dbPassword = "",
-                        dbDriver = "",
-                        dbHostName = "",
-                        dbJdbcUrl = ""
-                    )
                 )
             )
             configFile.writeText(defaultValues)
@@ -74,16 +66,7 @@ class ConfigHandler
     data class Config(
         val developerIds: List<String>,
         val token: String,
-        val databaseConfig: DatabaseConfig
     )
 
 
-    @Serializable
-    data class DatabaseConfig(
-        val dbUser: String,
-        val dbHostName: String,
-        val dbPassword: String,
-        val dbJdbcUrl: String,
-        val dbDriver: String,
-    )
 }
