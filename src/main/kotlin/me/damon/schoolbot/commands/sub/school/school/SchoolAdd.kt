@@ -68,7 +68,7 @@ class SchoolAdd : SubCommand(
         }
 
         val selectionEvent = event.awaitMenu(menu, "Select an item from the menu to choose a school", acknowledge = true, throwAway = true) ?: return
-        val school = models[selectionEvent.values[0].toInt()]
+        val school = models[selectionEvent.values.first().toInt()]
 
         val duplicate = try { event.schoolbot.schoolService.findSchoolInGuild(event.guild.idLong, school.name) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while attempting to check if ${school.name} is a duplicate.. Try again!") }
         if (duplicate != null) return  event.replyErrorEmbed("`${school.name}` already exist. You cannot add duplicate schools!")

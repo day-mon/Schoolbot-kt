@@ -8,7 +8,7 @@ import me.damon.schoolbot.objects.school.AssignmentReminder
 import org.springframework.stereotype.Service
 
 @Service("AssignmentReminderService")
-class AssignmentReminderService(
+open class AssignmentReminderService(
     val assignmentRepository: AssignmentRepository,
     val assignmentReminderRepository: AssignmentReminderRepository
 ) : SpringService

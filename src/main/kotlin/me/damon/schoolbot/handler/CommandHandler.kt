@@ -38,12 +38,12 @@ class CommandHandler(private val context: ConfigurableApplicationContext)
         {
             val constructors = cls.constructors
 
-            if (constructors.isEmpty() || constructors[0].parameterCount > 0)
+            if (constructors.isEmpty() || constructors.first().parameterCount > 0)
             {
                 continue
             }
 
-            val instance = constructors[0].newInstance()
+            val instance = constructors.first().newInstance()
 
             if (instance !is Command)
             {
@@ -69,38 +69,29 @@ class CommandHandler(private val context: ConfigurableApplicationContext)
         val command = commands[cmdName] ?: return
 
 
-        if (group != null)
-        {
-            val sub = command.group[group]!!.find { it.name ==  subCommand }!!
-            if (sub.deferredEnabled)
-                event.deferReply().queue()
-        }
-        else if (subCommand != null)
-        {
-            val sub = command.children.find { it.name == event.subcommandName }!!
-            if (sub.deferredEnabled)
-                event.deferReply().queue()
-        }
-        else
-        {
-            if (command.deferredEnabled)
-                event.deferReply().queue()
-        }
-
         if (group != null) scope.launch {
             val sub = command.group[group]!!.find { it.name ==  subCommand }!!
+            if (sub.deferredEnabled)
+                event.deferReply().queue()
+
             sub.process(
                 CommandEvent(scope = scope, schoolbot =  schoolbot, command = sub, slashEvent = event)
             )
+
         }
-        else if (subCommand != null)  scope.launch {
+        else if (subCommand != null)  scope.launch{
             val sub = command.children.find { it.name == event.subcommandName }!!
+            if (sub.deferredEnabled)
+                event.deferReply().queue()
             sub.process(
                 CommandEvent(scope = scope, schoolbot =  schoolbot, command = sub, slashEvent = event)
             )
 
         }
         else scope.launch {
+            if (command.deferredEnabled)
+                event.deferReply().queue()
+
             command.process(
                 CommandEvent(scope = scope, schoolbot =  schoolbot, command = command, slashEvent = event)
             )

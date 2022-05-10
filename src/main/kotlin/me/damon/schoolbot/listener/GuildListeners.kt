@@ -52,7 +52,7 @@ class GuildListeners(
             .type(ActionType.ROLE_DELETE)
             .limit(1)
             .queue ({ logs ->
-                val user = logs[0].user ?: return@queue run { logger.error("Error while trying to obtain user") }
+                val user = logs.first().user ?: return@queue logger.error("Error while trying to obtain user")
 
                 if (user.idLong == selfUser.idLong) return@queue
 
@@ -67,7 +67,7 @@ class GuildListeners(
                 {
                     is School -> schoolService.update( obj.apply { roleId = 0 } )
                     is Course -> courseService.update( obj.apply { roleId = 0 } )
-                    else -> TODO("${obj.javaClass.name} has not been implemented yet")
+                    else -> throw NotImplementedError("${obj.javaClass.name} has not been implemented yet")
                 }
             }) { failure -> logger.error("Error has occurred while trying to retrieve the audit logs", failure) }
     }
@@ -79,7 +79,7 @@ class GuildListeners(
         event.guild.retrieveAuditLogs()
             .type(ActionType.CHANNEL_DELETE)
             .queue ({ logs ->
-                val user = logs[0].user ?: return@queue run { logger.error("Error while trying to obtain user") }
+                val user = logs.first().user ?: return@queue  logger.error("Error while trying to obtain user")
 
                 if (user.idLong == selfUser.idLong) return@queue
 
@@ -92,7 +92,7 @@ class GuildListeners(
                 when (val obj = found.obj)
                 {
                     is Course -> courseService.update(obj.apply { channelId = 0L })
-                    else -> TODO("${obj.javaClass.name} has not been implemented yet")
+                    else -> throw NotImplementedError("${obj.javaClass.name} has not been implemented yet")
                 }
             }) { failure -> logger.error("Error has occurred while trying to retrieve the audit logs", failure) }
     }

@@ -110,7 +110,7 @@ open class CourseService(
 
             startDateIt = if (days[days.size - 1] == day)
             {
-                val start = days[0]
+                val start = days.first()
                 startDateIt.with(TemporalAdjusters.next(DayOfWeek.valueOf(start)))
             }
             else

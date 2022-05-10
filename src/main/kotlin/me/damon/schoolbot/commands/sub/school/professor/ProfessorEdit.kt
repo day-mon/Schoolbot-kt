@@ -58,7 +58,7 @@ class ProfessorEdit : SubCommand(
             message = "Select a professor to edit",
         ) ?: return
 
-        val professor = professors[selection.values[0].toInt()]
+        val professor = professors[selection.values.first().toInt()]
 
         val menu = SelectMenu("${event.slashEvent.id}_${event.user.idLong}:SM:EDIT_PROFESSOR_${professor.id}") {
             option("First name - ${professor.firstName} ", "first_name")
@@ -71,7 +71,7 @@ class ProfessorEdit : SubCommand(
             message = "Select a field to edit",
         ) ?: return
 
-        val choice = finalSelection.values[0]
+        val choice = finalSelection.values.first()
 
         val messageResponse: MessageReceivedEvent = try
         {

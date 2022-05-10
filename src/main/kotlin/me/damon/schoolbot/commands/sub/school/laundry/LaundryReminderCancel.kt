@@ -31,7 +31,7 @@ class LaundryReminderCancel : SubCommand(
 
 
         val selectionEvent = event.awaitMenu(menu, "Please select a reminder") ?: return
-        val option = selectionEvent.values[0]
+        val option = selectionEvent.values.first()
         val canceled = tHandler.cancelTask(option) ?: return run {
             event.replyMessage("Some how that reminder does not exist")
         }

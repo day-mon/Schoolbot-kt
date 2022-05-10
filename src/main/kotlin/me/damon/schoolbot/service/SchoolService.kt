@@ -7,7 +7,7 @@ import me.damon.schoolbot.objects.school.School
 import org.springframework.stereotype.Service
 import java.util.*
 
-@Service("SchoolService") class SchoolService(
+@Service("SchoolService") open class SchoolService(
     private val schoolRepository: SchoolRepository
 ) : SpringService
 {

@@ -47,8 +47,6 @@ class CourseAddPitt : SubCommand(
             isRequired = true
         )
     ),
-
-
     )
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
@@ -59,17 +57,18 @@ class CourseAddPitt : SubCommand(
 
         val pittSchools = try { schoolService.getPittSchoolsInGuild(event.guild.idLong) }
             catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while thing to get schools in `${event.guild.name}`") }
+
         if (pittSchools.isEmpty()) return event.replyErrorEmbed("There are no pitt schools in ${event.guild.name}")
 
         val school = pittSchools.find { it.name == schoolName }
-            ?: return run { event.replyErrorEmbed("$schoolName has not been found!") }
+            ?: return event.replyErrorEmbed("$schoolName has not been found!")
         val terms = getThreeTerms()
         val selectionEvent = event.awaitMenu(
             SelectMenu("pittschool:menu") { terms.forEach { option(it.first, it.second) } },
             "Awesome we have selected `${school.name}`! Please select a term from the following term list!"
         ) ?: return
 
-        val termNumber = selectionEvent.values[0]
+        val termNumber = selectionEvent.values.first()
         val term = terms.find { it.second == termNumber }!!.first
 
         val messageReceivedEvent = event.sendMessageAndAwait(

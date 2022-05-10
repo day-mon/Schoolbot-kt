@@ -228,15 +228,15 @@ class CommandEvent(
 
     fun sendPaginator(vararg embeds: MessageEmbed)
     {
-        if (embeds.isEmpty()) return run { replyErrorEmbed("There are no embeds to display") }
-        if (embeds.size == 1) return run { replyEmbed(embeds[0]) }
+        if (embeds.isEmpty()) return  replyErrorEmbed("There are no embeds to display")
+        if (embeds.size == 1) return  replyEmbed(embeds.first())
 
-        if (command.deferredEnabled)
+        if (command.deferredEnabled || slashEvent.isAcknowledged)
         {
 
 
             hook.sendPaginator(
-                pages = embeds, expireAfter = Duration.parse("5m")
+                pages = embeds, expireAfter = 5.minutes
             ) {
                 it.user.idLong == slashEvent.user.idLong
             }.queue()
@@ -245,7 +245,7 @@ class CommandEvent(
         else
         {
             slashEvent.replyPaginator(
-                pages = embeds, expireAfter = Duration.parse("5m")
+                pages = embeds, expireAfter = 5.minutes
             ) {
                 it.user.idLong == slashEvent.user.idLong
             }.queue()
@@ -268,12 +268,12 @@ class CommandEvent(
 
     inline fun <reified T: SpringService> getService(): T = when (T::class)
     {
-        GuildService::class -> schoolbot.guildService as T
-        SchoolService::class -> schoolbot.schoolService as T
-        ProfessorService::class -> schoolbot.professorService as T
-        CourseService::class -> schoolbot.courseService as T
-        AssignmentService::class -> schoolbot.assignmentService as T
-        AssignmentReminderService::class -> schoolbot.assignmentReminderService as T
+        is GuildService -> schoolbot.guildService as T
+        is SchoolService -> schoolbot.schoolService as T
+        is ProfessorService -> schoolbot.professorService as T
+        is CourseService -> schoolbot.courseService as T
+        is AssignmentService -> schoolbot.assignmentService as T
+        is AssignmentReminderService -> schoolbot.assignmentReminderService as T
         else -> throw IllegalArgumentException("Unknown type ${T::class}")
     }
 

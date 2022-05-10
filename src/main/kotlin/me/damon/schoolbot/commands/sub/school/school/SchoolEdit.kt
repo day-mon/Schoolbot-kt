@@ -37,7 +37,6 @@ class SchoolEdit : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val name = event.getOption<String>("school_name")
-        val service = event.getService<SchoolService>()
 
         val school = try {event.schoolbot.schoolService.findSchoolInGuild(
             name = name,
@@ -59,20 +58,15 @@ class SchoolEdit : SubCommand(
             message = "Please select the attribute you wish you edit"
         ) ?: return
 
-        val choice = selectionEvent.values[0]
+        val choice = selectionEvent.values.first()
 
 
-        val messageResponse: MessageReceivedEvent = evaluateMenuChoice(choice, event) ?: return run {
-            event.replyErrorEmbed("This action is not yet implemented!")
-        }
+        val messageResponse: MessageReceivedEvent = evaluateMenuChoice(choice, event) ?:  return event.replyErrorEmbed("This action is not yet implemented!")
 
         val changedSchool = evaluateChangeRequest(event, messageResponse, choice, school) ?: return
-
-        val updatedSchool = try { service.update(changedSchool) } catch (e: Exception) {
-            event.replyErrorEmbed("`${school.name}` either does not exist or an unexpected error occurred during the update sequence. Please try again. If this error persis please contact `damon#9999` ")
-            return
-        }
+        val updatedSchool = try { event.getService<SchoolService>().update(changedSchool) } catch (e: Exception) { return event.replyErrorEmbed("`${school.name}` either does not exist or an unexpected error occurred during the update sequence. Please try again. If this error persist please contact `damon#9999` ") }
         val embed = withContext(Dispatchers.IO) { updatedSchool.getAsEmbed() }
+
 
         event.replyEmbed(embed, "School Updated!")
 
@@ -109,7 +103,7 @@ class SchoolEdit : SubCommand(
                     null
                 }
 
-                val roleId: Long = if (message == "0") 0L else oMessage.mentionedRoles[0].idLong
+                val roleId: Long = if (message == "0") 0L else oMessage.mentionedRoles.first().idLong
 
                 if (roleId != 0L && roleId != school.roleId) return run {
                     val role = event.jda.getRoleById(roleId)?.asMention ?: return run {

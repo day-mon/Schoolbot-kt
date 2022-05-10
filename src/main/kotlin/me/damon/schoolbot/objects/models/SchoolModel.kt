@@ -34,8 +34,8 @@ data class SchoolModel(
     var timeZone: String = "America/New_York"
     fun asSchool() = School(
         name = name,
-        url = if (webPages.isNullOrEmpty()) "https://schoolbot.dev" else webPages[0],
-        emailSuffix = if (domains.isEmpty()) "N/A" else " @${domains[0]}",
+        url = if (webPages.isNullOrEmpty()) "https://schoolbot.dev" else webPages.first(),
+        emailSuffix = if (domains.isEmpty()) "N/A" else " @${domains.first()}",
         isPittSchool = name.contains("University of Pittsburgh"),
         timeZone = timeZone,
         professor = listOf(),

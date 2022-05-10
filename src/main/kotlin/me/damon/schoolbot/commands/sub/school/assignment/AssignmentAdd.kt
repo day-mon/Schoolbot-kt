@@ -85,7 +85,7 @@ class AssignmentAdd : SubCommand(
         }
 
         val menuEvent = event.awaitMenu(menu, "Please select the course that you wish to add the assignment to.") ?: return
-        val index = menuEvent.values[0].toInt()
+        val index = menuEvent.values.first().toInt()
         val course = courses[index]
 
 
