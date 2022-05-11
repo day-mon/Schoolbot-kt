@@ -35,20 +35,27 @@ class Search : Command (
 
         val response = client.newCall(request).await()
 
-        if (!response.isSuccessful) return run {
-            event.replyMessage("There was an issue attempting to get the response body of DuckDuckGo")
-        }
+        if (!response.isSuccessful) return event.replyMessage("There was an issue attempting to get the response body of DuckDuckGo")
 
-        val body = response.bodyAsString() ?: return run { event.replyMessage("There was an issue attempting to get the response body of DuckDuckGo") }
+
+        val body = response.bodyAsString() ?: return  event.replyMessage("There was an issue attempting to get the response body of DuckDuckGo")
         val document = Jsoup.parse(body)
 
-        if (document.getElementsByClass("no-results").hasText()) return run { event.replyMessage("No search results for `$query`") }
+        if (document.getElementsByClass("no-results").hasText()) return event.replyMessage("No search results for `$query`")
 
-        // TODO: A lot can go wrong here, probably need to do some error handling just encase those indexes are out of bounds
-        val url =  document.getElementsByClass("result__extras__url")[0].text()
-        val title = document.select("a[href]")[1].text()
-        val snippet = document.getElementsByClass("result__snippet")[0].text()
-        event.replyMessage("https://$url - $title - $snippet")
+        val url =  document.getElementsByClass("result__extras__url")
+        if (url.isNullOrEmpty()) return event.replyMessage("Could not target url on `$query`")
+        val urlText = url.first()!!.text()
+
+        val title = document.select("a[href]")
+        if (title.isNullOrEmpty() || title.size == 1) return event.replyMessage("Could not target the title on`$query`")
+        val titleText = title[1].text()
+
+        val snippet = document.getElementsByClass("result__snippet")
+        if (snippet.isNullOrEmpty()) return event.replyMessage("Could not target snippet for `$query`")
+        val snippetText = snippet.first()!!.text()
+
+        event.replyMessage("https://$urlText - $titleText - $snippetText")
 
     }
 }

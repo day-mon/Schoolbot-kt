@@ -57,7 +57,7 @@ class CommandEvent(
 
 
     fun replyEmbed(embed: MessageEmbed, content: String = String.empty) = replyEmbed(slashEvent, embed, content)
-    fun replyErrorEmbed(error: String, embedTitle: String = "Error has occurred") = replyErrorEmbed(slashEvent, "${Emoji.RED_CIRCLE.getAsChat()} $error", embedTitle)
+    fun replyErrorEmbed(error: String, embedTitle: String = "Error has occurred") = replyErrorEmbed(slashEvent, "${Emoji.STOP_SIGN.getAsChat()} $error", embedTitle)
 
 
 
@@ -268,12 +268,12 @@ class CommandEvent(
 
     inline fun <reified T: SpringService> getService(): T = when (T::class)
     {
-        is GuildService -> schoolbot.guildService as T
-        is SchoolService -> schoolbot.schoolService as T
-        is ProfessorService -> schoolbot.professorService as T
-        is CourseService -> schoolbot.courseService as T
-        is AssignmentService -> schoolbot.assignmentService as T
-        is AssignmentReminderService -> schoolbot.assignmentReminderService as T
+        GuildService::class -> schoolbot.guildService as T
+        SchoolService::class -> schoolbot.schoolService as T
+        ProfessorService::class -> schoolbot.professorService as T
+        CourseService::class -> schoolbot.courseService as T
+        AssignmentService::class -> schoolbot.assignmentService as T
+        AssignmentReminderService::class -> schoolbot.assignmentReminderService as T
         else -> throw IllegalArgumentException("Unknown type ${T::class}")
     }
 

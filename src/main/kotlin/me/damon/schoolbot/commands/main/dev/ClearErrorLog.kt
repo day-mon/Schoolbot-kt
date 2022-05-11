@@ -18,8 +18,8 @@ class ClearErrorLog : Command(
     {
         val file = File("schoolbot-error.log")
 
-        if (file.exists().not()) return run { event.replyErrorEmbed("There is no error log as of now.") }
-        if (file.readLines().isEmpty()) return run { event.replyErrorEmbed("Log file is already empty") }
+        if (file.exists().not()) return  event.replyErrorEmbed("There is no error log as of now.")
+        if (file.readLines().isEmpty()) return event.replyErrorEmbed("Log file is already empty")
 
 
         file.printWriter().use {

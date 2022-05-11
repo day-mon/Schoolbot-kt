@@ -22,9 +22,8 @@ class LaundryReminderCancel : SubCommand(
         val keys = task.keys
         val reminders = keys.filter { it.contains(event.user.id) }
 
-        if (reminders.isEmpty()) return run {
-            event.replyMessage("You have no active reminders")
-        }
+        if (reminders.isEmpty()) return event.replyMessage("You have no active reminders")
+
 
         val menu = SelectMenu("reminders:menu")
         { reminders.forEachIndexed { _, s -> option(s.replace(event.user.id, "").replace("_", " "), s) } }
@@ -32,13 +31,11 @@ class LaundryReminderCancel : SubCommand(
 
         val selectionEvent = event.awaitMenu(menu, "Please select a reminder") ?: return
         val option = selectionEvent.values.first()
-        val canceled = tHandler.cancelTask(option) ?: return run {
-            event.replyMessage("Some how that reminder does not exist")
-        }
+        val canceled = tHandler.cancelTask(option) ?: return event.replyMessage("Some how that reminder does not exist")
 
-        if (!canceled) return run {
-            event.replyMessageAndClear("Task cannot be cancelled. This could be because its completed already")
-        }
+
+        if (!canceled) return event.replyMessageAndClear("Task cannot be cancelled. This could be because its completed already")
+
 
         task.remove(option)
 

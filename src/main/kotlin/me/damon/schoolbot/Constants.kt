@@ -177,6 +177,7 @@ object Constants
     const val RED = 0x990f0f
     const val MAX_ROLE_COUNT = 250
     const val MAX_CHANNEL_COUNT = 500
+    const val SELECTION_MENU_MAX_SIZE = 25
     val DEFAULT_CLIENT: OkHttpClient =
         OkHttpClient.Builder()
             .writeTimeout(60, TimeUnit.SECONDS)

@@ -39,7 +39,10 @@ import java.time.format.DateTimeParseException
 import java.util.*
 
 class AssignmentAdd : SubCommand(
-    name = "add", description = "Adds an assignment to the course", category = CommandCategory.SCHOOL, options = listOf(
+    name = "add",
+    description = "Adds an assignment to the course",
+    category = CommandCategory.SCHOOL,
+    options = listOf(
         CommandOptionData<String>(
             name = "school",
             optionType = OptionType.STRING,
@@ -80,6 +83,8 @@ class AssignmentAdd : SubCommand(
         // this should really never happen unless someone randomly guesses an uuid lol. better safe than sorry
         if (courses.isEmpty()) return event.replyErrorEmbed("There are no courses in this school.")
 
+
+
         val menu = SelectMenu(customId = "ASSIGNMENT_ADD_MENU_${event.guild.id}_${event.slashEvent.id}") {
             courses.forEachIndexed { index, course -> option(course.name, index.toString()) }
         }
@@ -87,6 +92,9 @@ class AssignmentAdd : SubCommand(
         val menuEvent = event.awaitMenu(menu, "Please select the course that you wish to add the assignment to.") ?: return
         val index = menuEvent.values.first().toInt()
         val course = courses[index]
+
+        val assignments = try { event.getService<AssignmentService>().findByCourse(course) } catch (e: Exception) {  return event.replyErrorEmbed("Error has occurred while trying to find the assignments.") }
+        if (assignments.size == Constants.SELECTION_MENU_MAX_SIZE) return event.replyErrorEmbed("There are too many assignments in this course. Please remove some assignments before adding more.")
 
 
         val modal = Modal("assignment-add-modal", "Add an assigment for ${course.name}") {

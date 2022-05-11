@@ -25,17 +25,11 @@ class GuildListeners(
 {
     private val logger by SLF4J
 
-    // todo: handle exceptions in here
 
     override fun onGuildJoin(event: GuildJoinEvent)
     {
-        try { guildService.createSettings(
-            GuildSettings(guildId = event.guild.ownerIdLong)
-        ) } catch (e: Exception) { logger.error(
-            "Error has occurred while trying to create guild settings in ({}) - [{}]",
-            event.guild.name,
-            event.guild.idLong
-        ) }
+        try { guildService.createSettings(GuildSettings(guildId = event.guild.idLong)) }
+        catch (e: Exception) { logger.error("Error has occurred while trying to create guild settings in ({}) - [{}]", event.guild.name, event.guild.idLong) }
     }
 
     override fun onGuildLeave(event: GuildLeaveEvent)
@@ -45,6 +39,7 @@ class GuildListeners(
 
     override fun onRoleDelete(event: RoleDeleteEvent)
     {
+        val guildId = event.guild.idLong
         val selfUser = event.jda.selfUser
         if (event.role.name == selfUser.name) return
 
@@ -57,8 +52,8 @@ class GuildListeners(
                 if (user.idLong == selfUser.idLong) return@queue
 
                 val roleDeleted = event.role.idLong
-                val schoolRoles = try { schoolService.findSchoolsInGuild(event.guild.idLong).map { MentionableDeleteDTO(it.roleId, it) } } catch (e: Exception) { return@queue  logger.error("Error while trying to get schools in delete event") }
-                val courseRoles = try { courseService.getClassesInGuild(event.guild.idLong).map { MentionableDeleteDTO(it.roleId, it) } } catch (e: Exception) { return@queue  logger.error("Error while trying to get course in delete event") }
+                val schoolRoles = try { schoolService.findSchoolsInGuild(guildId).map { MentionableDeleteDTO(it.roleId, it) } } catch (e: Exception) { return@queue  logger.error("Error while trying to get schools in delete event") }
+                val courseRoles = try { courseService.getClassesInGuild(guildId).map { MentionableDeleteDTO(it.roleId, it) } } catch (e: Exception) { return@queue  logger.error("Error while trying to get course in delete event") }
                 val combined = schoolRoles.plus(courseRoles)
                 val found = combined.firstOrNull { it.mentionableId == roleDeleted } ?: return@queue
 

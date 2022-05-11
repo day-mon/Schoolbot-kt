@@ -38,13 +38,8 @@ class ProfessorEdit : SubCommand(
         val service = event.getService<ProfessorService>()
         val schoolUUID = UUID.fromString(schoolId)
 
-        val professors = try
-        {
-            service.findBySchoolId(schoolUUID).toMutableList()
-        } catch (e: Exception)
-        {
-            return run { event.replyErrorEmbed("Error occurred while trying to fetch professors by school.") }
-        }
+        val professors = try { service.findBySchoolId(schoolUUID).toMutableList() }
+        catch (e: Exception) { return event.replyErrorEmbed("Error occurred while trying to fetch professors by school.") }
 
         val selection = event.awaitMenu(
             menu = SelectMenu("${event.slashEvent.id}_${event.user.idLong}:SM:EDIT_PROFESSOR") {
@@ -73,42 +68,17 @@ class ProfessorEdit : SubCommand(
 
         val choice = finalSelection.values.first()
 
-        val messageResponse: MessageReceivedEvent = try
-        {
-            evaluateMenuChoice(choice, event)
-        }
-        catch (e: NotImplementedError)
-        {
-            event.replyErrorEmbed("This action is not yet implemented!")
-            return
-        }
-        catch (e: TimeoutException)
-        {
-            event.replyErrorEmbed("You took too long to respond!")
-            return
-        }
+        val messageResponse: MessageReceivedEvent = try { evaluateMenuChoice(choice, event) }
+        catch (e: NotImplementedError) { return event.replyErrorEmbed("This action is not yet implemented!") }
+        catch (e: TimeoutException) { return event.replyErrorEmbed("You took too long to respond!") }
 
-        val changedProfessor = try { evaluateChangeRequest(event, messageResponse, choice, professor) } catch (e: NotImplementedError)
-        {
-            event.replyErrorEmbed(e.message ?: "An error occurred while trying to edit the professor.")
-            return
-        }
-        catch (e: Exception)
-        {
-            event.replyErrorEmbed(e.message ?: "An error occurred while trying to edit the professor.")
-            return
-        } ?: return
+        val changedProfessor = try { evaluateChangeRequest(event, messageResponse, choice, professor) }
+        catch (e: NotImplementedError) { return event.replyErrorEmbed(e.message ?: "An error occurred while trying to edit the professor.") }
+        catch (e: Exception) { return event.replyErrorEmbed(e.message ?: "An error occurred while trying to edit the professor.") } ?: return
 
 
-        val updatedProfessor = try
-        {
-            service.save(changedProfessor)
-        }
-        catch (e: Exception)
-        {
-            event.replyErrorEmbed("An unexpected error has occurred while trying to save the entity")
-            return
-        }
+        val updatedProfessor = try { service.save(changedProfessor) }
+        catch (e: Exception) { return event.replyErrorEmbed("An unexpected error has occurred while trying to save the entity") }
 
         val embed = withContext(Dispatchers.IO) { updatedProfessor.getAsEmbed() }
 
