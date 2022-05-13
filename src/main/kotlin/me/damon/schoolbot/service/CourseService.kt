@@ -14,11 +14,10 @@ import me.damon.schoolbot.objects.school.CourseReminder
 import me.damon.schoolbot.objects.school.Professor
 import me.damon.schoolbot.objects.school.School
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.entities.Guild
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.time.DayOfWeek
-import java.time.LocalDateTime
-import java.time.ZoneId
+import java.time.*
 import java.time.temporal.TemporalAdjusters
 import kotlin.random.Random
 
@@ -92,6 +91,9 @@ open class CourseService(
         val timeZone = if (course.school.isPittSchool) "America/New_York" else course.school.timeZone
         val startDate = LocalDateTime.ofInstant(course.startDate, ZoneId.of(timeZone))
         val endDate = LocalDateTime.ofInstant(course.endDate, ZoneId.of(timeZone))
+        val school = course.school
+        val zone = ZoneId.of(school.timeZone)
+        val offset = zone.rules.getOffset(Instant.now())
         val meetingDays = course.meetingDays
 
         if (meetingDays.split(",").isEmpty())
@@ -102,6 +104,8 @@ open class CourseService(
         var startDateIt = if (startDate.isBefore(LocalDateTime.now())) LocalDateTime.now() else startDate
 
         val days = meetingDays.split(",").map { it.uppercase().trim() }
+
+
 
         while (startDateIt.isBefore(endDate) || startDateIt.isEqual(endDate))
         {
@@ -120,14 +124,15 @@ open class CourseService(
 
             }
 
-            courseReminderService.saveAll(
-                listOf(
-                    CourseReminder(course = course, remindTime = startDateIt.minusMinutes(60)),
-                    CourseReminder(course = course, remindTime = startDateIt.minusMinutes(30)),
-                    CourseReminder(course = course, remindTime = startDateIt.minusMinutes(10)),
-                    CourseReminder(course = course, remindTime = startDateIt)
-                ),
+
+            val reminders = listOf(
+                CourseReminder(course = course, remindTime = startDateIt.minusMinutes(60).toInstant(offset)),
+                CourseReminder(course = course, remindTime = startDateIt.minusMinutes(30).toInstant(offset)),
+                CourseReminder(course = course, remindTime = startDateIt.minusMinutes(10).toInstant(offset)),
+                CourseReminder(course = course, remindTime = startDateIt.toInstant(offset))
             )
+
+            courseReminderService.saveAll(reminders)
         }
 
         logger.info("Reminder sequence for {} has concluded it took {} s", course.name, (System.currentTimeMillis() - startTime ) / 1000)
@@ -141,8 +146,8 @@ open class CourseService(
 
 
 
-    open fun findCoursesByGuild(guildId: Long): Set<Course> =
-        runCatching { classroomRepository.findByGuildIdEquals(guildId) }.onFailure {
+    open fun findAllByGuild(guildId: Long): List<Course> =
+        runCatching { classroomRepository.findAllByGuild(guildId) }.onFailure {
             logger.error(
                 "Error has occurred while trying to get the courses for guild id: {}",
                 guildId,
@@ -151,15 +156,11 @@ open class CourseService(
         }.getOrThrow()
 
 
-    private suspend fun runCleanUp(
-        course: Course, event: CommandEvent, professors: Collection<Professor> = mutableSetOf()
-    )
-    {
-        withContext(dispatcher)
-        {
-            val guild = event.guild
 
-            guild.getRoleById(course.roleId)?.delete()?.queue({
+    fun courseRoleAndChannelCleanUp(courses: List<Course>, guild: Guild) = courses.forEach { course ->  courseRoleAndChannelCleanUp(course, guild) }
+    private fun courseRoleAndChannelCleanUp(course: Course, guild: Guild) {
+
+        guild.getRoleById(course.roleId)?.delete()?.queue({
                 logger.info(
                     "{}'s with the role id {} has been deleted successfully", course.name, course.roleId
                 )
@@ -171,21 +172,26 @@ open class CourseService(
                     "{}'s with the channel id {} has been deleted successfully", course.name, course.channelId
                 )
             }, { logger.error("Error has occurred while attempt to delete channel during clean up.", it) }) ?: logger.warn("{}'s channel does not exist", course.name)
-
-           try { professorService.removeAll(professors = professors) } catch (e: Exception) { logger.error("Error has occurred while removing professors", e) }
-        }
     }
+
+    private suspend fun runCleanUp(
+        course: Course, event: CommandEvent, professors: Collection<Professor> = mutableSetOf()
+    )
+    {
+            withContext(dispatcher)
+            {
+                courseRoleAndChannelCleanUp(course, event.guild)
+                try { professorService.removeAll(professors = professors) }
+                catch (e: Exception) { logger.error("Error has occurred while removing professors", e) }
+            }
+    }
+
 
 
     open suspend fun findDuplicateCourse(name: String, number: Long, termId: String) = withContext(dispatcher) {
         classroomRepository.findByNameAndNumberAndTerm(name, number, termId).await()
     }
 
-
-    open fun getClassesInGuild(guildId: Long): Set<Course> =
-        runCatching { classroomRepository.findByGuildIdEquals(guildId) }
-            .onFailure { logger.error("Error has occurred while trying to get the courses for guild id: {}", guildId, it) }
-            .getOrThrow()
 
     open suspend fun findEmptyAssignmentsInGuild(guildId: Long): List<Course> =
         runCatching { classroomRepository.findAllByEmptyAssignmentsInGuild(guildId).await() }

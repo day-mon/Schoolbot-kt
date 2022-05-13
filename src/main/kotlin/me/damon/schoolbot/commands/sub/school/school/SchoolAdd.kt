@@ -16,6 +16,7 @@ import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.school.School
 import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
+import net.dv8tion.jda.api.exceptions.PermissionException
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
@@ -102,11 +103,14 @@ class SchoolAdd : SubCommand(
             {
                 cmdEvent.getService<SchoolService>().saveSchool(school, cmdEvent)
             }
+            catch (e: PermissionException)
+            {
+               return@button cmdEvent.replyErrorEmbed(it.interaction,"Could not add school.\n Reason: `${e.message}`")
+            }
             catch (e: Exception)
             {
                 logger.error("Error has occurred while trying to save the school", e)
-                cmdEvent.replyErrorEmbed(it.interaction, "Error has occurred while trying to save school!")
-                return@button
+                return@button cmdEvent.replyErrorEmbed(it.interaction, "Error has occurred while trying to save school!")
             }
 
             it.hook.editOriginal("Successfully added `${school.name}` to the database!")

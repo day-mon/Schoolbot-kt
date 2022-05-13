@@ -15,7 +15,7 @@ interface ClassroomRepository : JpaRepository<Course, UUID>
     fun findByNameAndNumberAndTerm(name: String, number: Long, termIdentifier: String): CompletableFuture<Course?>
 
     @Query("select c from courses c where c.guildId = ?1")
-    fun findByGuildIdEquals(guildId: Long): Set<Course>
+    fun findAllByGuild(guildId: Long): List<Course>
 
     @Query("select c from courses c where c.school = ?1")
     @Async

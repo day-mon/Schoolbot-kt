@@ -10,7 +10,9 @@ import kotlinx.coroutines.withTimeoutOrNull
 import me.damon.schoolbot.Constants
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.empty
+import me.damon.schoolbot.ext.queueAfter
 import me.damon.schoolbot.ext.replyErrorEmbed
+import me.damon.schoolbot.ext.send
 import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.misc.Pagable
 import me.damon.schoolbot.service.*
@@ -39,13 +41,11 @@ class CommandEvent(
     val schoolbot: Schoolbot,
     val slashEvent: SlashCommandInteraction,
     val command: AbstractCommand,
-    val scope: CoroutineScope,
 )
 {
     val logger by SLF4J
     val jda = slashEvent.jda
     val user = slashEvent.user
-    val channel = slashEvent.channel
     val guild = slashEvent.guild!!
     val guildId = slashEvent.guild!!.idLong
     val member = slashEvent.member!!
@@ -62,7 +62,7 @@ class CommandEvent(
 
 
     fun <T: IReplyCallback> replyEmbed(interaction: T, embed: MessageEmbed, content: String = String.empty) = when {
-        command.deferredEnabled || slashEvent.isAcknowledged -> interaction.hook.sendMessageEmbeds(embed).queue(null) {
+        command.deferredEnabled || slashEvent.isAcknowledged -> interaction.hook.sendMessageEmbeds(embed).setContent(content).queue(null) {
             logger.error(
                 "Error has occurred while attempting to send embeds for command ${command.name}", it
             )
@@ -102,22 +102,23 @@ class CommandEvent(
 
 
 
-    fun replyAndEditWithDelay(message: String, delayMessage: String, unit: TimeUnit, time: Long)
+    fun replyAndEditWithDelay(message: String, delayMessage: String, duration: Duration)
     {
         // expression body looks meh
         if (command.deferredEnabled || slashEvent.isAcknowledged)
         {
             hook.editOriginal(message).queue {
-                it.editMessage(delayMessage).queueAfter(time, unit)
+               it.editMessage(delayMessage).queueAfter(duration)
             }
         }
         else
         {
             slashEvent.reply(message).queue {
-                it.editOriginal(delayMessage).queueAfter(time, unit)
+                it.editOriginal(delayMessage).queueAfter(duration)
             }
         }
     }
+    fun send(message: String, actionRows: List<ActionRow> = emptyList(), embeds: List<MessageEmbed> = emptyList()) = slashEvent.send(content = message, actionRows = actionRows, embeds = embeds)
 
     fun replyMessage(message: String) = when  {
         command.deferredEnabled || slashEvent.isAcknowledged -> hook.sendMessage(message).queue()
@@ -128,34 +129,6 @@ class CommandEvent(
         command.deferredEnabled || slashEvent.isAcknowledged -> hook.editOriginal(message).setActionRows(emptyList()).setEmbeds(emptyList()).queue()
         else -> slashEvent.reply(message).addActionRows(emptyList()).addActionRows(emptyList()).queue()
     }
-
-    fun replyMessageWithErrorEmbed(message: String, exception: Exception)
-    {
-        val embed = Embed {
-            title = "Error occurred. Send this message to a developer if it constantly occurs"
-            field {
-                title = "Cause"
-                value = exception.cause.toString()
-                inline = true
-            }
-            description = """```kt
-                            ${exception.stackTraceToString()}
-                        ```""".trimIndent()
-        }
-        if (command.deferredEnabled)
-        {
-            hook.editOriginal(message)
-                .setEmbeds(embed).queue()
-
-        }
-        else
-        {
-            slashEvent.reply(message)
-                .addEmbeds(embed).queue()
-        }
-    }
-
-
 
     fun <T : Pagable> sendPaginator(embeds: Collection<T>) =
         sendPaginator(*embeds.map { it.getAsEmbed() }.toTypedArray())

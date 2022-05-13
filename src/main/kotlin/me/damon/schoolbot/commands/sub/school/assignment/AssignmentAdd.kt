@@ -12,15 +12,13 @@ import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.empty
 import me.damon.schoolbot.ext.replyChoiceAndLimit
 import me.damon.schoolbot.ext.send
+import me.damon.schoolbot.ext.toOffset
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.misc.Emoji
-import me.damon.schoolbot.objects.school.Assignment
-import me.damon.schoolbot.objects.school.AssignmentReminder
-import me.damon.schoolbot.objects.school.Course
-import me.damon.schoolbot.objects.school.School
+import me.damon.schoolbot.objects.school.*
 import me.damon.schoolbot.service.AssignmentReminderService
 import me.damon.schoolbot.service.AssignmentService
 import me.damon.schoolbot.service.CourseService
@@ -33,6 +31,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -122,23 +121,16 @@ class AssignmentAdd : SubCommand(
         val dueDateTime = LocalDateTime.parse(
             "$dueDate $dueTime",
             DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mm a", Constants.DEFAULT_LOCALE)
-        )
+        ).toInstant(school.zone.toOffset())
+
+
         val assignment = Assignment(
             name = name, description = description, dueDate = dueDateTime, points = points.toInt(), course = course
         )
 
-        val savedAssignment = try
-        {
-            event.getService<AssignmentService>().save(assignment)
-        }
-        catch (e: IllegalArgumentException)
-        {
-            return event.replyErrorEmbed("This should not have happened. Please contact the developer.")
-        }
-        catch (e: Exception)
-        {
-            return event.replyErrorEmbed("Error has occurred while trying to save the assignment.")
-        }
+        val savedAssignment = try { event.getService<AssignmentService>().save(assignment) }
+        catch (e: IllegalArgumentException) { return event.replyErrorEmbed("This should not have happened. Please contact the developer.") }
+        catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to save the assignment.") }
 
 
         event.replyEmbed(interaction = modalEvent, savedAssignment.getAsEmbed())
@@ -156,19 +148,9 @@ class AssignmentAdd : SubCommand(
         val yes = jda.button(style = ButtonStyle.PRIMARY, user = event.user, label = "Yes") {
             it.message.edit("Adding reminders...", components = emptyList()).queue()
 
-            val reminders = listOf(
-                AssignmentReminder(assignment, assignment.dueDate.minusDays(1)),
-                AssignmentReminder(assignment, assignment.dueDate.minusHours(6)),
-                AssignmentReminder(assignment, assignment.dueDate.minusHours(1)),
-                AssignmentReminder(assignment, assignment.dueDate.minusMinutes(10)),
-                AssignmentReminder(assignment, assignment.dueDate)
-            ).filter { reminder -> reminder.remindTime.isAfter(LocalDateTime.now()) }
 
-          val addedReminders = try { event.getService<AssignmentReminderService>().saveAll(reminders) }
-          catch (e: Exception)
-          {
-              return@button it.message.editMessage("Error has occurred while trying to save the reminders.").queue()
-          }
+          val addedReminders = try { event.getService<AssignmentReminderService>().saveAll(defaultReminders(assignment)) }
+          catch (e: Exception) { return@button it.message.editMessage("Error has occurred while trying to save the reminders.").queue() }
 
             it.message.editMessage("**${addedReminders.size}** Reminders added! Have a nice day ${Emoji.SMILEY.getAsChat()} ! ${ if(addedReminders.size > 5) "\n **WAIT** Just in case you are wondering the reason why you didnt get all of the times added is because one or more of the times added has already happened." else "" }").queue()
 
@@ -228,7 +210,8 @@ class AssignmentAdd : SubCommand(
         val schools = try
         {
             schoolbot.schoolService.findNonEmptySchoolsInGuild(guildId)
-        } catch (e: Exception)
+        }
+        catch (e: Exception)
         {
             return
         }

@@ -53,7 +53,7 @@ class GuildListeners(
 
                 val roleDeleted = event.role.idLong
                 val schoolRoles = try { schoolService.findSchoolsInGuild(guildId).map { MentionableDeleteDTO(it.roleId, it) } } catch (e: Exception) { return@queue  logger.error("Error while trying to get schools in delete event") }
-                val courseRoles = try { courseService.getClassesInGuild(guildId).map { MentionableDeleteDTO(it.roleId, it) } } catch (e: Exception) { return@queue  logger.error("Error while trying to get course in delete event") }
+                val courseRoles = try { courseService.findAllByGuild(guildId).map { MentionableDeleteDTO(it.roleId, it) } } catch (e: Exception) { return@queue  logger.error("Error while trying to get course in delete event") }
                 val combined = schoolRoles.plus(courseRoles)
                 val found = combined.firstOrNull { it.mentionableId == roleDeleted } ?: return@queue
 
@@ -79,7 +79,7 @@ class GuildListeners(
                 if (user.idLong == selfUser.idLong) return@queue
 
                 val channel = event.channel.idLong
-                val schools = try { courseService.getClassesInGuild(event.guild.idLong) } catch (e: Exception) { return@queue logger.error("Error while trying to fetch schools") }
+                val schools = try { courseService.findAllByGuild(event.guild.idLong) } catch (e: Exception) { return@queue logger.error("Error while trying to fetch schools") }
                 val found = schools.filter { course -> course.channelId != 0L }
                     .map { course -> MentionableDeleteDTO(course.channelId, course) }
                     .find { it.mentionableId == channel } ?: return@queue

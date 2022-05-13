@@ -14,7 +14,7 @@ class CourseView : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val service = event.getService<CourseService>()
-        val courses = try { service.findCoursesByGuild(event.guild.idLong) } catch (e: Exception) {
+        val courses = try { service.findAllByGuild(event.guild.idLong) } catch (e: Exception) {
              event.replyErrorEmbed("Error has occurred while trying to get the courses for `${event.guild.name}`")
             return
         }

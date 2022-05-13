@@ -4,11 +4,14 @@ import dev.minn.jda.ktx.util.SLF4J
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.repository.SchoolRepository
 import me.damon.schoolbot.objects.school.School
+import net.dv8tion.jda.api.entities.Guild
 import org.springframework.stereotype.Service
 import java.util.*
 
-@Service("SchoolService") open class SchoolService(
-    private val schoolRepository: SchoolRepository
+@Service("SchoolService")
+class SchoolService(
+    private val schoolRepository: SchoolRepository,
+    private val professorService: ProfessorService
 ) : SpringService
 {
 
@@ -86,11 +89,19 @@ import java.util.*
 
     fun deleteSchool(school: School, event: CommandEvent)
     {
+        professorService.removeAllInGuild(school.guildId)
         schoolRepository.delete(school)
+
         event.jda.getRoleById(school.roleId)?.delete()?.queue(null) {
             logger.error("An error has occurred while trying to delete role for {}", school.name, it)
         } ?: return
     }
+
+    private fun roleCleanUp(school: School, guild: Guild) = guild.getRoleById(school.roleId)?.delete()?.queue(null) {
+        logger.error("An error has occurred while trying to delete role for {}", school.name, it)
+    }
+
+     fun roleCleanUp(schools: List<School>, guild: Guild) = schools.forEach { roleCleanUp(it, guild) }
 
     suspend fun findByNonEmptyCoursesInGuild(guildId: Long): List<School> =
         runCatching { schoolRepository.findByNonEmptyCoursesInGuild(guildId).await() }

@@ -2,12 +2,15 @@ package me.damon.schoolbot.objects.school
 
 import dev.minn.jda.ktx.messages.Embed
 import me.damon.schoolbot.ext.formatDate
+import me.damon.schoolbot.ext.toDiscordTimeZone
 import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.MessageEmbed
 import org.hibernate.annotations.GenericGenerator
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.*
 import javax.persistence.*
 
@@ -17,16 +20,17 @@ import javax.persistence.*
 open class Assignment (
 
     @Column(name = "name")
-    open val name: String,
+    open var name: String,
 
     @Column(name= "description")
-    open val description: String,
+    open var description: String,
 
     @Column(name = "points")
-    open val points: Int,
+    open var points: Int,
 
     @Column(name = "dueDate")
-    open val dueDate: LocalDateTime,
+    open var dueDate: Instant,
+
 
     @ManyToOne
     @JoinColumn(name = "course", nullable = false)
@@ -52,6 +56,6 @@ open class Assignment (
         title = name
         description = this@Assignment.description
         field("Points", points.toString(), true)
-        field("Due Date", dueDate.formatDate(), true)
+        field("Due Date", dueDate.toDiscordTimeZone(), true)
     }
 }

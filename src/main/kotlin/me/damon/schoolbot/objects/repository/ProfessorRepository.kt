@@ -3,13 +3,21 @@ package me.damon.schoolbot.objects.repository
 import me.damon.schoolbot.objects.school.Professor
 import me.damon.schoolbot.objects.school.School
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.scheduling.annotation.Async
+import org.springframework.transaction.annotation.Transactional
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
 interface ProfessorRepository : JpaRepository<Professor, UUID>
 {
+
+    @Transactional
+    @Modifying
+    @Query("delete from Professor p where p.school = ?1")
+    fun deleteAllInGuild(guildId: Long)
+
     @Async
     @Query("select p from Professor p where upper(p.fullName) = upper(?1) and p.school = ?2")
     fun findProfessorByName(fullName: String, school: School): CompletableFuture<Professor?>

@@ -1,6 +1,7 @@
 package me.damon.schoolbot
 
 
+import dev.minn.jda.ktx.jdabuilder.createJDA
 import dev.minn.jda.ktx.jdabuilder.injectKTX
 import dev.minn.jda.ktx.util.SLF4J
 import me.damon.schoolbot.handler.*
@@ -13,6 +14,7 @@ import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.OnlineStatus
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.events.ReadyEvent
+import net.dv8tion.jda.api.events.ShutdownEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.ChunkingFilter
@@ -23,6 +25,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
+import java.util.Properties
 import javax.security.auth.login.LoginException
 import kotlin.system.exitProcess
 
@@ -52,6 +55,7 @@ open class Schoolbot(
     private val guildListener: GuildListeners,
     private val messageListeners: MessageListeners,
     private val slashListener: SlashListener,
+
 ) : ListenerAdapter()
 {
     private val logger by SLF4J
@@ -101,8 +105,6 @@ open class Schoolbot(
         logger.error("Login Exception has occurred", e)
         exitProcess(1)
     }
-
-
 
 
     override fun onReady(event: ReadyEvent)

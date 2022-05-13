@@ -120,7 +120,6 @@ object Constants
         "3 men are stranded in a boat with 4 cigarettes and no way to light them. So they toss the 4th cigarette overboard, which makes the whole boat a cigarette lighter.",
         "As a wizard, I enjoy turning objects into a glass. Just wanted to make that clear.",
         "I'm reading a horror story in Braille. Something bad is about to happen... I can feel it.",
-        "I recently got a new Korean mechanic but it's hard to understand him - he speaks with a Hyundai Accent!",
         "What happened when the semicolon broke grammar laws? It was given two consecutive sentences.",
         "The first time I got a universal remote control, I thought to myself \"This changes everything\".",
         "How can you spot the blind guy at the nudist colony? It's not hard.",
@@ -171,6 +170,7 @@ object Constants
     )
 
     val CURRENT_TIME = "<t:${Instant.now().epochSecond}>"
+    val DEV_BOT_ID = 876829823618646036
     val DEFAULT_LOCALE: Locale = Locale.US
     val DEFAULT_DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy", DEFAULT_LOCALE)
     val DEFAULT_TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm a", DEFAULT_LOCALE)

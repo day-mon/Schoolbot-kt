@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.springframework.transaction.annotation.Transactional
+import java.time.ZoneId
 import java.util.*
 import javax.persistence.*
 import kotlin.random.Random
@@ -47,7 +48,11 @@ open class School(
     open val classes: List<Course>,
 
     @Column(name = "timeZone", nullable = false)
-    open val timeZone: String
+    open val timeZone: String,
+
+    @Transient
+    open val zone: ZoneId = ZoneId.of(timeZone)
+
 
     ) : Pagable, Identifiable
 {

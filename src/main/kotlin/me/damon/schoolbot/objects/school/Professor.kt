@@ -6,7 +6,6 @@ import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.MessageEmbed
 import org.hibernate.annotations.GenericGenerator
-import org.springframework.transaction.annotation.Transactional
 import java.util.*
 import javax.persistence.*
 
@@ -21,20 +20,19 @@ fun emptyProfessor(school: School) = Professor(
 
 @Entity(name = "Professor")
 @Table(name = "professors")
-@Transactional
-open class Professor(
+class Professor(
     @Column(name = "firstName", nullable = false, columnDefinition = "TEXT")
-    open var firstName: String,
+    var firstName: String,
 
     @Column(name = "lastName", nullable = false, columnDefinition = "TEXT")
-    open var lastName: String,
+    var lastName: String,
 
     @Column(name = "emailPrefix", nullable = false, columnDefinition = "TEXT")
-    open var emailPrefix: String = lastName,
+    var emailPrefix: String = lastName,
 
     @ManyToOne
     @JoinColumn(name = "school")
-    open val school: School,
+    val school: School,
 
 
     @ManyToMany(fetch = FetchType.LAZY )
@@ -43,7 +41,7 @@ open class Professor(
         joinColumns = [JoinColumn(name = "professor_id", referencedColumnName = "id")],
         inverseJoinColumns = [JoinColumn(name = "course_id", referencedColumnName = "id")]
     )
-    open val courses: List<Course> = listOf(),
+    val courses: List<Course> = listOf(),
 
     ) : Pagable, Identifiable
 {
@@ -57,7 +55,7 @@ open class Professor(
     override var id: UUID? = null
 
     @Column(name = "fullName", unique = true)
-    open var fullName: String = "$firstName $lastName"
+    var fullName: String = "$firstName $lastName"
 
     override fun getAsEmbed(): MessageEmbed = Embed {
         title = "Professor $lastName"

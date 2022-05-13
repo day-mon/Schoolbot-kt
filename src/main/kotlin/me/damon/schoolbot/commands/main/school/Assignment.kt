@@ -15,7 +15,6 @@ class Assignment : Command(
         AssignmentAdd(),
         AssignmentRemove(),
         AssignmentView(),
-       // AssignmentEdit()
+        AssignmentEdit()
     )
 )
-{}

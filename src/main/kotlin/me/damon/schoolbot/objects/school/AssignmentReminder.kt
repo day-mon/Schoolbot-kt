@@ -1,10 +1,29 @@
 package me.damon.schoolbot.objects.school
 
 import me.damon.schoolbot.ext.empty
+import me.damon.schoolbot.ext.minus
+import me.damon.schoolbot.ext.toOffset
 import org.hibernate.annotations.GenericGenerator
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.util.*
 import javax.persistence.*
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
+
+
+fun defaultReminders(assignment: Assignment): List<AssignmentReminder> = listOf(
+        AssignmentReminder(assignment, assignment.dueDate.minus(1.days)),
+        AssignmentReminder(assignment, assignment.dueDate.minus(6.hours)),
+        AssignmentReminder(assignment, assignment.dueDate.minus(1.hours)),
+        AssignmentReminder(assignment, assignment.dueDate.minus(10.minutes)),
+        AssignmentReminder(assignment, assignment.dueDate)
+)
+
+
 
 @Table(name = "assignment_reminders")
 @Entity(name = "AssignmentReminder")
@@ -13,7 +32,7 @@ open class AssignmentReminder(
     @JoinColumn(name = "assignment")
     open val assignment: Assignment,
 
-    open val remindTime: LocalDateTime,
+    open val remindTime: Instant,
 
     open val message: String = String.empty
 ) {

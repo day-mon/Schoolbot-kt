@@ -7,12 +7,11 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
 @Service("GuildService")
-open class GuildService(
+ class GuildService(
     private val guildRepository: GuildSettingsRepository
 ) : SpringService
 {
-    @Cacheable(cacheNames = ["guild_settings"], key = "#guildId")
-    open fun getGuildSettings(guildId: Long): GuildSettings
+    fun getGuildSettings(guildId: Long): GuildSettings
     {
         val exist = guildRepository.existsById(guildId)
         return if (exist)
@@ -25,9 +24,8 @@ open class GuildService(
         }
     }
 
-    open fun createSettings(settings: GuildSettings): GuildSettings? = guildRepository.save(settings)
+    fun createSettings(settings: GuildSettings): GuildSettings? = guildRepository.save(settings)
 
 
-    @CacheEvict(cacheNames = ["guild_settings"], key = "#guildId")
-    open fun removeGuildInstance(guildId: Long) = guildRepository.deleteById(guildId)
+    fun removeGuildInstance(guildId: Long) = guildRepository.deleteById(guildId)
 }

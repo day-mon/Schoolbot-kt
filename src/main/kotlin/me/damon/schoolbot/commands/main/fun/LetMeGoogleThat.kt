@@ -6,6 +6,8 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 private val SPACES = Regex("\\s+")
 
@@ -30,6 +32,10 @@ class LetMeGoogleThat : Command(
 
         val url = "https://www.letmegooglethat.com/?q=$args"
 
-        event.replyAndEditWithDelay("Hold on.... ", url, TimeUnit.SECONDS, 5)
+        event.replyAndEditWithDelay(
+            message = "Hold on.... ",
+            delayMessage = url,
+            duration = 5.seconds
+        )
     }
 }

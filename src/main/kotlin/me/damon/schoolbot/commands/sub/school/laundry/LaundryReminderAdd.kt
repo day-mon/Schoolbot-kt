@@ -38,8 +38,8 @@ class LaundryReminderAdd : SubCommand(
         if (response.isSuccessful.not())
         {
             logger.error("Error has occurred", response.raw().asException() )
-            event.replyMessageWithErrorEmbed("Error occurred in while fetching data from API", response.raw().asException())
-            return
+            return event.replyErrorEmbed("Error occurred in while fetching data from API")
+
         }
 
         val models = response.body()?.filter { it.isInUse && !(it.timeRemaining.contains("Ext") || it.timeRemaining.contains("Offline")) }?.toList()
