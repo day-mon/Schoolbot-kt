@@ -13,7 +13,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 
@@ -23,7 +22,7 @@ class Clear : Command(
     category = CommandCategory.ADMIN,
     deferredEnabled = false,
     description = "Clears messages in the text channel that the command was executed in",
-    selfPermission = listOf(Permission.MESSAGE_MANAGE),
+    selfPermissions = listOf(Permission.MESSAGE_MANAGE),
     memberPermissions = listOf(Permission.ADMINISTRATOR),
     options = listOf(
         CommandOptionData<Long>(

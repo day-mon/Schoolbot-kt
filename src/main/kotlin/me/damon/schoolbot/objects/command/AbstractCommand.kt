@@ -20,7 +20,7 @@ abstract class AbstractCommand : Pagable
     abstract val commandPrerequisites: String
     abstract val coolDown: Long
     abstract val memberPermissions: List<Permission>
-    abstract val selfPermission: List<Permission>
+    abstract val selfPermissions: List<Permission>
     abstract val children: List<SubCommand>
     abstract val options: List<CommandOptionData<*>>
     val commandData: CommandData
@@ -68,10 +68,10 @@ abstract class AbstractCommand : Pagable
             }
         }
 
-        if (!event.hasSelfPermissions(selfPermission))
+        if (!event.hasSelfPermissions(selfPermissions))
         {
             val correct = "I will need ${
-                selfPermission.filter { it !in event.guild.selfMember.permissions }.joinToString { "`${it.getName()}`" }
+                selfPermissions.filter { it !in event.guild.selfMember.permissions }.joinToString { "`${it.getName()}`" }
             } permission(s) to run this command!"
             sendMessage(event, correct)
         }

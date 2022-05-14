@@ -11,7 +11,6 @@ import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 
@@ -20,7 +19,7 @@ class Prune : Command (
     category = CommandCategory.ADMIN,
     deferredEnabled = false,
     description = "Clears all bot messages in the text channel command is called in",
-    selfPermission = listOf(Permission.MESSAGE_MANAGE),
+    selfPermissions = listOf(Permission.MESSAGE_MANAGE),
     memberPermissions = listOf(Permission.ADMINISTRATOR))
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)

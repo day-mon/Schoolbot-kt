@@ -11,7 +11,7 @@ abstract class SubCommand(
     override val coolDown: Long = 1000L,
     override val deferredEnabled: Boolean = true,
     override val memberPermissions: List<Permission> = listOf(),
-    override val selfPermission: List<Permission> = listOf(),
+    override val selfPermissions: List<Permission> = listOf(),
     override val children: List<SubCommand> = listOf(),
     override val options: List<CommandOptionData<*>> = listOf(),
     val subCommandData: SubcommandData
