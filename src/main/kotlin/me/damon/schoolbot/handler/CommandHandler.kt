@@ -75,7 +75,7 @@ class CommandHandler(private val context: ConfigurableApplicationContext)
                 event.deferReply().queue()
 
             sub.process(
-                CommandEvent(scope = scope, schoolbot =  schoolbot, command = sub, slashEvent = event)
+                CommandEvent(schoolbot =  schoolbot, command = sub, slashEvent = event)
             )
 
         }
@@ -84,7 +84,7 @@ class CommandHandler(private val context: ConfigurableApplicationContext)
             if (sub.deferredEnabled)
                 event.deferReply().queue()
             sub.process(
-                CommandEvent(scope = scope, schoolbot =  schoolbot, command = sub, slashEvent = event)
+                CommandEvent(schoolbot =  schoolbot, command = sub, slashEvent = event)
             )
 
         }
@@ -93,7 +93,7 @@ class CommandHandler(private val context: ConfigurableApplicationContext)
                 event.deferReply().queue()
 
             command.process(
-                CommandEvent(scope = scope, schoolbot =  schoolbot, command = command, slashEvent = event)
+                CommandEvent(schoolbot =  schoolbot, command = command, slashEvent = event)
             )
         }
     }
