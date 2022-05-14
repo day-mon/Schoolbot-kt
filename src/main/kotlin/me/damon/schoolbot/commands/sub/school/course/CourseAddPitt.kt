@@ -36,7 +36,7 @@ class CourseAddPitt : SubCommand(
     name = "pitt",
     description = "Adds a pitt class",
     category = CommandCategory.SCHOOL,
-    selfPermission = listOf(Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES),
+    selfPermissions = listOf(Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES),
     memberPermissions = listOf(Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES),
     options = listOf(
         CommandOptionData<String>(
