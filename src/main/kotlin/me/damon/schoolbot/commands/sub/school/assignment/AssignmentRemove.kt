@@ -56,7 +56,7 @@ class AssignmentRemove : SubCommand(
             courses.forEachIndexed {  index, course -> option(course.name, index.toString()) }
         }
 
-        val menuEvent = event.awaitMenu(menu = courseMenu, message = "Select a course to remove an assignment from", throwAway = true) ?: return
+        val menuEvent = event.awaitMenu(menu = courseMenu, message = "Select a course to remove an assignment from", deleteAfter = true) ?: return
         val index = menuEvent.values.first().toInt()
         val course = courses[index]
 
@@ -69,7 +69,7 @@ class AssignmentRemove : SubCommand(
             assignments.forEachIndexed {  index, assignment -> option(assignment.name, index.toString()) }
         }
 
-        val assignmentEvent = event.awaitMenu(menu = assignmentMenu, message = "Select an assignment to remove", throwAway = true, acknowledge = true) ?: return
+        val assignmentEvent = event.awaitMenu(menu = assignmentMenu, message = "Select an assignment to remove", deleteAfter = true, acknowledge = true) ?: return
         val assignmentIndex = assignmentEvent.values.first().toInt()
         val assignment = assignments[assignmentIndex]
 

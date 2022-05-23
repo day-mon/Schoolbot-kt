@@ -15,7 +15,7 @@ data class DefinitionModel (
 
     override fun getAsEmbed(): MessageEmbed = Embed {
         title = word
-        url = if(phonetics.isEmpty()) "https://schoolbot.dev" else phonetics[0].audio
+        url = if(phonetics.isEmpty()) "https://schoolbot.dev" else phonetics.first().audio
         description = "*${phonetic ?: "No phonetic found"}*"
 
         val count = meanings.size

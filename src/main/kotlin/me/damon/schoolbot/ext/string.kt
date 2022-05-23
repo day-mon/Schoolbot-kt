@@ -3,32 +3,34 @@ package me.damon.schoolbot.ext
 import me.damon.schoolbot.Constants
 import me.damon.schoolbot.objects.command.CommandChoice
 import java.math.BigDecimal
-import java.security.MessageDigest
 import java.text.DecimalFormat
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
 fun LocalDateTime.formatDate(): String = this.format(DateTimeFormatter.ofPattern("M/dd/yyyy @ hh:mm a", Constants.DEFAULT_LOCALE))
 fun BigDecimal.parseNumbersWithCommas() = DecimalFormat("#,###.00").format(this).toString()
 fun String.toUUID(): UUID? =  try {  UUID.fromString(this) } catch (e: Exception) { null }
-fun String.asHyperText(url: String) = "[${this}](${url})"
 fun String.asCommandChoice() = CommandChoice(this, this)
-fun String.hash(): String {
-    val HEX_CHARS = "0123456789ABCDEF"
-    val bytes = MessageDigest
-        .getInstance("SHA-256")
-        .digest(this.toByteArray())
-    val result = StringBuilder(bytes.size * 2)
 
-    bytes.forEach {
-        val i = it.toInt()
-        result.append(HEX_CHARS[i shr 4 and 0x0f])
-        result.append(HEX_CHARS[i and 0x0f])
+fun String.toTitleCase(): String {
+    // lol something is wrong with me
+    val builder = StringBuffer()
+    val strSplit = this.split(Constants.SPACE_REGEX).filter { it.isNotBlank() }
+
+    strSplit.forEachIndexed { s, _ ->
+        val string = strSplit[s]
+        val stringCharArray = string.toCharArray()
+        stringCharArray.forEachIndexed { index, _ ->
+            if (index == 0) builder.append(stringCharArray[index].uppercaseChar())
+            else builder.append(stringCharArray[index].lowercaseChar())
+        }
+        if (s != strSplit.size - 1 && strSplit.size > 1) builder.append(" ")
     }
-    return result.toString()
+    return builder.toString()
+
 }
+
 val String.Companion.empty: String
     get() { return "" }
 

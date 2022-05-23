@@ -47,7 +47,7 @@ class AssignmentView : SubCommand(
             courses.forEachIndexed {  index, course -> option(course.name, index.toString()) }
         }
 
-        val menuEvent = event.awaitMenu(menu = courseMenu, message = "Select a course to view an assignment from", throwAway = true) ?: return
+        val menuEvent = event.awaitMenu(menu = courseMenu, message = "Select a course to view an assignment from", deleteAfter = true) ?: return
         val index = menuEvent.values.first().toInt()
         val course = courses[index]
 

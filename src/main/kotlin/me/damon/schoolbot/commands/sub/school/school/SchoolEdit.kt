@@ -1,24 +1,35 @@
 package me.damon.schoolbot.commands.sub.school.school
 
-import dev.minn.jda.ktx.interactions.components.SelectMenu
-import dev.minn.jda.ktx.interactions.components.option
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import dev.minn.jda.ktx.interactions.components.Modal
+import dev.minn.jda.ktx.interactions.components.button
+import dev.minn.jda.ktx.messages.Embed
+import dev.minn.jda.ktx.messages.edit
+import dev.minn.jda.ktx.messages.into
+import dev.minn.jda.ktx.messages.send
+import me.damon.schoolbot.Constants
 import me.damon.schoolbot.Schoolbot
-import me.damon.schoolbot.ext.replyChoiceStringAndLimit
+import me.damon.schoolbot.ext.*
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
+import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.school.School
 import me.damon.schoolbot.service.SchoolService
+import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
+import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import java.net.URI
+import kotlin.time.Duration.Companion.minutes
 
 class SchoolEdit : SubCommand(
     name = "edit",
     description = "Edits a school",
+    memberPermissions = enumSetOf(Permission.MANAGE_ROLES),
+    selfPermissions = enumSetOf(Permission.MANAGE_ROLES),
     category = CommandCategory.SCHOOL,
     options = listOf(
         CommandOptionData<String>(
@@ -28,120 +39,118 @@ class SchoolEdit : SubCommand(
             isRequired = true,
             autoCompleteEnabled = true
         ),
-
-
     )
 )
 {
-    // todo: be able to edit timezone.. its a bit more complicated because you have to check if there are any reminders and if there are any, you have to edit the timezone of the reminders as well.. which could be a bit of a pain..
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val name = event.getOption<String>("school_name")
+        val schoolName = event.getOption<String>("school_name")
 
-        val school = try {event.schoolbot.schoolService.findSchoolInGuild(
-            name = name,
-            guildId = event.guildId
-        )  } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find $name in our database!") } ?: return run {
-            event.replyErrorEmbed("$name was deleted during/after the autocomplete process!")
+        val school = try { event.schoolbot.schoolService.findSchoolInGuild(name = schoolName, guildId = event.guildId)  }
+        catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find $name in our database!") } ?: return event.replyErrorEmbed("$name was deleted during/after the autocomplete process!")
+
+
+        val timeZoneString = Constants.TIMEZONES.values.joinToString(transform = {"**$it**\n"}, separator = String.empty)
+
+        val acknowledgeEmbed = Embed {
+            title = "${Emoji.THINKING.getAsChat()} ** WAIT** "
+            description = "Two of the attributes in School are a bit difficult to just let you update so let me explain it to you"
+            field(name = "1. Timezone", value = "You may pick from these timezones below \n $timeZoneString \n If you choose to switch the timezone all of your reminders (if any) will be adjusted so don't worry ${Emoji.SMILEY.getAsChat()}" , inline = false)
+            field(name = "2. Role", value = "The number you will see is the role id. If you want to change the role to something different you can get the role id by going into your server settings > roles > right click role > copy id.", inline = true)
+            color = Constants.YELLOW
         }
 
-        // This could error if names are too large I assume
-        val menu = SelectMenu("${event.slashEvent.idLong}_${school.id}:schoolEdit:menu")
-        {
-                option("Name - ${school.name}", "name")
-                option("Url - ${school.url}", "url")
-                option("Suffix - ${school.emailSuffix}", "suffix")
-                option("Role - ${event.jda.getRoleById(school.roleId)?.name ?: "N/A"}", "role")
+        val button = event.jda.button(style = ButtonStyle.PRIMARY, "I understand", user = event.user) {
+            logger.info("Button clicked | ID: {}", it.interaction.idLong)
+            val modal = Modal(id = "school_edit_modal", "Editing ${school.name}") {
+                short(label = "School Name", value = school.name, id = "name")
+                short(label = "School URL" , value = school.url, id = "url")
+                short(label = "School Email Suffix", value = school.emailSuffix, id = "suffix")
+                short(label = "School Timezone", value = school.timeZone, id = "timezone")
+                short(label = "School Role", value = school.roleId.toString(), id = "role")
+            }
+
+            it.message.delete().queue()
+            val modalEvent = it.awaitModal(modal, deferReply = true) ?: return@button
+            val strBuffer = StringBuffer()
+            var errors = 0
+
+            val name = modalEvent.getValue<String>("name")
+            name ?: strBuffer.append("${++errors}. Name field cannot be empty").append("\n")
+            val url = modalEvent.getValue<URI>("url")
+            url ?: strBuffer.append("${++errors}. URL field must be a valid url and/or not blank").append("\n")
+            val emailSuffix = modalEvent.getValue<String>("suffix")
+            emailSuffix ?: strBuffer.append("${++errors}. Email Suffix field cannot be empty").append("\n")
+            if (emailSuffix != null && "@" !in emailSuffix && "@".startsWith(emailSuffix)) strBuffer.append("${++errors}. Email suffix must start with @").append("\n")
+            val timeZone = modalEvent.getValue<String>("timezone")
+            timeZone ?: strBuffer.append("${++errors}. Timezone field must not be blank").append("\n")
+            if (timeZone !in Constants.TIMEZONES.values) strBuffer.append("${++errors}. That timezone was not from the list that I gave you.").append("\n")
+            val role = modalEvent.getValue<Role>("role")
+            role ?: strBuffer.append("${++errors}. That role doesnt not exist in ${event.guild.name}").append("\n")
+
+
+            if (strBuffer.isNotEmpty()) return@button it.replyErrorEmbed(strBuffer.toString()).queue()
+
+            val updateName = (schoolName == name).not()
+
+            school.apply {
+                this.name = if (updateName) name!! else schoolName
+                this.url = url?.toString() ?: "N/A"
+                this.emailSuffix = emailSuffix!!
+                this.timeZone = timeZone!!
+                this.roleId = roleId
+            }
+
+            it.hook.send(
+                embed = school.getAsEmbed(guild = event.guild),
+                content = "Does this look correct?",
+                components = getActionRows(event, school, updateName)
+            ).queue()
         }
-        val selectionEvent = event.awaitMenu(
-            menu = menu,
-            message = "Please select the attribute you wish you edit"
+        event.slashEvent.awaitButton(
+            embed = acknowledgeEmbed,
+            button = button
         ) ?: return
-
-        val choice = selectionEvent.values.first()
-
-
-        val messageResponse: MessageReceivedEvent = evaluateMenuChoice(choice, event) ?:  return event.replyErrorEmbed("This action is not yet implemented!")
-
-        val changedSchool = evaluateChangeRequest(event, messageResponse, choice, school) ?: return
-        val updatedSchool = try { event.getService<SchoolService>().update(changedSchool) } catch (e: Exception) { return event.replyErrorEmbed("`${school.name}` either does not exist or an unexpected error occurred during the update sequence. Please try again. If this error persist please contact `damon#9999` ") }
-        val embed = withContext(Dispatchers.IO) { updatedSchool.getAsEmbed() }
-
-
-        event.replyEmbed(embed, "School Updated!")
-
-
     }
 
-    private suspend fun evaluateChangeRequest(event: CommandEvent, messageResponse: MessageReceivedEvent, choice: String, school: School): School?
+    private fun getActionRows(event: CommandEvent, school: School, updateName: Boolean): Collection<ActionRow>
     {
-        val message = messageResponse.message.contentStripped
-        return when (choice)
-        {
-            "name" ->
-            {
-                val duplicate = try { event.service.findDuplicateSchool(event.guildId, message) } catch (e: Exception) {  event.replyErrorEmbed("Error has occurred while trying to find duplicate school. Please try again"); return null }
+        val jda = event.jda
+        val yes = jda.button(
+            style = ButtonStyle.SUCCESS,
+            label = "Yes",
+            user = event.user,
+            expiration = 1.minutes
+        ) { button ->
+            val service = event.getService<SchoolService>()
 
-                if (!duplicate) return run {
-                    event.replyErrorEmbed("$message already exist as a school name")
-                    null
+            val joke = Constants.JOKES.random()
+            button.message.edit(content = "Making changes to ${school.name}. Here's a joke $joke", components = listOf()).queue()
+            val updatedSchool = try  { service.update(school) }
+            catch (e: Exception) { return@button button.message.editErrorEmbed("Error has occurred while trying to update school").queue() }
+
+
+            if (updateName) jda.getRoleById(school.roleId)?.manager?.setName(updatedSchool.name)?.queue(null) {
+                    button.message.editErrorEmbed("Error while updating role name in server")
+                    logger.error("Error occurred while updating role name in {} ", event.guild.name)
                 }
 
-                 school.apply {
-                    name = message
-                }
-            }
 
-            "url" -> school.apply { url = message }
-            "suffix" -> school.apply { emailSuffix = message }
-            "role" ->
-            {
-                val oMessage = messageResponse.message
-
-                if (oMessage.mentionedRoles.isEmpty() || message == "0") return run {
-                    event.replyErrorEmbed("You did not mention any roles")
-                    null
-                }
-
-                val roleId: Long = if (message == "0") 0L else oMessage.mentionedRoles.first().idLong
-
-                if (roleId != 0L && roleId != school.roleId) return run {
-                    val role = event.jda.getRoleById(roleId)?.asMention ?: return run {
-                        event.replyErrorEmbed("Unexpected error")
-                        null
-                    }
-                    event.replyErrorEmbed("$role is already `${school.name}'s` role")
-                    null
-                }
-
-                if (roleId == 0L && school.roleId == 0L ) return run {
-                    event.replyErrorEmbed("${school.name} already has no role")
-                    null
-                }
-
-                 school.apply {
-                    this.roleId = roleId
-                }
-            }
-            else ->
-            {
-                logger.error("{} has not been implemented as a valid choice", choice)
-                null
-            }
+            button.message.editMessage("Updates successfully applied ${Emoji.SMILEY.getAsChat()}").queue()
         }
+
+        val no = jda.button(
+            style = ButtonStyle.DANGER,
+            label = "No",
+            user = event.user,
+            expiration = 1.minutes
+        ) {
+            it.message.edit("Okay, if you want you can try again ${Emoji.SMILEY.getAsChat()}", embeds = listOf() , components = listOf()).queue()
+        }
+
+        return listOf(yes, no).into()
     }
 
-    private suspend fun evaluateMenuChoice(choice: String, cmdEvent: CommandEvent) = when (choice) {
-         "name" -> cmdEvent.sendMessageAndAwait("Please give me the new **name** you would like to call this school")
-         "url" -> cmdEvent.sendMessageAndAwait("Please give me the new **url** you would like to school to go by")
-         "suffix" -> cmdEvent.sendMessageAndAwait("Please give me the new **email suffix** you would like this school to by")
-         "role" -> cmdEvent.sendMessageAndAwait("Please mention the **role** you would like this school to be mentioned by")
-         else ->
-         {
-             logger.error("{} has not been implemented as a valid choice", choice)
-             null
-         }
-    }
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {

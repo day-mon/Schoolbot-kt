@@ -1,9 +1,6 @@
 package me.damon.schoolbot.commands.main.school
 
-import me.damon.schoolbot.commands.sub.school.course.CourseAddNormal
-import me.damon.schoolbot.commands.sub.school.course.CourseAddPitt
-import me.damon.schoolbot.commands.sub.school.course.CourseRemove
-import me.damon.schoolbot.commands.sub.school.course.CourseView
+import me.damon.schoolbot.commands.sub.school.course.*
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 
@@ -23,6 +20,7 @@ class Course : Command(
     ),
     children = listOf(
         CourseView(),
-        CourseRemove()
+        CourseRemove(),
+        CourseEdit()
     )
 )

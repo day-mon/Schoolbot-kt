@@ -9,16 +9,16 @@ import dev.minn.jda.ktx.messages.editMessage_
 import dev.minn.jda.ktx.messages.into
 import me.damon.schoolbot.Constants
 import me.damon.schoolbot.Schoolbot
-import me.damon.schoolbot.ext.empty
-import me.damon.schoolbot.ext.replyChoiceAndLimit
-import me.damon.schoolbot.ext.send
-import me.damon.schoolbot.ext.toOffset
+import me.damon.schoolbot.ext.*
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.misc.Emoji
-import me.damon.schoolbot.objects.school.*
+import me.damon.schoolbot.objects.school.Assignment
+import me.damon.schoolbot.objects.school.Course
+import me.damon.schoolbot.objects.school.School
+import me.damon.schoolbot.objects.school.defaultReminders
 import me.damon.schoolbot.service.AssignmentReminderService
 import me.damon.schoolbot.service.AssignmentService
 import me.damon.schoolbot.service.CourseService
@@ -28,11 +28,7 @@ import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.OffsetDateTime
-import java.time.ZoneId
+import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.*
@@ -72,7 +68,7 @@ class AssignmentAdd : SubCommand(
 
         val courses = try
         {
-            courseService.getClassesBySchool(school)
+            courseService.findBySchool(school)
         }
         catch (e: Exception)
         {
@@ -100,12 +96,15 @@ class AssignmentAdd : SubCommand(
             short(id = "assignment-name", label = "Assignment Name", required = true)
             paragraph(id = "assignment-add-description", label = "Description", required = true)
             short(id = "assignment-add-due-date", placeholder = "Format MM/dd/yyyy", label = "Due Date", required = true)
-            short(id = "assignment-add-due-time", placeholder = "Format hh:mm AM/PM", label = "Due Date", required = true)
+            short(id = "assignment-add-due-time", placeholder = "Format hh:mm AM/PM", label = "Due Time", required = true)
             short(id = "assignment-add-points", label = "Points", required = true, requiredLength = 1..3)
         }
 
 
-        val modalEvent = event.awaitModal(menuEvent, modal, deferReply = true) ?: return
+        val modalEvent = menuEvent.awaitModal(
+            modal = modal,
+            deferReply = true,
+        ) ?: return
 
         val name = modalEvent.getValue("assignment-name")?.asString ?: return
         val description = modalEvent.getValue("assignment-add-description")?.asString ?: return
@@ -115,13 +114,14 @@ class AssignmentAdd : SubCommand(
 
         val error = evaluateModalFields(dueDate, dueTime, points, school, course)
 
-        if (error != String.empty) return event.replyErrorEmbed(modalEvent, error)
+        if (error != String.empty) return modalEvent.replyErrorEmbed(errorString = error).queue()
 
+        val offset = ZoneId.of(school.timeZone).rules.getOffset(Instant.now())
 
         val dueDateTime = LocalDateTime.parse(
             "$dueDate $dueTime",
             DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mm a", Constants.DEFAULT_LOCALE)
-        ).toInstant(school.zone.toOffset())
+        ).toInstant(offset)
 
 
         val assignment = Assignment(
@@ -133,7 +133,8 @@ class AssignmentAdd : SubCommand(
         catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to save the assignment.") }
 
 
-        event.replyEmbed(interaction = modalEvent, savedAssignment.getAsEmbed())
+        modalEvent.replyEmbed(savedAssignment.getAsEmbed())
+
 
         modalEvent.send(
             content = "Would you like to add reminders for this assignment? ** I will add reminders for 1 day, 6 hours, 1 hour, 10 minutes, and at due time **",

@@ -2,12 +2,8 @@ package me.damon.schoolbot.objects.school
 
 import me.damon.schoolbot.ext.empty
 import me.damon.schoolbot.ext.minus
-import me.damon.schoolbot.ext.toOffset
 import org.hibernate.annotations.GenericGenerator
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneId
 import java.util.*
 import javax.persistence.*
 import kotlin.time.Duration.Companion.days
@@ -32,7 +28,7 @@ open class AssignmentReminder(
     @JoinColumn(name = "assignment")
     open val assignment: Assignment,
 
-    open val remindTime: Instant,
+    open var remindTime: Instant,
 
     open val message: String = String.empty
 ) {

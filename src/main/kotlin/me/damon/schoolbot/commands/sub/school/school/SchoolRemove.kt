@@ -46,7 +46,7 @@ class SchoolRemove : SubCommand(
         val id = try { UUID.fromString(schoolId) } catch (e: Exception) { return event.replyErrorEmbed("That is not a valid school to be deleted at this time.\nIn order for a school to be deleted it must have no classes and be added to your guild")}
         val school = try {  service.findSchoolById(id) } catch (e: Exception) { return  event.replyErrorEmbed("Error occurred while searching for school")} ?: return event.replyErrorEmbed("${Emoji.ERROR} School not found")
 
-        val courses = try { event.getService<CourseService>().getClassesBySchool(school) } catch (e: Exception) { return event.replyErrorEmbed("Error occurred while checking if this school has any courses. \n Why would we check? Idk some of you are sneaky.")}
+        val courses = try { event.getService<CourseService>().findBySchool(school) } catch (e: Exception) { return event.replyErrorEmbed("Error occurred while checking if this school has any courses. \n Why would we check? Idk some of you are sneaky.")}
         if (courses.isNotEmpty()) return event.replyErrorEmbed("School has courses. Remove them first. Nice try.")
 
         event.hook.send(content = "Are you sure you want to remove ${school.name}", embed = school.getAsEmbed(), components = getActionRows(event, school)).queue()

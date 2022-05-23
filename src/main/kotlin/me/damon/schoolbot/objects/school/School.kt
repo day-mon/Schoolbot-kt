@@ -48,14 +48,17 @@ open class School(
     open val classes: List<Course>,
 
     @Column(name = "timeZone", nullable = false)
-    open val timeZone: String,
+    open var timeZone: String,
 
-    @Transient
-    open val zone: ZoneId = ZoneId.of(timeZone)
 
 
     ) : Pagable, Identifiable
 {
+
+    val zone: ZoneId
+    get() = ZoneId.of(timeZone)
+
+
 
 //    fun hasProfessors() = professor.isNotEmpty()
     override fun getAsEmbed(): MessageEmbed = Embed {
@@ -84,6 +87,10 @@ open class School(
             value = emailSuffix
             inline = false
         }
+        field(name = "URL", value = this@School.url, inline = true)
+        field(name = "Role", value = guild.getRoleById(roleId)?.asMention ?: "N/A", inline = true)
+        field(name = "Timezone", value = timeZone, inline = true)
+
 
         color = guild.getRoleById(roleId)?.colorRaw ?:  Random.nextInt(0xFFFFFF)
     }

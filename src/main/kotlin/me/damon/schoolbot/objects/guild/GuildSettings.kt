@@ -13,5 +13,8 @@ class GuildSettings(
     val guildId: Long,
 
     @Column(name = "longMessageUploading")
-    var longMessageUploading: Boolean = true
+    var longMessageUploading: Boolean = true,
+
+    @Column(name = "deleteRemindableEntityOnLastReminder")
+    var deleteRemindableEntityOnLastReminder: Boolean = true
 )

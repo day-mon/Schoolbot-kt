@@ -7,26 +7,23 @@ import me.damon.schoolbot.objects.repository.AssignmentRepository
 import me.damon.schoolbot.objects.school.Assignment
 import me.damon.schoolbot.objects.school.AssignmentReminder
 import org.springframework.stereotype.Service
-import java.time.*
+import java.time.Instant
 
 @Service("AssignmentReminderService")
 class AssignmentReminderService(
     val assignmentRepository: AssignmentRepository,
-    val assignmentReminderRepository: AssignmentReminderRepository
+    private val assignmentReminderRepository: AssignmentReminderRepository
 ) : SpringService
 {
     fun saveAll(reminders: List<AssignmentReminder>): MutableList<AssignmentReminder>
     {
-        val zone = reminders.first().assignment.course.school.zone
-        val now = ZonedDateTime.now(zone).toInstant()
+        val now = Instant.now()
         val filteredReminders = reminders.filter { it.remindTime.isAfter(now) }
 
         return runCatching { assignmentReminderRepository.saveAll(filteredReminders) }
             .onFailure { logger.error("Error has occurred while attempting to save reminders") }
             .getOrThrow()
     }
-
-
 
 
     fun deleteByAssignment(assignment: Assignment) = runCatching { assignmentReminderRepository.deleteAllByAssignment(assignment) }

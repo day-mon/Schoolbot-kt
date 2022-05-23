@@ -40,9 +40,8 @@ data class CommandOptionData<T>(
     fun validate(mapping: OptionMapping): Boolean
     {
         val split = type.name.split(".")
-        val size = split.size - 1
 
-        return when (split[size]) {
+        return when (split.last()) {
             "Long" -> isValid(mapping.asLong)
             "Boolean" -> isValid(mapping.asBoolean)
             "User" -> isValid(mapping.asUser)

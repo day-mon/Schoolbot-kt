@@ -56,7 +56,8 @@ enum class Emoji(private val emote: String, private val unicode: String? = null,
     WHITE_CIRCLE(":white_circle:", "\u26AA" ),
     LAPTOP(":computer:", "\uF4BB"),
     PURPLE_CIRCLE(":purple_circle:", "\u26AA" ),
-    BLACK_CIRCLE(":black_circle:", "\u26AB" );
+    BLACK_CIRCLE(":black_circle:", "\u26AB" ),
+    WARNING(":warning:", "\u26A0");
 
     fun getAsChat(): String
     {

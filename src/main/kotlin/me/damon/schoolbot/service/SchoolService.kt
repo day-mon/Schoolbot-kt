@@ -1,6 +1,7 @@
 package me.damon.schoolbot.service
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.util.SLF4J
+import me.damon.schoolbot.Constants
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.repository.SchoolRepository
 import me.damon.schoolbot.objects.school.School
@@ -18,7 +19,6 @@ class SchoolService(
 
 
     private val logger by SLF4J
-    private val regex = Regex("\\s+")
     private val random = Random()
 
 
@@ -26,7 +26,7 @@ class SchoolService(
     suspend fun saveSchool(school: School, commandEvent: CommandEvent): School
     {
         val guild = commandEvent.guild
-        val role = guild.createRole().setColor(random.nextInt(0xFFFFF)).setName(school.name.replace(regex, "-")).await()
+        val role = guild.createRole().setColor(random.nextInt(0xFFFFF)).setName(school.name.replace(Constants.SPACE_REGEX, "-")).await()
 
 
 
@@ -49,6 +49,25 @@ class SchoolService(
         runCatching { schoolRepository.findEmptyClassesInGuild(guildId).await() }
             .onFailure { logger.error("Error occurred while retrieving schools with no classrooms in guild {}", guildId) }
             .getOrThrow()
+
+//    suspend fun adjustRemindTimes(school: School) {
+//        val courses = courseService.findBySchool(school)
+//        val offset = ZoneId.of(school.timeZone).toOffset()
+//        courses.forEach { course ->
+//            val courseReminders =  courseReminderService.findByCourse(course)
+//            val z = courseReminders
+//            courseReminders.forEach { it.remindTime = it.remindTime.atOffset(offset).toInstant() }
+//            courseReminderService.saveAll(courseReminders)
+//
+//            val assignments = assignmentService.findByCourse(course)
+//            assignments.forEach { assignment ->
+//                val assignmentReminders = assignmentReminderService.findByAssignment(assignment)
+//                assignmentReminders.forEach { it.remindTime = it.remindTime.atOffset(offset).toInstant() }
+//                assignmentReminderService.saveAll(assignmentReminders)
+//            }
+//        }
+//    }
+
 
     fun findSchoolsInGuild(guildId: Long): List<School> =
         runCatching { schoolRepository.findInGuild(guildId) }

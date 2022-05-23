@@ -10,9 +10,9 @@ import java.util.concurrent.CompletableFuture
 
 interface ClassroomRepository : JpaRepository<Course, UUID>
 {
-    @Query("select c from courses c where c.name = ?1 and c.number = ?2 and c.termIdentifier = ?3")
+    @Query("select c from courses c where c.number = ?1 and c.termIdentifier = ?2")
     @Async
-    fun findByNameAndNumberAndTerm(name: String, number: Long, termIdentifier: String): CompletableFuture<Course?>
+    fun findByNumberAndIdentifier(number: Long, termIdentifier: String): CompletableFuture<Course?>
 
     @Query("select c from courses c where c.guildId = ?1")
     fun findAllByGuild(guildId: Long): List<Course>

@@ -64,7 +64,7 @@ this platform has org.jetbrains.kotlin:kotlin-stdlib-jdk8 within it and a specif
 dependencies {
 
     // Kotlin
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.10")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
     implementation(kotlin("stdlib-jdk8"))
@@ -87,7 +87,7 @@ dependencies {
     implementation("org.reflections:reflections:0.10.2")
 
     // Misc
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
     implementation("ch.qos.logback:logback-classic:1.2.11")
     implementation("com.yahoofinance-api:YahooFinanceAPI:3.15.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

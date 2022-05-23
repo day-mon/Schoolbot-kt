@@ -6,6 +6,7 @@ import me.damon.schoolbot.Constants
 import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import java.io.*
+import java.util.*
 
 fun InputStream.string(): String
 {
@@ -21,6 +22,11 @@ fun InputStream.string(): String
     return content.toString()
 }
 
+fun <K, V> MutableMap<K, V>.put(pair: Pair<K, V>) = this.put(pair.first, pair.second)
+fun <K, V> MutableMap<K, V>.putAll(vararg pairs: Pair<K, V>) = this.putAll(pairs)
+inline fun <reified T: Enum<T>> emptyEnumSet(): EnumSet<T> = EnumSet.noneOf(T::class.java)
+inline fun <reified T: Enum<T>> enumSetOf(vararg elements: T): EnumSet<T> = EnumSet.copyOf(elements.toList())
+inline fun <reified T: Enum<T>> enumSetOf(collection: Collection<T>): EnumSet<T> = EnumSet.copyOf(collection)
 fun File.tryDelete(): Boolean
 {
     val logger by SLF4J

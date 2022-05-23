@@ -12,6 +12,6 @@ interface JohnstownAPI
     suspend fun getLaundryItems(@Path("dorm") dorm: String): Response<List<LaundryModel>>
 
     @GET("course/{term}/{number}")
-    suspend fun getCourse(@Path("term") term: String, @Path("number")number: String): Response<CourseModel>
+    suspend fun getCourse(@Path("term") term: String, @Path("number")number: Long): Response<CourseModel>
 
 }

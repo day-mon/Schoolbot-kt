@@ -33,5 +33,4 @@ interface SchoolRepository : JpaRepository<School, UUID>
     @Query("select s from School s where s.classes is not empty and s.guildId = ?1")
     @Async
     fun findByNonEmptyCoursesInGuild(guildId: Long): CompletableFuture<List<School>>
-
 }

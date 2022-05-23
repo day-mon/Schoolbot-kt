@@ -6,76 +6,73 @@ import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.MessageEmbed
-import org.springframework.scheduling.annotation.Async
-import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.*
 import javax.persistence.*
 
 @Table(name = "courses")
 @Entity(name = "courses")
-@Transactional
-open class Course(
+class Course(
     @Column(name = "name", nullable = false)
-    open val name: String,
+     var name: String,
 
     @Column(name = "description", columnDefinition = "text")
-    open val description: String,
+     var description: String,
 
     @Column(name = "topic", nullable = true)
-    open val topic: String?,
+     val topic: String?,
 
     @Column(name = "prerequisite")
-    open val prerequisite: String?,
+     val prerequisite: String?,
 
     @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
-    open val reminders: MutableList<CourseReminder> = mutableListOf(),
+     val reminders: List<CourseReminder> = listOf(),
 
     @ManyToMany(mappedBy = "courses", fetch = FetchType.LAZY)
-    open val professors: List<Professor>,
+     val professors: List<Professor>,
 
     @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
-    open val assignments: List<Assignment>,
+     val assignments: List<Assignment>,
 
     @Column(name = "startDate", nullable = false)
-    open val startDate: Instant,
+     var startDate: Instant,
 
     @Column(name = "endDate", nullable = false)
-    open val endDate: Instant,
+     var endDate: Instant,
 
     @Column(name = "meeting_days", nullable = false)
-    open val meetingDays: String, // days comma delimited
+     var meetingDays: String, // days comma delimited
 
     @Column(name = "termId")
-    open val termIdentifier: String = String.empty,
+     val termIdentifier: String = String.empty,
 
     @Column(name = "url")
-    open val url: String,
+     var url: String,
 
     @Column(name = "number")
-    open val number: Long,
+     var number: Long,
 
     @Column(name = "subjectAndIdentifier", nullable = true)
-    open val subjectAndIdentifier: String,
+     val subjectAndIdentifier: String,
 
     @Column(name = "roleId", nullable = true)
-    open var roleId: Long = 0,
+     var roleId: Long = 0,
 
     @Column(name = "channelId", nullable = true)
-    open var channelId: Long = 0,
+     var channelId: Long = 0,
 
     @Column(name = "guildId", nullable = false)
-    open val guildId: Long,
+     val guildId: Long,
 
     @Column(name = "autoFilled")
     /**
      * A class that was autopopulated via api
      */
-    open val autoFilled: Boolean = false,
+     val autoFilled: Boolean = false,
 
     @ManyToOne
     @JoinColumn(name = "school")
-    open val school: School,
+     val school: School,
 
     @Id
     override val id: UUID = UUID.nameUUIDFromBytes((name+termIdentifier+guildId+number).toByteArray())
@@ -83,7 +80,6 @@ open class Course(
     ) : Pagable, Identifiable
 
 {
-    @Async
     override fun getAsEmbed(): MessageEmbed = Embed {
         title = "$name | $subjectAndIdentifier"
         url = this@Course.url
@@ -97,7 +93,14 @@ open class Course(
         {
             field {
                 name = "Prerequisites"
-                value = prerequisite!!
+                value = prerequisite
+            }
+        }
+
+        if (topic != null) {
+            field {
+                name = "Topic"
+                value = topic
             }
         }
 
@@ -111,6 +114,7 @@ open class Course(
             value = number.toString()
             inline = true
         }
+        if (this@Course.startDate.atZone(school.zone).year == 1970) footer("If you're seeing this the reason the start/end date is 1970 is that the course had no posted start/end date")
     }
 
 
@@ -130,7 +134,7 @@ open class Course(
          {
              field {
                  name = "Prerequisites"
-                 value = prerequisite!!
+                 value = prerequisite
              }
          }
 
@@ -145,24 +149,6 @@ open class Course(
             inline = true
         }
 
-         /*
-        field {
-            name = "Professors"
-            value = professors.joinToString { "`${it.firstName}, ${it.lastName}`" }
-        }
-
-
-
-        field {
-            name = "Assignment Count"
-            value = assignments.size.toString()
-            inline = true
-        }
-
-          */
-
-
-
 
          field {
              name = "Channel"
@@ -172,7 +158,7 @@ open class Course(
          if (topic != null) {
              field {
                  name = "Topic"
-                 value = topic!!
+                 value = topic
              }
          }
 
@@ -194,8 +180,10 @@ open class Course(
          }
 
          color = role?.colorRaw ?: 0xFFFF
+         if (this@Course.startDate.atZone(school.zone).year == 1970) footer("If you're seeing this the reason the start/end date is 1970 is that the course had no posted start/end date")
 
-    }
+
+     }
 }
 
 

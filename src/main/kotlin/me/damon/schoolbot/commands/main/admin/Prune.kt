@@ -3,6 +3,7 @@ package me.damon.schoolbot.commands.main.admin
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.into
 import dev.minn.jda.ktx.messages.reply_
+import me.damon.schoolbot.ext.enumSetOf
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
@@ -19,8 +20,9 @@ class Prune : Command (
     category = CommandCategory.ADMIN,
     deferredEnabled = false,
     description = "Clears all bot messages in the text channel command is called in",
-    selfPermissions = listOf(Permission.MESSAGE_MANAGE),
-    memberPermissions = listOf(Permission.ADMINISTRATOR))
+    selfPermissions = enumSetOf(Permission.MESSAGE_MANAGE),
+    memberPermissions = enumSetOf(Permission.ADMINISTRATOR)
+)
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {

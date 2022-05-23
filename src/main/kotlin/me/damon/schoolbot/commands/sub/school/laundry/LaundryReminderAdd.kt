@@ -58,7 +58,7 @@ class LaundryReminderAdd : SubCommand(
             message = "Please select the machine you would like to be reminded of"
         ) ?: return
         val option = models[selectionEvent.values.first().toInt()]
-        val timeLeft = option.timeRemaining.split(Regex("\\s+")).first().toInt()
+        val timeLeft = option.timeRemaining.split(Constants.SPACE_REGEX).first().toInt()
         val id = "${event.user.idLong}_${option.location}_${option.type}_${option.applianceID}"
 
         if (taskHandler.taskExist(id)) return event.replyMessage("You already have a reminder for this ${option.location} ${option.applianceID}")

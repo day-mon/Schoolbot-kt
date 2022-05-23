@@ -42,7 +42,7 @@
 > }
 > ```
 > Simply to put it Contravariance is **WRITE-ONLY**. Can be denoted in kotlin by `List<out T>`.
-> 
+
 
 
 **What is a coroutine?**
@@ -52,6 +52,29 @@ A coroutine is an instance of suspendable computation. It is conceptually simila
 Coroutines can be thought of as light-weight threads, but there is a number of important differences that make their real-life usage very different from threads.
 
 **IMPORTANT!: A coroutine is a state machine that can be suspended and resumed at a later time. It identifies each suspendable point it makes identifies the state using a big switch case under the hood**
+
+**USE EXCEPTIONS**
+> Instead of:
+> ```kotlin
+> private fun validateTimes(startDate: LocalDate, endDate: LocalDate): String
+> {
+>   if (startDate.isBefore(endDate).not()) return "Start date must be before end date"
+>   ...
+>   ...
+>   return String.empty
+> }
+> ```
+> Do this:
+> ```kotlin
+> private fun validateTimes(startDate: LocalDate, endDate: LocalDate): Boolean 
+> {
+>    if (startDate.isBefore(endDate).not())
+>       throw new ErrorCodeException(ErrorCode.START_TIME_MUST_BE_AFTER_END_TIME)
+>    ...
+>    ...
+>    return true
+> }
+> ```
 
 
 **Different types of Kotlin Dispatchers**
@@ -79,4 +102,9 @@ Coroutines can be thought of as light-weight threads, but there is a number of i
 >   withContext(Dispatchers.Main) {
 >     // do some UI work
 >  }
-> }
+> } 
+> ``` 
+>
+
+
+

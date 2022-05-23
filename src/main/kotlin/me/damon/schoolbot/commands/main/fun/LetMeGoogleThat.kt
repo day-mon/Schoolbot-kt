@@ -1,15 +1,13 @@
 package me.damon.schoolbot.commands.main.`fun`
 
+import me.damon.schoolbot.Constants
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import net.dv8tion.jda.api.interactions.commands.OptionType
-import java.util.concurrent.TimeUnit
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-private val SPACES = Regex("\\s+")
 
 class LetMeGoogleThat : Command(
     name = "lmgtfy",
@@ -28,7 +26,7 @@ class LetMeGoogleThat : Command(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val args = event.getOption<String>("search_results")
-            .replace(regex = SPACES, replacement = "+")
+            .replace(regex = Constants.SPACE_REGEX, replacement = "+")
 
         val url = "https://www.letmegooglethat.com/?q=$args"
 

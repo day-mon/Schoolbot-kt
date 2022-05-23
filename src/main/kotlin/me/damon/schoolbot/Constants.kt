@@ -105,7 +105,6 @@ object Constants
         "Did you hear about the Italian chef with a terminal illness? He pastaway.",
         "My grandfather tried to warn them about the Titanic. He screamed and shouted about the iceberg and how the ship was going to sink, but all they did was throw him out of the theater.",
         "What do you call people who are afraid of Santa Claus? Claustrophobic",
-        "How did Jesus' crucifixion save us? It's 'cause he nailed it!",
         "Having sex in an elevator is wrong on so many levels.",
         "The therapist asked my wife why she wanted to end our marriage. She said she hated all the constant Star Wars puns. I look at the therapist and said, \"Divorce is strong with this one!\"",
         "I finally realized my parents favored my twin brother. It hit me when they asked me to blow up balloons for his surprise birthday party.",
@@ -157,7 +156,6 @@ object Constants
         "What do sea monsters eat for lunch? Fish and ships.",
         "Did you hear about the math teacher who's afraid of negative numbers? He will stop at nothing to avoid them.",
         "What musical instrument is found in the bathroom? A tuba toothpaste.",
-        "What is the name of an Asian pilot who died in a plane crash? Sum Ting Wong.",
         "I had a job tying sausages together, but I couldn't make ends meet.",
         "Isn't it scary that doctors call what they do \"practice\"?",
         "If Russians pronounce B's as V's then Soviet.",
@@ -170,12 +168,15 @@ object Constants
     )
 
     val CURRENT_TIME = "<t:${Instant.now().epochSecond}>"
+    val SPACE_REGEX = Regex("\\s+")
     val DEV_BOT_ID = 876829823618646036
     val DEFAULT_LOCALE: Locale = Locale.US
     val DEFAULT_DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy", DEFAULT_LOCALE)
     val DEFAULT_TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm a", DEFAULT_LOCALE)
     const val RED = 0x990f0f
+    const val YELLOW = 0xf0e68c // khaki
     const val MAX_ROLE_COUNT = 250
+    const val MAX_MENTIONABLE_LENGTH = 100
     const val MAX_CHANNEL_COUNT = 500
     const val SELECTION_MENU_MAX_SIZE = 25
     val DEFAULT_CLIENT: OkHttpClient =

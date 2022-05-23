@@ -1,14 +1,22 @@
 package me.damon.schoolbot.objects.command
 
 import dev.minn.jda.ktx.messages.Embed
+import dev.minn.jda.ktx.messages.reply_
+import dev.minn.jda.ktx.messages.send
 import dev.minn.jda.ktx.util.SLF4J
+import me.damon.schoolbot.Constants
 import me.damon.schoolbot.Schoolbot
+import me.damon.schoolbot.ext.empty
+import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData
+import java.util.*
+import kotlin.time.Duration
 
 abstract class AbstractCommand : Pagable
 {
@@ -18,77 +26,56 @@ abstract class AbstractCommand : Pagable
     abstract val deferredEnabled: Boolean
     abstract val description: String
     abstract val commandPrerequisites: String
-    abstract val coolDown: Long
-    abstract val memberPermissions: List<Permission>
-    abstract val selfPermissions: List<Permission>
+    abstract val coolDown: Duration
+    abstract val memberPermissions: EnumSet<Permission>
+    abstract val selfPermissions: EnumSet<Permission>
     abstract val children: List<SubCommand>
     abstract val options: List<CommandOptionData<*>>
     val commandData: CommandData
         get()
         {
             val s = Commands.slash(name.lowercase(), description)
-            val x = this as Command
-            if (this.group.isNotEmpty())
-            {
-                s.addSubcommandGroups(this.group.map {
-                    SubcommandGroupData(
-                        it.key,
-                        "This ${it.key}'s"
-                    ).addSubcommands(it.value.map { cmd -> cmd.subCommandData })
-
-                })
-            }
-
-            if (children.isNotEmpty())
-            {
-                s.addSubcommands(children.map { it.subCommandData })
-
-
-            }
-            else
-            {
-                s.addOptions(
-                    *options.map { it.asOptionData() }.toTypedArray()
-                )
-            }
+            val command = this as Command
+            if (command.group.isNotEmpty())
+                s.addSubcommandGroups(
+                    command.group.map {
+                        SubcommandGroupData(it.key, "This ${it.key}'s")
+                            .addSubcommands(it.value.map { cmd -> cmd.subCommandData })
+                    })
+            if (children.isNotEmpty()) s.addSubcommands(children.map { it.subCommandData })
+            else s.addOptions(options.map { it.asOptionData() })
             return s
         }
 
 
     suspend fun process(event: CommandEvent)
     {
-        event.getSentOptions().forEach { i ->
-            if (!i.validate(event.getOption(i.name)!!))
+        event.getSentOptions().forEach {
+            if (!it.validate(event.getOption(it.name)!!))
             {
-                event.replyErrorEmbed(
-                    embedTitle = "Validation failed on field ```${i.asOptionData().name}```",
-                    error = "```${i.validationFailed}```"
+                return event.replyErrorEmbed(
+                    embedTitle = "Validation failed on field ```${it.asOptionData().name}```",
+                    error = "```${it.validationFailed}```"
                 )
-                return
             }
         }
 
         if (!event.hasSelfPermissions(selfPermissions))
         {
-            val correct = "I will need ${
-                selfPermissions.filter { it !in event.guild.selfMember.permissions }.joinToString { "`${it.getName()}`" }
-            } permission(s) to run this command!"
-            sendMessage(event, correct)
+            val correct = selfPermissions.filter { it !in event.guild.selfMember.permissions }.joinToString { "`${it.getName()}`" }
+            sendMessage(event, embed = getPermissionErrorEmbed(correct))
         }
         else if (!event.hasMemberPermissions(memberPermissions))
         {
-            val correct = "You will need ${
-                memberPermissions.filter { it !in event.member.permissions }.joinToString { "`${it.getName()}`" }
-            } permission(s) to run this command!"
-            sendMessage(event, correct)
+            val correct = memberPermissions.filter { it !in event.member.permissions }.joinToString { "`${it.getName()}`" }
+            sendMessage(event, embed = getPermissionErrorEmbed(correct))
         }
         else if (category == CommandCategory.DEV)
         {
             if (event.user.id !in event.schoolbot.configHandler.config.developerIds)
-            {
-                sendMessage(event, "You must be a developer to run this command")
-                return
-            }
+                return sendMessage(event, "You must be a developer to run this command")
+
+            logger.info("${event.user.asTag} has executed $name")
             onExecuteSuspend(event)
         }
         else
@@ -99,10 +86,10 @@ abstract class AbstractCommand : Pagable
     }
 
 
-    private fun sendMessage(e: CommandEvent, message: String)
+    private fun sendMessage(e: CommandEvent, message: String =  String.empty, embed: MessageEmbed? = null)
     {
-        if (deferredEnabled) e.hook.editOriginal(message).queue()
-        else e.slashEvent.reply(message).queue()
+        if (deferredEnabled) e.hook.send(content = message, embed = embed).queue()
+        else e.slashEvent.reply_(content = message, embed = embed).queue()
     }
 
     open suspend fun onExecuteSuspend(event: CommandEvent)
@@ -114,6 +101,13 @@ abstract class AbstractCommand : Pagable
     open suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
     {
         throw NotImplementedError("Autocomplete for $name has not implemented ")
+    }
+
+    private fun getPermissionErrorEmbed(errors: String) = Embed {
+        title = " ${Emoji.WARNING.getAsChat()} Permission Error"
+        description = "I need some permissions to run this command!"
+        field(name = "Permissions", value = errors)
+        color = Constants.YELLOW
     }
 
 

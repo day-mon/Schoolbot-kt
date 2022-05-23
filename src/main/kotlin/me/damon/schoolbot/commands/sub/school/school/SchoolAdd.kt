@@ -6,17 +6,15 @@ import dev.minn.jda.ktx.interactions.components.option
 import dev.minn.jda.ktx.messages.editMessage_
 import dev.minn.jda.ktx.messages.into
 import me.damon.schoolbot.Constants
-import me.damon.schoolbot.ext.asException
-import me.damon.schoolbot.ext.editOriginalAndClear
-import me.damon.schoolbot.ext.send
+import me.damon.schoolbot.ext.*
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.school.School
 import me.damon.schoolbot.service.SchoolService
+import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
-import net.dv8tion.jda.api.exceptions.PermissionException
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
@@ -26,6 +24,8 @@ class SchoolAdd : SubCommand(
     name = "add",
     description = "Adds a school",
     category = CommandCategory.SCHOOL,
+    selfPermissions = enumSetOf(Permission.MANAGE_ROLES),
+    memberPermissions = enumSetOf(Permission.MANAGE_ROLES),
     options = listOf(
         CommandOptionData<String>(
             optionType = OptionType.STRING,
@@ -68,7 +68,7 @@ class SchoolAdd : SubCommand(
             }
         }
 
-        val selectionEvent = event.awaitMenu(menu, "Select an item from the menu to choose a school", acknowledge = true, throwAway = true) ?: return
+        val selectionEvent = event.awaitMenu(menu, "Select an item from the menu to choose a school", acknowledge = true, deleteAfter = true) ?: return
         val school = models[selectionEvent.values.first().toInt()]
 
         val duplicate = try { event.schoolbot.schoolService.findSchoolInGuild(event.guild.idLong, school.name) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while attempting to check if ${school.name} is a duplicate.. Try again!") }
@@ -81,7 +81,7 @@ class SchoolAdd : SubCommand(
             val timeZoneMenu = SelectMenu("timezone:menu") {
                 Constants.TIMEZONES.forEach { (k, v) -> option(k, v) }
             }
-            val timeZoneSelectionEvent = event.awaitMenu(timeZoneMenu, "Select a timezone for `${school.name}`. This timezone will be used for class and assignment reminders if you choose to use them.", acknowledge = true, throwAway = true) ?: return
+            val timeZoneSelectionEvent = event.awaitMenu(timeZoneMenu, "Select a timezone for `${school.name}`. This timezone will be used for class and assignment reminders if you choose to use them.", acknowledge = true, deleteAfter = true) ?: return
             timeZoneSelectionEvent.values.first()
         }
 
@@ -103,14 +103,10 @@ class SchoolAdd : SubCommand(
             {
                 cmdEvent.getService<SchoolService>().saveSchool(school, cmdEvent)
             }
-            catch (e: PermissionException)
-            {
-               return@button cmdEvent.replyErrorEmbed(it.interaction,"Could not add school.\n Reason: `${e.message}`")
-            }
             catch (e: Exception)
             {
                 logger.error("Error has occurred while trying to save the school", e)
-                return@button cmdEvent.replyErrorEmbed(it.interaction, "Error has occurred while trying to save school!")
+                return@button it.replyErrorEmbed(errorString = "Error has occurred while trying to save school!").queue()
             }
 
             it.hook.editOriginal("Successfully added `${school.name}` to the database!")

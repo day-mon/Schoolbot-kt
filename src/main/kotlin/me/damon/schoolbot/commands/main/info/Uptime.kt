@@ -6,7 +6,6 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.EmbedBuilder
 import java.lang.management.ManagementFactory
 import java.time.Duration
-import java.time.Instant
 
 
 class Uptime : Command(

@@ -3,6 +3,7 @@ package me.damon.schoolbot.commands.main.admin
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.into
 import dev.minn.jda.ktx.messages.reply_
+import me.damon.schoolbot.ext.enumSetOf
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
@@ -22,8 +23,8 @@ class Clear : Command(
     category = CommandCategory.ADMIN,
     deferredEnabled = false,
     description = "Clears messages in the text channel that the command was executed in",
-    selfPermissions = listOf(Permission.MESSAGE_MANAGE),
-    memberPermissions = listOf(Permission.ADMINISTRATOR),
+    selfPermissions = enumSetOf(Permission.MESSAGE_MANAGE),
+    memberPermissions = enumSetOf(Permission.ADMINISTRATOR),
     options = listOf(
         CommandOptionData<Long>(
             optionType = OptionType.INTEGER,
@@ -49,7 +50,7 @@ class Clear : Command(
        slash
             .reply_("You are about to delete `$amount` messages, click the checkmark to continue, click `Exit` to cancel. (30 seconds to make a choice)")
             .addActionRows(getActionRows(event, amount))
-            .queue { it.deleteOriginal().queueAfter(30, TimeUnit.SECONDS) }
+            .queue { it.deleteOriginal().queueAfter(30, TimeUnit.SECONDS, null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE)) }
 
 
     }
@@ -71,7 +72,7 @@ class Clear : Command(
                     channel.purgeMessages(subList)
                     return@thenApplyAsync subList.size
                 }.thenAcceptAsync { size ->
-                    event.hook.editOriginal("Successfully purged `${size}` messages!")
+                    event.hook.editOriginal("Successfully purged `$size` messages!")
                         .setActionRows(emptyList())
                         .queue {
                         it.delete()

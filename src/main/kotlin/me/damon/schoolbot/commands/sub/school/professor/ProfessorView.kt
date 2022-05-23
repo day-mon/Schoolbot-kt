@@ -2,6 +2,7 @@ package me.damon.schoolbot.commands.sub.school.professor
 
 import me.damon.schoolbot.Schoolbot
 import me.damon.schoolbot.ext.replyChoiceAndLimit
+import me.damon.schoolbot.ext.toUUID
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
@@ -28,21 +29,16 @@ class ProfessorView : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val name = event.getOption<String>("school_name")
+        val name = event.getOption<String>("school_name").toUUID()
+            ?: return event.replyErrorEmbed("School has not been found")
+
 
         val service = event.getService<ProfessorService>()
-        val professors = try
-        {
-            service.findBySchoolName(name, event.guildId)
-        }
-        catch (e: Exception)
-        {
-            return event.replyErrorEmbed("An error occurred while trying to find professors")
 
-        }
+        val professors = try { service.findBySchoolId(name) }
+        catch (e: Exception) { return event.replyErrorEmbed("An error occurred while trying to find professors") }
 
         if (professors.isEmpty()) return event.replyErrorEmbed("No professors found with the name `$name`")
-
 
         event.sendPaginator(professors)
     }
@@ -53,8 +49,6 @@ class ProfessorView : SubCommand(
         val schools = try { schoolbot.schoolService.findSchoolsInGuild(guildId) } catch (e: Exception) {
             return logger.warn("An error occurred while trying to find professors", e)
         }
-
-
 
         event.replyChoiceAndLimit(schools.map { Command.Choice(it.name, it.id.toString()) }).queue()
     }

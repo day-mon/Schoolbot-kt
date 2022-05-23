@@ -1,5 +1,6 @@
 package me.damon.schoolbot.commands.sub.school.course
 
+import dev.minn.jda.ktx.interactions.components.Modal
 import dev.minn.jda.ktx.interactions.components.SelectMenu
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.interactions.components.option
@@ -10,9 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.damon.schoolbot.Constants
 import me.damon.schoolbot.Schoolbot
-import me.damon.schoolbot.ext.asException
-import me.damon.schoolbot.ext.empty
-import me.damon.schoolbot.ext.replyChoiceStringAndLimit
+import me.damon.schoolbot.ext.*
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
@@ -30,14 +29,13 @@ import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
 import java.time.LocalDate
-import kotlin.random.Random
 
 class CourseAddPitt : SubCommand(
     name = "pitt",
     description = "Adds a pitt class",
     category = CommandCategory.SCHOOL,
-    selfPermissions = listOf(Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES),
-    memberPermissions = listOf(Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES),
+    selfPermissions = enumSetOf(Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES),
+    memberPermissions = enumSetOf(Permission.MANAGE_CHANNEL, Permission.MANAGE_ROLES),
     options = listOf(
         CommandOptionData<String>(
             optionType = OptionType.STRING,
@@ -71,21 +69,26 @@ class CourseAddPitt : SubCommand(
         val termNumber = selectionEvent.values.first()
         val term = terms.find { it.second == termNumber }!!.first
 
-        val messageReceivedEvent = event.sendMessageAndAwait(
-            message = "Nice! You selected `$term`! Please give me your class number"
-        )
-        val message = messageReceivedEvent.message.contentRaw
+        val modal = Modal("course_number_modal", title = "Give me your class number that's in $term ") {
+            short(id = "course_number", label = "Course Number" )
+        }
 
-        event.replyMessageAndClear("Okay, looks good. I will now do the search for the class in the term: `$term` and with the number: `${message}`")
-        val response = event.schoolbot.apiHandler.johnstownAPI.getCourse(termNumber, message)
+        val modalEvent = selectionEvent.awaitModal(modal, deferReply = true) ?: return
+        val courseNumberStr = modalEvent.getValue<String>("course_number") ?: return modalEvent.replyErrorEmbed("Course Number field must not be empty").queue()
+        val courseNumber = courseNumberStr.toLongOrNull() ?: return modalEvent.replyErrorEmbed("$courseNumberStr is not a number").queue()
+
+        val response = event.schoolbot.apiHandler.johnstownAPI.getCourse(termNumber, courseNumber)
+        logger.debug("Response has been received from API. Request URL: {}", response.raw().request().url())
 
         if (!response.isSuccessful) run {
-            event.replyErrorEmbed("Error has occurred while trying to get class")
+            if (response.code() == 503)
+                return modalEvent.replyErrorEmbed("Pitt course site (Peoplesoft) is currently down for maintenance.").queue()
+            modalEvent.replyErrorEmbed("Error has occurred while trying to get class").queue()
             return logger.error("Error has occurred while trying to get class", response.raw().asException())
         }
 
         val course = response.body() ?: run {
-            event.replyErrorEmbed("Error occurred while attempting to get the response body")
+            modalEvent.replyErrorEmbed("Error occurred while attempting to get the response body")
             return logger.error("Body was null after retrieving it")
         }
 
@@ -95,30 +98,26 @@ class CourseAddPitt : SubCommand(
 
         val constraints = evaluateConstraints(course, event, term, courseService)
         if (constraints != String.empty)
-        {
-            event.replyErrorEmbed(error = constraints)
-            return
-        }
+            return modalEvent.replyErrorEmbed(constraints).queue()
+
 
 
         val savedCourse = try { courseService.createPittCourse(event, school, course) } catch (e: Exception) {
-           return event.replyErrorEmbed("An error has occurred. I will clean up any of the channels/roles I have created.")
+            logger.error("Error has occurred while trying to save course", e)
+           return modalEvent.replyErrorEmbed("An error has occurred. I will clean up any of the channels/roles I have created.").queue()
         }
 
 
         val embed = withContext(Dispatchers.IO) { savedCourse.getAsEmbed(event.guild) }
 
 
-        event.hook.editOriginal("Course created successfully! ")
+        modalEvent.hook.editOriginal("Course created successfully! ")
             .setEmbeds(embed)
             .queue()
 
-        event.hook.sendMessage("Would you like to add reminders for this course? (I will remind you **60**, **30**, **10** and **0 minutes** before class starts)")
+        modalEvent.hook.sendMessage("Would you like to add reminders for this course? (I will remind you **60**, **30**, **10** and **0 minutes** before class starts)")
             .addActionRows(getActionRows(savedCourse, event, courseService))
             .queue()
-
-
-
     }
 
     private fun getActionRows(course: Course, event: CommandEvent, service: CourseService): List<ActionRow>
@@ -126,7 +125,7 @@ class CourseAddPitt : SubCommand(
         val jda = event.jda
         val confirm = jda.button(label = "Confirm", style = ButtonStyle.SUCCESS, user = event.user) {
 
-            it.message.edit(content = "Adding reminders... While we wait here's a joke. `${Constants.JOKES[Random.nextInt(0, Constants.JOKES.size - 1)]}`", components = emptyList()).queue()
+            it.message.edit(content = "Adding reminders... While we wait here's a joke. `${Constants.JOKES.random()}`", components = emptyList()).queue()
 
              try { service.createReminders(course) }
              catch (e : Exception)
@@ -160,7 +159,7 @@ class CourseAddPitt : SubCommand(
             guild.textChannels.size == Constants.MAX_CHANNEL_COUNT -> "Cannot create channel. `${guild.name}` is already at max channel count"
             courseName.length >= 100 -> "${course.name} is longer than 100. Please add the class manually"
             service.findDuplicateCourse(
-                name = courseName, number = course.classNumber.toLong(), termId = term
+                number = course.classNumber.toLong(), termId = term
             ) != null -> "`${course.name} / ${course.classNumber}` already exist under term id `${term}`"
             else -> String.empty
         }

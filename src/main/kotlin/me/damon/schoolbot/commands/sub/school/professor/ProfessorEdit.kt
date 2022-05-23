@@ -1,11 +1,11 @@
 package me.damon.schoolbot.commands.sub.school.professor
 
+import dev.minn.jda.ktx.interactions.components.Modal
 import dev.minn.jda.ktx.interactions.components.SelectMenu
 import dev.minn.jda.ktx.interactions.components.option
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import dev.minn.jda.ktx.messages.into
 import me.damon.schoolbot.Schoolbot
-import me.damon.schoolbot.ext.replyChoiceAndLimit
+import me.damon.schoolbot.ext.*
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
@@ -16,8 +16,6 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
-import java.util.*
-import java.util.concurrent.TimeoutException
 
 class ProfessorEdit : SubCommand(
     name = "edit", category = CommandCategory.SCHOOL, description = "Edits a professor", options = listOf(
@@ -34,68 +32,67 @@ class ProfessorEdit : SubCommand(
 
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val schoolId = event.getOption<String>("school_name")
+        val schoolId = event.getOption<String>("school_name").toUUID()
+            ?: return event.replyErrorEmbed("School with that name has not been found")
         val service = event.getService<ProfessorService>()
-        val schoolUUID = UUID.fromString(schoolId)
 
-        val professors = try { service.findBySchoolId(schoolUUID).toMutableList() }
+        val professors = try { service.findBySchoolId(schoolId) }
         catch (e: Exception) { return event.replyErrorEmbed("Error occurred while trying to fetch professors by school.") }
 
-        val selection = event.awaitMenu(
-            menu = SelectMenu("${event.slashEvent.id}_${event.user.idLong}:SM:EDIT_PROFESSOR") {
-                professors.forEachIndexed { index, professor ->
-                    option(
-                        professor.fullName, index.toString()
-                    )
-                }
-            },
+        val professorMenu = SelectMenu("professor_edit") {
+            professors
+                .forEachIndexed { index, professor -> option(professor.fullName, index.toString()) }
+        }
 
+        val selection = event.awaitMenu(
+            menu = professorMenu,
             message = "Select a professor to edit",
+            deleteAfter = true
         ) ?: return
 
         val professor = professors[selection.values.first().toInt()]
 
-        val menu = SelectMenu("${event.slashEvent.id}_${event.user.idLong}:SM:EDIT_PROFESSOR_${professor.id}") {
-            option("First name - ${professor.firstName} ", "first_name")
-            option("Last name - ${professor.lastName}", "last_name")
-            option("Email Prefix - ${professor.emailPrefix}", "email_prefix")
+        val modal = Modal(
+            id = "professor_edit_modal",
+            title = "Editing ${professor.fullName}"
+        ) {
+            short(id = "first", label = "First Name", value = professor.firstName, required = true)
+            short(id = "last", label = "Last Name", value = professor.lastName, required = true)
+            short(id = "email", label = "Email Prefix", value = professor.emailPrefix, required = true)
         }
 
-        val finalSelection = event.awaitMenu(
-            menu = menu,
-            message = "Select a field to edit",
+        val modalEvent = selection.awaitModal(
+            modal = modal
         ) ?: return
 
-        val choice = finalSelection.values.first()
+        selection.editComponents(professorMenu.asDisabled().into()).queue()
 
-        val messageResponse: MessageReceivedEvent = try { evaluateMenuChoice(choice, event) }
-        catch (e: NotImplementedError) { return event.replyErrorEmbed("This action is not yet implemented!") }
-        catch (e: TimeoutException) { return event.replyErrorEmbed("You took too long to respond!") }
+        val firstName = modalEvent.getValue<String>("first")
+            ?: return event.replyErrorEmbed(error = "First name field cannot be empty")
+        val lastName  = modalEvent.getValue<String>("last")
+            ?: return event.replyErrorEmbed(error = "Last name field cannot be empty")
+        val email     = modalEvent.getValue<String>("email")
+            ?: return event.replyErrorEmbed(error = "Email field cannot be empty")
 
-        val changedProfessor = try { evaluateChangeRequest(event, messageResponse, choice, professor) }
-        catch (e: NotImplementedError) { return event.replyErrorEmbed(e.message ?: "An error occurred while trying to edit the professor.") }
-        catch (e: Exception) { return event.replyErrorEmbed(e.message ?: "An error occurred while trying to edit the professor.") } ?: return
 
+        val duplicateProfessor = service
+            .findByNameInSchool("$firstName $lastName", professor.school)
 
-        val updatedProfessor = try { service.save(changedProfessor) }
-        catch (e: Exception) { return event.replyErrorEmbed("An unexpected error has occurred while trying to save the entity") }
+        if (duplicateProfessor != null && professor.fullName != duplicateProfessor.fullName) return modalEvent.replyErrorEmbed("Professor with the name $firstName $lastName already exist").queue()
 
-        val embed = withContext(Dispatchers.IO) { updatedProfessor.getAsEmbed() }
-
-        event.replyEmbed(embed, "Professor Updated!")
-    }
-
-    private suspend fun evaluateMenuChoice(choice: String, cmdEvent: CommandEvent): MessageReceivedEvent = when (choice)
-    {
-        "first_name" -> cmdEvent.sendMessageAndAwait("Please give me the new **First Name** you would like to call this professor")
-        "last_name" -> cmdEvent.sendMessageAndAwait("Please give me the new **Last Name** you would like to professor to go by")
-        "prefix" -> cmdEvent.sendMessageAndAwait("Please give me the new **Email Prefix** you would like this professor to by")
-        else ->
-        {
-            logger.error("{} has not been implemented as a valid choice", choice)
-            throw NotImplementedError("$choice has not been implemented as a valid choice")
+        professor.apply {
+            this.firstName = firstName
+            this.lastName = lastName
+            this.fullName = "$firstName $lastName"
+            this.emailPrefix = email
         }
+
+        val professorSaved = try { service.save(professor) }
+        catch (e: Exception) { return modalEvent.replyErrorEmbed("Failed to save ${professor.fullName} ").queue() }
+
+        modalEvent.replyEmbeds(professorSaved.getAsEmbed()).queue()
     }
+
 
     private suspend fun evaluateChangeRequest(
         event: CommandEvent, messageResponse: MessageReceivedEvent, choice: String, professor: Professor

@@ -62,9 +62,8 @@ class Professor(
         field("First Name", firstName)
         field("Last Name", lastName)
         field("Full Name", fullName)
+        field("Email Prefix", emailPrefix)
         field("School", school.name)
-
-        // field("Course count", courses.size.toString())
     }
 
     override fun getAsEmbed(guild: Guild): MessageEmbed = Embed {
@@ -72,6 +71,7 @@ class Professor(
         field("First Name", firstName)
         field("Last Name", lastName)
         field("Full Name", fullName)
+        field("Email Prefix", emailPrefix)
         field("School", school.name)
         color = guild.getRoleById(school.roleId)?.colorRaw
 

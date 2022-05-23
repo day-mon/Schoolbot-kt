@@ -22,28 +22,13 @@ class ExportErrorLog : Command(
     {
         val file = File("schoolbot-error.log")
 
-        if (file.exists().not())
-        {
-            event.replyMessage("There is no error log file as of now.")
-            return
-        }
-
-
-        if (file.readLines().isEmpty())
-        {
-            event.replyMessage("Log file is empty as of now.")
-            return
-        }
-
-        // add
+        if (file.exists().not()) return event.replyMessage("There is no error log file as of now.")
+        if (file.readLines().isEmpty()) return event.replyMessage("Log file is empty as of now.")
 
         // blocking but /shrug
         val size = Path(file.path).fileSize()
-        if (size > event.jda.selfUser.allowedFileSize)
-        {
-            event.replyMessage("Log file is large to export to discord")
-            return
-        }
+        if (size > event.jda.selfUser.allowedFileSize) return event.replyMessage("Log file is large to export to discord")
+
 
         event.user.openPrivateChannel().queue {
             it.sendMessage("Log file as of ${Constants.CURRENT_TIME}. It currently has a size of `$size` bytes")
