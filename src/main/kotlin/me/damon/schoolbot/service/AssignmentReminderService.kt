@@ -30,7 +30,16 @@ class AssignmentReminderService(
         .onFailure { logger.error("Error has occurred while attempting to delete reminders") }
         .getOrThrow()
 
+
+    fun delete(assignmentReminder: AssignmentReminder) = runCatching { assignmentReminderRepository.delete(assignmentReminder) }
+        .onFailure { logger.error("Error has occurred when deleting the reminder") }
+        .getOrThrow()
+
     suspend fun findByAssignment(assignment: Assignment) = runCatching { assignmentReminderRepository.findByAssignment(assignment).await() }
         .onFailure { logger.error("Error has occurred while attempting to find reminders") }
+        .getOrThrow()
+
+    fun findAllExpiredReminders() = runCatching { assignmentReminderRepository.findByExpiredAssignments() }
+        .onFailure { logger.error("Error has occurred while getting expired reminders") }
         .getOrThrow()
 }

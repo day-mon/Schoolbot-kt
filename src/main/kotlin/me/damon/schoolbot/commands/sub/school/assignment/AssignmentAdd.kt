@@ -17,7 +17,6 @@ import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.school.Assignment
 import me.damon.schoolbot.objects.school.Course
-import me.damon.schoolbot.objects.school.School
 import me.damon.schoolbot.objects.school.defaultReminders
 import me.damon.schoolbot.service.AssignmentReminderService
 import me.damon.schoolbot.service.AssignmentService
@@ -112,7 +111,7 @@ class AssignmentAdd : SubCommand(
         val dueTime = modalEvent.getValue("assignment-add-due-time")?.asString ?: return
         val points = modalEvent.getValue("assignment-add-points")?.asString ?: return
 
-        val error = evaluateModalFields(dueDate, dueTime, points, school, course)
+        val error = evaluateModalFields(dueDate, dueTime, points, course)
 
         if (error != String.empty) return modalEvent.replyErrorEmbed(errorString = error).queue()
 
@@ -153,7 +152,7 @@ class AssignmentAdd : SubCommand(
           val addedReminders = try { event.getService<AssignmentReminderService>().saveAll(defaultReminders(assignment)) }
           catch (e: Exception) { return@button it.message.editMessage("Error has occurred while trying to save the reminders.").queue() }
 
-            it.message.editMessage("**${addedReminders.size}** Reminders added! Have a nice day ${Emoji.SMILEY.getAsChat()} ! ${ if(addedReminders.size > 5) "\n **WAIT** Just in case you are wondering the reason why you didnt get all of the times added is because one or more of the times added has already happened." else "" }").queue()
+            it.message.editMessage("**${addedReminders.size}** Reminders added! Have a nice day ${Emoji.SMILEY.getAsChat()} ! ${ if (addedReminders.size < 5) "\n **WAIT** Just in case you are wondering the reason why you didnt get all of the times added is because one or more of the times added has already happened." else "" }").queue()
 
         }
 
@@ -165,7 +164,7 @@ class AssignmentAdd : SubCommand(
     }
 
     private fun evaluateModalFields(
-        dueDate: String, dueTime: String, points: String, school: School, course: Course
+        dueDate: String, dueTime: String, points: String, course: Course
     ): String
     {
         val school = course.school

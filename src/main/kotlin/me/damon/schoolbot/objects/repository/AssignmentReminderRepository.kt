@@ -21,4 +21,8 @@ interface AssignmentReminderRepository : JpaRepository<AssignmentReminder, UUID>
     @Transactional
     @Query("delete from AssignmentReminder a where a.assignment = ?1")
     fun deleteAllByAssignment(assignment: Assignment)
+
+    @Query("select * from assignment_reminders where remind_time < now() ", nativeQuery = true)
+    fun findByExpiredAssignments(): List<AssignmentReminder>
+
 }
