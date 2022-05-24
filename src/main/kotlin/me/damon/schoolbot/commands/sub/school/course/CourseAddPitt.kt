@@ -69,7 +69,7 @@ class CourseAddPitt : SubCommand(
         val termNumber = selectionEvent.values.first()
         val term = terms.find { it.second == termNumber }!!.first
 
-        val modal = Modal("course_number_modal", title = "Give me your class number that's in $term ") {
+        val modal = Modal("course_number_modal", title = "Please provide me the class number") {
             short(id = "course_number", label = "Course Number" )
         }
 
