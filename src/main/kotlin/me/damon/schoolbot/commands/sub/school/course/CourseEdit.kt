@@ -373,11 +373,13 @@ class CourseEdit : SubCommand(
         // for example Instant.now() may produce an offset of -4 but Instant.now().plus(6.months) may produce an offset of -5 due to dls
         // fixed but ill keep this here for the culture
         if (updateReminders) {
+            logger.debug("Updating Reminders for ${course.name}")
            try { courseService.refactorRemindersByCourse(course) }
            catch (e: Exception) { it.replyErrorEmbed("Error occurred while trying to recreate reminders.") }
         }
 
         if (addReminders) {
+            logger.debug("Reminders needed to be created on days: {} for ${course.name}", daysToAdd)
             try { courseService.createReminderOnDay(daysToAdd, course) }
             catch (e: Exception) { it.replyErrorEmbed("Error occurred while trying to create new reminders") }
         }

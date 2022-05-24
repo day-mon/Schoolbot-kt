@@ -168,6 +168,7 @@ class AssignmentAdd : SubCommand(
         dueDate: String, dueTime: String, points: String, school: School, course: Course
     ): String
     {
+        val school = course.school
         if (points.toIntOrNull() == null) return "Points must be a number."
         val date = try
         {
@@ -177,7 +178,7 @@ class AssignmentAdd : SubCommand(
         {
             return "Due date must be in the format MM/dd/yyyy \n **Example: 01/01/1970**"
         }
-        if (date.isBefore(LocalDate.now())) return "Due date must be after today."
+        if (date.isBefore(LocalDate.now(school.zone))) return "Due date must be after today."
 
         val startDate = LocalDate.ofInstant(course.startDate, ZoneId.of(school.timeZone))
         val endDate = LocalDate.ofInstant(course.endDate, ZoneId.of(school.timeZone))
@@ -200,7 +201,7 @@ class AssignmentAdd : SubCommand(
             DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mm a", Constants.DEFAULT_LOCALE)
         )
 
-        if (dueDateTime.isBefore(LocalDateTime.now())) return "Due time must be after today."
+        if (dueDateTime.isBefore(LocalDateTime.now(school.zone))) return "Due time must be after today."
 
         return String.empty
     }

@@ -20,8 +20,8 @@ import net.dv8tion.jda.api.entities.Guild
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.DayOfWeek
+import java.time.Duration
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.temporal.TemporalAdjusters
 import kotlin.random.Random
 
@@ -61,7 +61,7 @@ import kotlin.random.Random
         val endDate = LocalDateTime.ofInstant(course.endDate, zone)
 
         var startingDateIt =
-            if (startDate.isBefore(LocalDateTime.now())) LocalDateTime.now()
+            if (startDate.isBefore(LocalDateTime.now(zone))) LocalDateTime.now(zone)
             else startDate
 
         while (startingDateIt.isBefore(endDate) || startingDateIt.isEqual(endDate))
@@ -69,6 +69,16 @@ import kotlin.random.Random
             val day = startDate.dayOfWeek
             if (day !in days) { startingDateIt = startingDateIt.plusDays(1); continue }
             val offset = zone.rules.getOffset(startingDateIt)
+
+            val reminders = listOf(
+                CourseReminder(course = course, remindTime = startingDateIt.minusHours(1).toInstant(offset)),
+                CourseReminder(course = course, remindTime = startingDateIt.minusMinutes(30).toInstant(offset)),
+                CourseReminder(course = course, remindTime = startingDateIt.minusMinutes(10).toInstant(offset)),
+                CourseReminder(course = course, remindTime = startingDateIt.toInstant(offset)),
+            )
+
+            courseReminderService.saveAll(reminders)
+
 
             startingDateIt =  if (days.last() == day)
             {
@@ -81,13 +91,8 @@ import kotlin.random.Random
                 startingDateIt.with(TemporalAdjusters.next(days[next]))
             }
 
-            val reminders = listOf(
-                CourseReminder(course = course, remindTime = startingDateIt.minusMinutes(60).toInstant(offset)),
-                CourseReminder(course = course, remindTime = startingDateIt.minusMinutes(30).toInstant(offset)),
-                CourseReminder(course = course, remindTime = startingDateIt.minusMinutes(10).toInstant(offset)),
-                CourseReminder(course = course, remindTime = startingDateIt.toInstant(offset)),
-            )
-            courseReminderService.saveAll(reminders)
+
+
 
         }
 
@@ -136,16 +141,16 @@ import kotlin.random.Random
         val startTime = System.currentTimeMillis()
         logger.info("Starting to create reminders for {}", course.name)
 
-        val timeZone =  course.school.timeZone
-        val startDate = LocalDateTime.ofInstant(course.startDate, ZoneId.of(timeZone))
-        val endDate = LocalDateTime.ofInstant(course.endDate, ZoneId.of(timeZone))
         val school = course.school
+        val zone =  school.zone
+        val startDate = LocalDateTime.ofInstant(course.startDate, zone)
+        val endDate = LocalDateTime.ofInstant(course.endDate, zone)
         val meetingDays = course.meetingDays
 
         if (meetingDays.split(",").isEmpty())
             return logger.error("No meeting days found for {} or they are not stored in a correct format", course.name)
 
-        var startDateIt = if (startDate.isBefore(LocalDateTime.now())) LocalDateTime.now() else startDate
+        var startDateIt = if (startDate.isBefore(LocalDateTime.now(zone))) LocalDateTime.now(zone) else startDate
 
         val days = meetingDays.split(",").map { it.uppercase().trim() }
 
@@ -154,35 +159,36 @@ import kotlin.random.Random
         while (startDateIt.isBefore(endDate) || startDateIt.isEqual(endDate))
         {
             val day = startDateIt.dayOfWeek.name.uppercase()
-            if (day !in days)  { startDateIt = startDateIt.plusDays(1); continue } // only for the first iteration
+            if (day !in days)  { startDateIt = startDateIt.plusDays(1); logger.debug("Skipped day: {}", startDateIt); continue } // only for the first iteration
 
             val offset = school.zone.rules.getOffset(startDateIt)
-            startDateIt = if (days.last() == day)
-            {
-                val start = days.first()
-                startDateIt.with(TemporalAdjusters.next(DayOfWeek.valueOf(start)))
-            }
-            else
-            {
-                val next = days.indexOf(day) + 1
-                startDateIt.with(TemporalAdjusters.next(DayOfWeek.valueOf(days[next])))
-
-            }
-
-
-
 
             val reminders = listOf(
-                CourseReminder(course = course, remindTime = startDateIt.minusMinutes(60).toInstant(offset)),
+                CourseReminder(course = course, remindTime = startDateIt.minusHours(1).toInstant(offset)),
                 CourseReminder(course = course, remindTime = startDateIt.minusMinutes(30).toInstant(offset)),
                 CourseReminder(course = course, remindTime = startDateIt.minusMinutes(10).toInstant(offset)),
                 CourseReminder(course = course, remindTime = startDateIt.toInstant(offset)),
             )
 
             courseReminderService.saveAll(reminders)
+
+
+            startDateIt = if (days.last() == day)
+            {
+                val start = days.first()
+                val day = DayOfWeek.valueOf(start)
+                startDateIt.with(TemporalAdjusters.next(day))
+            }
+            else
+            {
+                val next = days.indexOf(day) + 1
+                val day = DayOfWeek.valueOf(days[next])
+                startDateIt.with(TemporalAdjusters.next(day))
+
+            }
         }
 
-        logger.info("Reminder sequence for {} has concluded it took {} s", course.name, (System.currentTimeMillis() - startTime ) / 1000)
+        logger.info("Reminder sequence for {} has concluded it took {}s", course.name, Duration.ofMillis(System.currentTimeMillis() - startTime).toSeconds())
     }
 
 
