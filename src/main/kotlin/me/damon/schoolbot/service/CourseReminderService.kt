@@ -6,6 +6,7 @@ import me.damon.schoolbot.objects.repository.CourseReminderRepository
 import me.damon.schoolbot.objects.school.Course
 import me.damon.schoolbot.objects.school.CourseReminder
 import org.springframework.stereotype.Service
+import java.time.Instant
 
 @Service("CourseReminderService")
 class CourseReminderService(
@@ -14,9 +15,14 @@ class CourseReminderService(
 {
     val logger by SLF4J
 
-    fun saveAll(courseReminders: Iterable<CourseReminder>): MutableList<CourseReminder> = runCatching { courseReminderRepository.saveAll(courseReminders) }
-        .onFailure { logger.error("Error has occurred while trying to save reminders for a course") }
-        .getOrThrow()
+    fun saveAll(courseReminders: Iterable<CourseReminder>): MutableList<CourseReminder>
+    {
+        val now = Instant.now()
+        val filteredReminders = courseReminders.filter { it.remindTime.isAfter(now) }
+
+        return runCatching { courseReminderRepository.saveAll(filteredReminders) }
+            .onFailure { logger.error("Error has occurred while trying to save reminders for a course") }.getOrThrow()
+    }
 
     fun deleteAllByCourse(course: Course) = runCatching { courseReminderRepository.deleteAllByCourse(course) }
         .onFailure { logger.error("Error has occurred while trying to delete reminders for a course") }
