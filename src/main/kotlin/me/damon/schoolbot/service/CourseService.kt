@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.DayOfWeek
 import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 import kotlin.random.Random
@@ -61,7 +62,11 @@ import kotlin.random.Random
         val endDate = LocalDateTime.ofInstant(course.endDate, zone)
 
         var startingDateIt =
-            if (startDate.isBefore(LocalDateTime.now(zone))) LocalDateTime.now(zone)
+            if (startDate.isBefore(LocalDateTime.now(zone)))
+            {
+                logger.debug("Changing reminder start date iteration to current day due to start date already passing.. ");
+                LocalDateTime.of(LocalDate.now(), startDate.toLocalTime())
+            }
             else startDate
 
         while (startingDateIt.isBefore(endDate) || startingDateIt.isEqual(endDate))
@@ -150,8 +155,13 @@ import kotlin.random.Random
         if (meetingDays.split(",").isEmpty())
             return logger.error("No meeting days found for {} or they are not stored in a correct format", course.name)
 
-        var startDateIt = if (startDate.isBefore(LocalDateTime.now(zone))) LocalDateTime.now(zone) else startDate
-
+        var startDateIt =
+            if (startDate.isBefore(LocalDateTime.now(zone)))
+            {
+                logger.debug("Changing reminder start date iteration to current day due to start date already passing.. ");
+                LocalDateTime.of(LocalDate.now(), startDate.toLocalTime())
+            }
+            else startDate
         val days = meetingDays.split(",").map { it.uppercase().trim() }
 
 
