@@ -39,8 +39,8 @@ enum class Emoji(private val emote: String, private val unicode: String? = null,
     WASTE_BASKET(":wastebasket:", "\uD83D\uDDD1\uFE0F"),
     A(":a:", "\uF170" ),
     ZERO(":zero:", "\u0030\uFE0F"),
-    ONE(":one:", "\u0031\uFE0F"),
-    TWO(":two:", "\u0032\uFE0F"),
+    ONE(":one:", "\u0031\u20E3"),
+    TWO(":two:", "\u0032\u20E3"),
     THREE(":three:", "\u0033\uFE0F"),
     FOUR(":four:", "\u0034\uFE0F"),
     SMILEY(":smiley:", "\uD83D\uDE03"),
@@ -76,8 +76,6 @@ enum class Emoji(private val emote: String, private val unicode: String? = null,
     }
 
 
-    fun getAsReaction(): String
-    {
-        return this.unicode ?: ("emote:" + this.emote)
-    }
+
+    fun asUnicode(): String = this.unicode ?: ("emote:" + this.emote)
 }

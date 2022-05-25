@@ -10,13 +10,9 @@ class Course : Command(
     description = "Allows you to add/remove/view/edit a course",
     group = mapOf(
         "add" to listOf(
-            CourseAddNormal(), CourseAddPitt()
+            CourseAddNormal(),
+            CourseAddPitt()
         ),
-        /*
-        "pitt" to listOf(
-            CoursePittInfo()
-        )
-         */
     ),
     children = listOf(
         CourseView(),

@@ -28,7 +28,7 @@ class GuildListeners(
 
     override fun onGuildJoin(event: GuildJoinEvent)
     {
-        try { guildService.createSettings(GuildSettings(guildId = event.guild.idLong)) }
+        try { guildService.save(GuildSettings(guildId = event.guild.idLong)) }
         catch (e: Exception) { logger.error("Error has occurred while trying to create guild settings in ({}) - [{}]", event.guild.name, event.guild.idLong) }
     }
 

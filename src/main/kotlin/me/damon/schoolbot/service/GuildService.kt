@@ -2,8 +2,6 @@ package me.damon.schoolbot.service
 
 import me.damon.schoolbot.objects.guild.GuildSettings
 import me.damon.schoolbot.objects.repository.GuildSettingsRepository
-import org.springframework.cache.annotation.CacheEvict
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
 @Service("GuildService")
@@ -24,8 +22,6 @@ import org.springframework.stereotype.Service
         }
     }
 
-    fun createSettings(settings: GuildSettings): GuildSettings? = guildRepository.save(settings)
-
-
+    fun save(settings: GuildSettings): GuildSettings? = guildRepository.save(settings)
     fun removeGuildInstance(guildId: Long) = guildRepository.deleteById(guildId)
 }
