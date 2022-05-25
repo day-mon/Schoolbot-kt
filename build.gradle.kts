@@ -30,6 +30,7 @@ repositories {
 
 }
 
+
 noArg {
     annotation("javax.persistence.Embeddable")
     annotation("javax.persistence.Entity")
@@ -41,9 +42,22 @@ jib {
         image = "openjdk:17"
     }
 
+    to {
+        image = "day-mon/schoolbot-kt"
+    }
+
     container {
-        mainClass = "me.damon.schoolbot.Schoolbot"
-        jvmFlags = listOf("-server", "-Xmx2G", "-Dnogui=true", "-jar")
+        mainClass = "me.damon.schoolbot.SchoolbotKt"
+        jvmFlags = listOf(
+            "-server",
+            "-Djava.awt.headless=true",
+            "-XX:+UseG1GC",
+            "-XX:MaxGCPauseMillis=100",
+            "-XX:+UseStringDeduplication",
+            "-Xmx2G"
+        )
+        workingDirectory = "/home/schoolbot"
+        volumes = listOf("/schoolbot_cfg.json")
     }
 }
 

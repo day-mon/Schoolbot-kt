@@ -27,10 +27,7 @@ class Settings : Command(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val settings = event.schoolbot.guildService.getGuildSettings(event.guildId)
-
-
         event.send(message = "Buttons", embeds = listOf(getCourseSettingsEmbed(event, settings)), actionRows = settingsButtons(event, settings))
-
     }
 
     private fun getCourseSettingsEmbed(e: CommandEvent, settings: GuildSettings): MessageEmbed
