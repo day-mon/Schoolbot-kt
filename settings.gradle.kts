@@ -1,3 +1,2 @@
-
-rootProject.name = "Schoolbot-kt"
+rootProject.name = "SchoolbotKt"
 

@@ -1,5 +1,5 @@
 application {
-    mainClass.set("me.damon.schoolbot.Schoolbot")
+    mainClass.set("me.damon.schoolbot.SchoolbotKt")
 }
 
 
@@ -17,9 +17,8 @@ plugins {
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
 }
 
-project.setProperty("mainClassName", "me.damon.schoolbot.Schoolbot")
+project.setProperty("mainClassName", "me.damon.schoolbot.SchoolbotKt")
 group = "com.github.day-mon"
-version = "1.0"
 
 repositories {
     mavenCentral()
