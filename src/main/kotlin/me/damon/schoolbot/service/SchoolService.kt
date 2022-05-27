@@ -108,7 +108,7 @@ class SchoolService(
 
     fun deleteSchool(school: School, event: CommandEvent)
     {
-        professorService.removeAllInGuild(school.guildId)
+        professorService.deleteBySchool(school)
         schoolRepository.delete(school)
 
         event.jda.getRoleById(school.roleId)?.delete()?.queue(null) {

@@ -36,4 +36,10 @@ interface ProfessorRepository : JpaRepository<Professor, UUID>
     fun findByNameInGuild(fullName: String, guildId: Long): Optional<Professor>
 
     fun findAllBySchoolId(schoolId: UUID): List<Professor>
+
+    @Modifying
+    @Transactional
+    @Query("delete from Professor p where p.school = ?1")
+    fun deleteBySchool(school: School)
+
 }

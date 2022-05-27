@@ -41,6 +41,10 @@ import java.util.*
         .onFailure { logger.error("Error occurred while trying to remove professor", it) }
         .getOrThrow()
 
+    fun deleteBySchool(school: School) = runCatching { professorRepository.deleteBySchool(school) }
+        .onFailure { logger.error("Error has occurred while deleting professors") }
+        .getOrThrow()
+
     @Throws
      suspend fun findBySchool(school: School): List<Professor> =
         runCatching { professorRepository.findAllBySchool(school).await() }
