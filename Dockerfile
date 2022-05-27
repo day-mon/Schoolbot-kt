@@ -1,5 +1,8 @@
+# Caching: https://stackoverflow.com/questions/58593661/slow-gradle-build-in-docker-caching-gradle-build
+
 # Downloads gradle w/ java
 FROM gradle:7.4.2-jdk18  as cache
+
 # Creates cache home
 RUN mkdir -p /home/gradle/cache_home
 
@@ -18,6 +21,7 @@ RUN gradle clean build -i --stacktrace
 
 # Downloads gradle w/ java
 FROM gradle:7.4.2-jdk18  as builder
+
 # Copies depenencies to actual GRADLE_USER_HOME so it doesnt need to redownload here...
 # Normal GRADLE_USER_HOME = /home/gradle/.gradle. Its changed so you wont need to have gradle installed for it to persist
 COPY --from=cache /home/gradle/cache_home /home/gradle/.gradle
@@ -25,12 +29,9 @@ COPY --from=cache /home/gradle/cache_home /home/gradle/.gradle
 # Copies all files from project into /home/schoolbot-kt
 COPY . /home/schoolbot-kt
 
-RUN ls
-
-# Sets Workdirectory moves
+# Sets work directory moves
 WORKDIR /home/schoolbot-kt
 
-RUN ls -l
 # Jars project
 RUN gradle bootJar -i --stacktrace
 
@@ -40,16 +41,13 @@ FROM  openjdk:18-slim
 # Sets user to root
 USER root
 
-# Sets Workdirectory moves
+# Sets work directory moves
 WORKDIR /home/schoolbot-kt
 
 # Copies jar from builder build steps
 COPY --from=builder /home/schoolbot-kt/build/libs/SchoolbotKt.jar ./app.jar
-
-
-# Copies all of the files jsut because why not
 COPY --from=builder /home/schoolbot-kt/. .
 
 
 # Runs.. :)
-ENTRYPOINT java -jar -Xmx2G app.jar
+ENTRYPOINT java -jar -Xmx2G app.jar --spring.config.location=/opt/app.properties
