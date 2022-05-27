@@ -48,4 +48,4 @@ WORKDIR /home/schoolbot-kt
 COPY --from=builder /home/schoolbot-kt/build/libs/SchoolbotKt.jar ./app.jar
 
 # Runs.. :)
-ENTRYPOINT java -jar -Xmx2G app.jar --spring.config.location=/opt/app.properties
+ENTRYPOINT java -jar -Xmx2G app.jar

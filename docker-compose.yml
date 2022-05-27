@@ -5,4 +5,4 @@ services:
     container_name: schoolbot
     volumes:
       - ./schoolbot_cfg.json:/home/schoolbot-kt/schoolbot_cfg.json
-      - ./application.properties:/opt/app.properties
+      - ./application.properties:/home/schoolbot-kt/application.properties
