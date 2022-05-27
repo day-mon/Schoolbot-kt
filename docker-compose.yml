@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   schoolbot:
-    image: imageNameHere
+    image: ghcr.io/day-mon/schoolbot-kt:master
     container_name: schoolbot
     volumes:
       - ./schoolbot_cfg.json:/home/schoolbot-kt/schoolbot_cfg.json
