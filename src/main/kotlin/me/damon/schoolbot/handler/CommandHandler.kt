@@ -1,6 +1,7 @@
 package me.damon.schoolbot.handler
 
 import dev.minn.jda.ktx.util.SLF4J
+import io.github.classgraph.ClassGraph
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -11,53 +12,56 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import org.reflections.Reflections
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.stereotype.Component
 
 
 private const val COMMANDS_PACKAGE = "me.damon.schoolbot.commands"
 private val supervisor = SupervisorJob()
-private val scope = CoroutineScope(Dispatchers.IO + supervisor)
+private val scope = CoroutineScope(Dispatchers.Default + supervisor)
 
 @Component
 class CommandHandler(private val context: ConfigurableApplicationContext)
 {
     private val logger by SLF4J
-    private val reflections = Reflections(COMMANDS_PACKAGE)
+    private val reflections = ClassGraph().acceptPackages(COMMANDS_PACKAGE)
     val commands: MutableMap<String, Command> = mutableMapOf()
 
 
     fun registerCommands(jda: JDA)
     {
-        val classes = reflections.getSubTypesOf(Command::class.java)
-        val commandsUpdate = jda.updateCommands()
+        reflections.enableClassInfo().scan().use {
+            val classes = it.getSubclasses(Command::class.java).loadClasses()
+            val commandsUpdate = jda.updateCommands()
 
 
-        for (cls in classes)
-        {
-            val constructors = cls.constructors
-
-            if (constructors.isEmpty() || constructors.first().parameterCount > 0)
+            for (cls in classes)
             {
-                continue
+                val constructors = cls.constructors
+
+                if (constructors.isEmpty() || constructors.first().parameterCount > 0)
+                {
+                    continue
+                }
+
+                val instance = constructors.first().newInstance()
+
+                if (instance !is Command)
+                {
+                    logger.warn("Non command found in the commands package {}", instance.javaClass.packageName)
+                    continue
+                }
+
+                val name = instance.name.lowercase()
+                commands[name] = instance
+                commandsUpdate.addCommands(instance.commandData)
             }
 
-            val instance = constructors.first().newInstance()
 
-            if (instance !is Command)
-            {
-                logger.warn("Non command found in the commands package {}", instance.javaClass.packageName)
-                continue
-            }
-
-            val name = instance.name.lowercase()
-            commands[name] = instance
-            commandsUpdate.addCommands(instance.commandData)
+            commandsUpdate.queue()
+            logger.info("${commands.count()} have been loaded successfully")
+            logger.debug("{}", commands.toList())
         }
-        commandsUpdate.queue()
-        logger.info("${commands.count()} have been loaded successfully")
-        logger.debug("{}", commands.toList())
     }
 
     fun handle(event: SlashCommandInteractionEvent)
