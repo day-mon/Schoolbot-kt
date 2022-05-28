@@ -58,7 +58,6 @@ class School(
 
 
 
-//    fun hasProfessors() = professor.isNotEmpty()
     override fun getAsEmbed(): MessageEmbed = Embed {
         title = name
         url = if (url.isNullOrEmpty()) "https://schoolbot.dev" else url

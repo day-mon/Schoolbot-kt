@@ -21,7 +21,9 @@ private val supervisor = SupervisorJob()
 private val scope = CoroutineScope(Dispatchers.Default + supervisor)
 
 @Component
-class CommandHandler(private val context: ConfigurableApplicationContext)
+class CommandHandler(
+    private val context: ConfigurableApplicationContext
+    )
 {
     private val logger by SLF4J
     private val reflections = ClassGraph().acceptPackages(COMMANDS_PACKAGE)
@@ -39,10 +41,7 @@ class CommandHandler(private val context: ConfigurableApplicationContext)
             {
                 val constructors = cls.constructors
 
-                if (constructors.isEmpty() || constructors.first().parameterCount > 0)
-                {
-                    continue
-                }
+                if (constructors.isEmpty() || constructors.first().parameterCount > 0) continue
 
                 val instance = constructors.first().newInstance()
 
@@ -70,11 +69,14 @@ class CommandHandler(private val context: ConfigurableApplicationContext)
         val cmdName = event.name
         val group = event.subcommandGroup
         val subCommand = event.subcommandName
-        val command = commands[cmdName] ?: return
+        val command = commands[cmdName]
+            ?: return event.reply("$cmdName not found").queue()
 
 
         if (group != null) scope.launch {
-            val sub = command.group[group]!!.find { it.name ==  subCommand }!!
+            val sub = command.group[group]?.find { it.name ==  subCommand }
+                ?: return@launch  event.reply("${command.name} $group $subCommand has not been found").queue()
+
             if (sub.deferredEnabled)
                 event.deferReply().queue()
 
@@ -84,9 +86,12 @@ class CommandHandler(private val context: ConfigurableApplicationContext)
 
         }
         else if (subCommand != null)  scope.launch{
-            val sub = command.children.find { it.name == event.subcommandName }!!
+            val sub = command.children.find { it.name == event.subcommandName }
+                ?: return@launch event.reply("${command.name} $subCommand has not been found").queue()
+
             if (sub.deferredEnabled)
                 event.deferReply().queue()
+
             sub.process(
                 CommandEvent(schoolbot =  schoolbot, command = sub, slashEvent = event)
             )
@@ -108,14 +113,17 @@ class CommandHandler(private val context: ConfigurableApplicationContext)
         val command = event.name
         val group = event.subcommandGroup
         val sub = event.subcommandName
-        val commandF = commands[command] ?: return
+        val commandF = commands[command]
+            ?: return logger.error("$command could not be found")
 
         if (group != null) scope.launch {
-            val subC = commandF.group[group]!!.find { it.name ==  sub }!!
+            val subC = commandF.group[group]?.find { it.name ==  sub }
+                ?: return@launch logger.error("${commandF.name} $group $sub could not be found")
             subC.onAutoCompleteSuspend(event, schoolbot)
         }
         else if (sub != null)  scope.launch {
-            val subCommand = commandF.children.find { it.name == event.subcommandName }!!
+            val subCommand = commandF.children.find { it.name == event.subcommandName }
+                ?: return@launch logger.error("${commandF.name} $sub could not be found")
             subCommand.onAutoCompleteSuspend(event, schoolbot)
         }
         else scope.launch {
