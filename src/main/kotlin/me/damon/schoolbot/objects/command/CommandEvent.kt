@@ -1,24 +1,24 @@
 package me.damon.schoolbot.objects.command
 
-import dev.minn.jda.ktx.events.await
 import dev.minn.jda.ktx.interactions.components.replyPaginator
 import dev.minn.jda.ktx.interactions.components.sendPaginator
 import dev.minn.jda.ktx.util.SLF4J
-import kotlinx.coroutines.withTimeoutOrNull
-import me.damon.schoolbot.Schoolbot
+import me.damon.schoolbot.bot.Schoolbot
 import me.damon.schoolbot.ext.*
+import me.damon.schoolbot.handler.ApiHandler
+import me.damon.schoolbot.handler.CommandHandler
+import me.damon.schoolbot.handler.ConfigHandler
+import me.damon.schoolbot.handler.TaskHandler
 import me.damon.schoolbot.objects.misc.Pagable
 import me.damon.schoolbot.service.*
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageEmbed
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import java.util.*
-import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -35,7 +35,7 @@ class CommandEvent(
     val guildId = slashEvent.guild!!.idLong
     val member = slashEvent.member!!
     val hook = slashEvent.hook
-    val service = schoolbot.schoolService
+    val service = getService<SchoolService>()
     val options: MutableList<OptionMapping> = slashEvent.options
 
     fun replyEmbed(embed: MessageEmbed, content: String = String.empty) = slashEvent.replyEmbed(embed, content)
@@ -90,28 +90,6 @@ class CommandEvent(
         disableAfter
     )
 
-
-    /**
-     * This function is used to send a paginator of embeds.
-     * @param embeds The embeds to send
-     * @param timeoutDuration The duration in seconds before the paginator times out
-     * @param acknowledge whether to acknowledge the message
-     * @return The interaction event
-     *
-     */
-    suspend fun sendMessageAndAwait(
-        message: String,
-        rows: List<ActionRow> = emptyList(),
-        timeoutDuration: Long = 1
-    ): MessageReceivedEvent = withTimeoutOrNull(timeoutDuration * 60000) {
-        hook.editOriginal(message).setActionRows(rows).queue()
-        jda.await { it.member!!.idLong == member.idLong && it.channel.idLong == slashEvent.channel.idLong }
-    } ?: run {
-        hook.replyErrorEmbed(body = "Command has timed out try again please")
-        throw TimeoutException("Command has timed out")
-    }
-
-
     fun sendPaginator(vararg embeds: MessageEmbed)
     {
         if (embeds.isEmpty()) return replyErrorEmbed("There are no embeds to display")
@@ -158,6 +136,14 @@ class CommandEvent(
         CourseService::class -> schoolbot.courseService as T
         AssignmentService::class -> schoolbot.assignmentService as T
         AssignmentReminderService::class -> schoolbot.assignmentReminderService as T
+        else -> throw IllegalArgumentException("Unknown type ${T::class}")
+    }
+
+    inline fun <reified T> getHandler(): T = when (T::class) {
+        CommandHandler::class -> schoolbot.commandHandler as T
+        ApiHandler::class -> schoolbot.apiHandler as T
+        TaskHandler::class -> schoolbot.taskHandler as T
+        ConfigHandler::class -> schoolbot.configHandler as T
         else -> throw IllegalArgumentException("Unknown type ${T::class}")
     }
 

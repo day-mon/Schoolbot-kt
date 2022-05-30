@@ -7,7 +7,7 @@ import dev.minn.jda.ktx.messages.edit
 import dev.minn.jda.ktx.messages.into
 import dev.minn.jda.ktx.messages.send
 import me.damon.schoolbot.Constants
-import me.damon.schoolbot.Schoolbot
+import me.damon.schoolbot.bot.Schoolbot
 import me.damon.schoolbot.ext.*
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent

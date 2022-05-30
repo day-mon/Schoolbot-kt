@@ -15,7 +15,7 @@ data class DefinitionModel (
 
     override fun getAsEmbed(): MessageEmbed = Embed {
         title = word
-        url = if(phonetics.isEmpty()) "https://schoolbot.dev" else phonetics.first().audio
+        url = if (phonetics.isEmpty()) "https://schoolbot.dev" else phonetics.first().audio
         description = "*${phonetic ?: "No phonetic found"}*"
 
         val count = meanings.size
@@ -25,46 +25,22 @@ data class DefinitionModel (
             for ((innerIndex, i) in meanings[index].definitions.withIndex())
             {
                 val number = innerIndex + 1
-                field {
-                    name = "Meaning #$number"
-                    value = i.definition
-                    inline = false
+                field(name = "Meaning #$number", value = i.definition, inline = false)
+                field(name = "Example #$number", value = i.example?.replace(word, "`${word}`") ?: "No example provided for this definition")
+                if (i.synonyms.isEmpty())
+                    field(name = "Synonyms", value = "No Synonyms found")
+                else
+                {
+                    val synString = i.synonyms.joinToString { it.toString() }
+                    field(name = "Synonyms", value = if (synString.length > MessageEmbed.VALUE_MAX_LENGTH) i.synonyms.joinToString(limit = 10) else synString)
                 }
 
-                field {
-                    name = "Example #$number"
-                    value = i.example?.replace(word, "`${word}`") ?: "No example provided for this definition"
-                    inline = false
-                }
-
-                field {
-                    if (i.synonyms.isEmpty())
-                    {
-                        name = "Synonyms"
-                        value = "No synonyms found"
-                        inline = true
-                        return@field
-                    }
-
-                    val syn = i.synonyms.joinToString { it.toString() }
-                    name = "Synonyms"
-                    value = if (syn.length > MessageEmbed.VALUE_MAX_LENGTH) i.synonyms.joinToString(limit = 10) else syn
-                    inline = true
-                }
-
-                field {
-                    if (i.antonyms.isEmpty())
-                    {
-                        name = "Antonyms"
-                        value = "No antonyms found"
-                        inline = true
-                        return@field
-                    }
-
+                if (i.antonyms.isEmpty())
+                    field(name = "Antonyms", value = "No antonyms found")
+                else
+                {
                     val ayn = i.antonyms.joinToString { it.toString() }
-                    name = "Antonyms"
-                    value = if (ayn.length > MessageEmbed.VALUE_MAX_LENGTH) i.antonyms.joinToString(limit = 10) else ayn
-                    inline = true
+                    field(name = "Synonyms", value = if (ayn.length > MessageEmbed.VALUE_MAX_LENGTH) i.antonyms.joinToString(limit = 10) else ayn)
                 }
             }
             if (index != count - 1) field(name = "", value = "", inline = false)

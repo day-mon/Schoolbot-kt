@@ -8,14 +8,14 @@ import javax.persistence.*
 
 @Table(name = "course_reminders")
 @Entity(name = "CourseReminder")
-open class CourseReminder(
+class CourseReminder(
     @ManyToOne
     @JoinColumn(name = "course")
-    open val course: Course,
+     val course: Course,
 
-    open var remindTime: Instant,
+     var remindTime: Instant,
 
-    open val specialMessage: String = String.empty
+     val specialMessage: String = String.empty
 ) {
     @Id
     @GeneratedValue(generator = "UUID")
@@ -24,6 +24,6 @@ open class CourseReminder(
         strategy = "org.hibernate.id.UUIDGenerator"
     )
     @Column(name = "id", updatable = false, nullable = false)
-    open var id: UUID? = null
+     var id: UUID? = null
 
 }

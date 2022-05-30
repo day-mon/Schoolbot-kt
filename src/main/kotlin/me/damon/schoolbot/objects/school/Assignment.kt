@@ -1,7 +1,6 @@
 package me.damon.schoolbot.objects.school
 
 import dev.minn.jda.ktx.messages.Embed
-import me.damon.schoolbot.ext.formatDate
 import me.damon.schoolbot.ext.toDiscordTimeZone
 import me.damon.schoolbot.objects.misc.Identifiable
 import me.damon.schoolbot.objects.misc.Pagable
@@ -9,35 +8,33 @@ import net.dv8tion.jda.api.entities.MessageEmbed
 import org.hibernate.annotations.GenericGenerator
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
 import java.util.*
 import javax.persistence.*
 
 @Table(name = "assignments")
 @Entity(name = "assignment")
 @Transactional
-open class Assignment (
+class Assignment (
 
     @Column(name = "name")
-    open var name: String,
+     var name: String,
 
     @Column(name= "description")
-    open var description: String,
+     var description: String,
 
     @Column(name = "points")
-    open var points: Int,
+     var points: Int,
 
     @Column(name = "dueDate")
-    open var dueDate: Instant,
+     var dueDate: Instant,
 
 
     @ManyToOne
     @JoinColumn(name = "course", nullable = false)
-    open val course: Course,
+     val course: Course,
 
     @OneToMany(mappedBy = "assignment", fetch = FetchType.LAZY)
-    open val reminders: List<AssignmentReminder> = emptyList()
+     val reminders: List<AssignmentReminder> = emptyList()
 
     ) : Comparable<Assignment>, Pagable, Identifiable
 {

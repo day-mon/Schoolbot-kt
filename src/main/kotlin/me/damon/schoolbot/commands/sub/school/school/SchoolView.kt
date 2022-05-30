@@ -1,6 +1,6 @@
 package me.damon.schoolbot.commands.sub.school.school
 
-import me.damon.schoolbot.Schoolbot
+import me.damon.schoolbot.bot.Schoolbot
 import me.damon.schoolbot.ext.replyChoiceStringAndLimit
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent

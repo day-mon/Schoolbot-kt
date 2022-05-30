@@ -220,7 +220,6 @@ import kotlin.random.Random
 
 
 
-    fun courseRoleAndChannelCleanUp(courses: List<Course>, guild: Guild) = courses.forEach { course ->  courseRoleAndChannelCleanUp(course, guild) }
     private fun courseRoleAndChannelCleanUp(course: Course, guild: Guild) {
 
         guild.getRoleById(course.roleId)?.delete()?.queue({

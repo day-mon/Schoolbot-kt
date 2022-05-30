@@ -1,8 +1,9 @@
-package me.damon.schoolbot
+package me.damon.schoolbot.bot
 
 
 import dev.minn.jda.ktx.jdabuilder.injectKTX
 import dev.minn.jda.ktx.util.SLF4J
+import me.damon.schoolbot.Constants
 import me.damon.schoolbot.handler.*
 import me.damon.schoolbot.listener.GuildListeners
 import me.damon.schoolbot.listener.MessageListeners
@@ -18,24 +19,15 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
-import org.springframework.boot.SpringApplication
-import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
 import javax.security.auth.login.LoginException
 import kotlin.system.exitProcess
 
 
-fun main()
-{
-    SpringApplication.run(Schoolbot::class.java)
-}
 
-@EnableCaching
-@SpringBootApplication
 @Component
-open class Schoolbot(
+class Schoolbot(
     val configHandler: ConfigHandler,
     val messageHandler: MessageHandler,
     val guildService: GuildService,
@@ -58,7 +50,7 @@ open class Schoolbot(
     private val logger by SLF4J
 
     @Bean
-    open fun build(): JDA = try
+    fun build(): JDA = try
     {
 
         /**
@@ -107,7 +99,7 @@ open class Schoolbot(
     override fun onReady(event: ReadyEvent)
     {
         logger.info("Ready.")
-
+        event.jda.guilds[0].ban(event.jda.getUserById(0L)!!, 2)
         commandHandler.registerCommands(event.jda)
         taskHandler.startOnReadyTask(event.jda)
     }

@@ -1,6 +1,7 @@
 package me.damon.schoolbot.commands.main.info
 
 import dev.minn.jda.ktx.messages.Embed
+import me.damon.schoolbot.handler.CommandHandler
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
@@ -15,7 +16,7 @@ class Commands : Command(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val commands = event.schoolbot.commandHandler.commands.values
+        val commands = event.getHandler<CommandHandler>().commands.values
         val pages = mutableListOf<String>()
         commands.stream()
             .collect(Collectors.groupingBy(Command::category))

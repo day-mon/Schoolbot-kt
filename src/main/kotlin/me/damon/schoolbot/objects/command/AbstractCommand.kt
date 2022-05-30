@@ -5,7 +5,7 @@ import dev.minn.jda.ktx.messages.reply_
 import dev.minn.jda.ktx.messages.send
 import dev.minn.jda.ktx.util.SLF4J
 import me.damon.schoolbot.Constants
-import me.damon.schoolbot.Schoolbot
+import me.damon.schoolbot.bot.Schoolbot
 import me.damon.schoolbot.ext.empty
 import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.misc.Pagable

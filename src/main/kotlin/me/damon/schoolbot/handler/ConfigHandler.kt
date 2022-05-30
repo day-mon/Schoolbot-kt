@@ -16,7 +16,7 @@ import kotlin.system.exitProcess
  */
 
 private const val CONFIG_NAME = "schoolbot_cfg.json"
-@Component("configHandler")
+@Component
 class ConfigHandler
 {
     private val formatter = Json { prettyPrint = true; isLenient = true }

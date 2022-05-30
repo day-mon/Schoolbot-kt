@@ -1,5 +1,6 @@
 package me.damon.schoolbot.commands.main.misc
 
+import me.damon.schoolbot.handler.ApiHandler
 import me.damon.schoolbot.objects.command.*
 import net.dv8tion.jda.api.interactions.commands.OptionType
 
@@ -33,8 +34,8 @@ class Definition : Command(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val word = event.getOption<String>("word")
-        val locale = event.getOption("locale")?.asString ?: "en"
-        val response = event.schoolbot.apiHandler.dictionaryApi.getDefinition(locale, word)
+        val locale = event.getOption<String>("locale") ?: "en"
+        val response = event.getHandler<ApiHandler>().dictionaryApi.getDefinition(locale, word)
         if (response.code() == 404) return run { event.replyErrorEmbed("Could not find definition for `${word}`") }
         if (!response.isSuccessful) return run { event.replyErrorEmbed("Response to dictionary api failed") }
         val models = response.body() ?: return run { event.replyErrorEmbed("Error while retrieving the response body") }

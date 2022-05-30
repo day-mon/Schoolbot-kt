@@ -157,7 +157,6 @@ fun InteractionHook.editOriginalAndClear(content: String) = editMessageById("@or
     .queue()
 
 fun Instant.toDiscordTimeZone() = "<t:${this.epochSecond}>"
-fun Long.toDiscordTimeZone() = "<t:${this}>"
 
 
 fun <T: IReplyCallback> T.replyEmbed(embed: MessageEmbed, content: String = String.empty) = when {

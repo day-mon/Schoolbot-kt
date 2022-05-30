@@ -1,6 +1,6 @@
 package me.damon.schoolbot.commands.sub.school.professor
 
-import me.damon.schoolbot.Schoolbot
+import me.damon.schoolbot.bot.Schoolbot
 import me.damon.schoolbot.ext.replyChoiceAndLimit
 import me.damon.schoolbot.ext.toUUID
 import me.damon.schoolbot.objects.command.CommandCategory
