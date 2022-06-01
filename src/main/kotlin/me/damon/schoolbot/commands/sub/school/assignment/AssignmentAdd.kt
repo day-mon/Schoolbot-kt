@@ -26,6 +26,7 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.Modal
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -90,8 +91,10 @@ class AssignmentAdd : SubCommand(
         val assignments = try { event.getService<AssignmentService>().findByCourse(course) } catch (e: Exception) {  return event.replyErrorEmbed("Error has occurred while trying to find the assignments.") }
         if (assignments.size == Constants.SELECTION_MENU_MAX_SIZE) return event.replyErrorEmbed("There are too many assignments in this course. Please remove some assignments before adding more.")
 
+        val title = "Add an assigment for ${course.name}"
 
-        val modal = Modal("assignment-add-modal", "Add an assigment for ${course.name}") {
+
+        val modal = Modal("assignment-add-modal", if (title.length > Modal.MAX_TITLE_LENGTH) "${title.substring(0, Modal.MAX_TITLE_LENGTH - 5)}..." else title) {
             short(id = "assignment-name", label = "Assignment Name", required = true)
             paragraph(id = "assignment-add-description", label = "Description", required = true)
             short(id = "assignment-add-due-date", placeholder = "Format MM/dd/yyyy", label = "Due Date", required = true)
