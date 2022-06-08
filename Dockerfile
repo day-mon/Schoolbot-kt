@@ -45,7 +45,7 @@ USER root
 WORKDIR /home/schoolbot-kt
 
 # Copies jar from builder build steps
-COPY --from=builder /home/schoolbot-kt/build/libs/SchoolbotKt.jar ./app.jar
+COPY --from=builder /home/schoolbot-kt/build/libs/ApplicationKt.jar ./app.jar
 
 # Runs.. :)
 ENTRYPOINT java -jar -Xmx2G app.jar

@@ -1,7 +1,7 @@
 // https://spring.io/guides/tutorials/spring-boot-kotlin/
 
 application {
-    mainClass.set("me.damon.schoolbot.SchoolbotKt")
+    mainClass.set("me.damon.schoolbot.ApplicationKt")
 }
 
 
@@ -9,7 +9,7 @@ application {
 plugins {
     // spring plugins
     kotlin("plugin.spring") version "1.6.21"
-    // he default configuration declares the kotlin-spring plugin which automatically opens classes and methods (unlike in Java, the default qualifier is final in Kotlin) annotated or meta-annotated with Spring annotations.
+    // the default configuration declares the kotlin-spring plugin which automatically opens classes and methods (unlike in Java, the default qualifier is final in Kotlin) annotated or meta-annotated with Spring annotations.
     id("org.springframework.boot") version "2.6.3"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
 
@@ -22,7 +22,7 @@ plugins {
 
 }
 
-project.setProperty("mainClassName", "me.damon.schoolbot.SchoolbotKt")
+project.setProperty("mainClassName", "me.damon.schoolbot.ApplicationKt")
 group = "com.github.day-mon"
 
 repositories {
