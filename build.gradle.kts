@@ -85,7 +85,7 @@ dependencies {
 
     // Discord
     implementation("net.dv8tion:JDA:5.0.0-alpha.11")
-    implementation("com.github.minndevelopment:jda-ktx:78e74bc")
+    implementation("com.github.minndevelopment:jda-ktx:bf7cd96")
 
     // Spring
     implementation("org.springframework.boot:spring-boot-starter")
