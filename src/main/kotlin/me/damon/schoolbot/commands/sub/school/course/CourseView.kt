@@ -17,10 +17,9 @@ class CourseView(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val courses = try { courseService.findAllByGuild(event.guild.idLong) } catch (e: Exception) {
-             event.replyErrorEmbed("Error has occurred while trying to get the courses for `${event.guild.name}`")
-            return
-        }
+        val courses =
+            try { courseService.findAllByGuild(event.guild.idLong) }
+            catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to get the courses for `${event.guild.name}`") }
 
         if (courses.isEmpty()) return run { event.replyErrorEmbed("There are no courses in `${event.guild.name}`") }
 

@@ -169,7 +169,6 @@ class Course(
 
          field {
              name = "Start Date & Time"
-             println(startDate.epochSecond)
              value = "<t:${startDate.epochSecond}>"
 
          }

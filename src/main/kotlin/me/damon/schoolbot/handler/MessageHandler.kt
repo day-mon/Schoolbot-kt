@@ -1,11 +1,8 @@
 package me.damon.schoolbot.handler
 
+import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.events.CoroutineEventListener
 import dev.minn.jda.ktx.util.SLF4J
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import me.damon.schoolbot.ext.asException
 import me.damon.schoolbot.ext.await
 import me.damon.schoolbot.ext.bodyAsString
@@ -22,72 +19,61 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.springframework.stereotype.Component
 import java.io.InputStream
-import java.util.concurrent.CompletableFuture
 
-private val FILE_EXTENSIONS = listOf(
-    "txt", "java", "cpp", "xml", "csharp", "asm", "js", "php", "r", "py", "go", "python", "ts", "html", "css", "scss"
-)
-private val supervisor = SupervisorJob()
-private val context = CoroutineScope(Dispatchers.IO + supervisor)
+
 @Component
-class MessageHandler(val service: GuildService) : CoroutineEventListener
+class MessageHandler(val guildService: GuildService) : CoroutineEventListener
 {
-
-
+    private val fileExtentions = listOf(
+        "txt", "java", "cpp", "xml", "csharp", "asm", "js", "php", "r", "py", "go", "python", "ts", "html", "css", "scss", "kt"
+    )
     private val logger by SLF4J
 
-    fun handle(event: MessageReceivedEvent)
+    suspend fun handle(event: MessageReceivedEvent)
     {
         val message = event.message
 
         if (message.attachments.isNotEmpty())
         {
-            val autoUpload = service.getGuildSettings(event.guild.idLong).longMessageUploading
+            val autoUpload = guildService.getGuildSettings(event.guild.idLong).longMessageUploading
+
             if (autoUpload)
-            {
                 handleFile(event)
-            }
+
         }
 
     }
 
-    private fun handleFile(event: MessageReceivedEvent)
+    private suspend fun handleFile(event: MessageReceivedEvent)
     {
         val message = event.message
         val attachments = message.attachments
 
-        attachments.stream().filter { it.fileExtension in FILE_EXTENSIONS }.map {
-            // could probably use await
-            val messageFuture = event.channel.sendMessage("Uploading to pastecord...").submit()
-            val inputStreamFuture = it.retrieveInputStream()
-            val allFutures = CompletableFuture.allOf(messageFuture, inputStreamFuture)
-            return@map Triple(messageFuture, inputStreamFuture, allFutures)
-        }.forEach {
-            it.third.whenCompleteAsync { _, throwable ->
-
-                if (throwable != null)
+        attachments
+            .filter { it.fileExtension in fileExtentions }
+            .map {
+                try
                 {
-                    logger.error("An error has occurred while attempting to send the message", throwable)
-                    return@whenCompleteAsync
+                    val sendingMessage = event.channel.sendMessage("Uploading to pastecord...").await()
+                    val inputStream = it.retrieveInputStream().await()
+                    return@map sendingMessage to inputStream
                 }
-
-                context.launch { doUpload(it, event) }
-            }
-        }
+                catch (e: Exception)
+                {
+                    event.channel.sendMessage("Error occurred while trying to retrieve file or sending original message").queue()
+                   return logger.error("An error has occurred while attempting to send the message", e)
+                }
+        }.forEach { doUpload(it, event) }
     }
 
     private suspend fun doUpload(
-        triple: Triple<CompletableFuture<Message>, CompletableFuture<InputStream>, CompletableFuture<Void>>,
+        pair: Pair<Message, InputStream>,
         event: MessageReceivedEvent
     )
     {
         val client = event.jda.httpClient
-        val message = triple.first.getNow(null) ?: return run {
-            event.channel.sendMessage("Upload Failed. Reason: **Message is not available to edit**").queue()
-        }
-        val stream = triple.second.getNow(null) ?: return run {
-            message.editMessage("Upload Failed. Reason: **Input stream is not available to upload**").queue()
-        }
+        val message = pair.first
+        val stream = pair.second
 
         val payload = stream.string()
 
@@ -110,29 +96,27 @@ class MessageHandler(val service: GuildService) : CoroutineEventListener
                 {
                     message.editMessage("Your payload is too large ").queue()
                     event.message.delete().queue(null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))
-                    logger.error("User tried to send payload that was too large", response.asException())
-                    return
+                    return logger.error("User tried to send payload that was too large", response.asException())
+
                 }
 
                 if (!response.isSuccessful)
                 {
                     logger.error("Strange error has occurred", response.asException())
-                    message.editMessage("Strange error has occurred while trying to upload your message").queue()
-                    return
+                    return message.editMessage("Strange error has occurred while trying to upload your message").queue()
+
                 }
 
-                val body = response.bodyAsString() ?: return run {
+                val body = response.bodyAsString() ?: run {
                     logger.error("Response body is null")
-                    message.editMessage("Upload Failed. Reason: **Response body is null**").queue()
+                    return message.editMessage("Upload Failed. Reason: **Response body is null**").queue()
                 }
 
                 val responseJson = DataObject.fromJson(body)
 
-                if (!responseJson.hasKey("key")) return run {
-                    logger.error(
-                        "Body is either malformed or body responded with an unexpected response \n Body: {}", body
-                    )
-                    message.editMessage("Body returned unexpected response").queue()
+                if (!responseJson.hasKey("key")) {
+                    logger.error("Body is either malformed or body responded with an unexpected response \nBody: {}", body)
+                    return message.editMessage("Body returned unexpected response").queue()
                 }
 
 

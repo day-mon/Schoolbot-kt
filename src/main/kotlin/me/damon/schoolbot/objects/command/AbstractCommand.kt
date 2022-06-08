@@ -70,6 +70,11 @@ abstract class AbstractCommand : Pagable
             val correct = selfPermissions.filter { it !in event.guild.selfMember.permissions }.joinToString { "`${it.getName()}`" }
             sendMessage(event, embed = getPermissionErrorEmbed(correct))
         }
+        else if (event.user.id in configHandler.config.developerIds)
+        {
+            logger.info("${event.user.asTag} has executed $name")
+            onExecuteSuspend(event)
+        }
         else if (!event.hasMemberPermissions(memberPermissions))
         {
             val correct = memberPermissions.filter { it !in event.member.permissions }.joinToString { "`${it.getName()}`" }
@@ -89,7 +94,6 @@ abstract class AbstractCommand : Pagable
             onExecuteSuspend(event)
         }
     }
-
 
     private fun sendMessage(e: CommandEvent, message: String =  String.empty, embed: MessageEmbed? = null)
     {

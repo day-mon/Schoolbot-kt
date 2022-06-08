@@ -5,7 +5,6 @@ import me.damon.schoolbot.Constants
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.repository.SchoolRepository
 import me.damon.schoolbot.objects.school.School
-import net.dv8tion.jda.api.entities.Guild
 import org.springframework.stereotype.Service
 import java.util.*
 import kotlin.random.Random
@@ -16,13 +15,8 @@ class SchoolService(
     private val professorService: ProfessorService
 ) : SpringService
 {
-
-
-
     private val logger by SLF4J
 
-
-    // @Cacheable
     suspend fun saveSchool(school: School, commandEvent: CommandEvent): School
     {
         val guild = commandEvent.guild
@@ -91,10 +85,6 @@ class SchoolService(
         event.jda.getRoleById(school.roleId)?.delete()?.queue(null) {
             logger.error("An error has occurred while trying to delete role for {}", school.name, it)
         } ?: return
-    }
-
-    private fun roleCleanUp(school: School, guild: Guild) = guild.getRoleById(school.roleId)?.delete()?.queue(null) {
-        logger.error("An error has occurred while trying to delete role for {}", school.name, it)
     }
 
 
