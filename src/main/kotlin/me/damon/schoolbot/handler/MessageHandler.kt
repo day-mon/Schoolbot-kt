@@ -1,5 +1,6 @@
 package me.damon.schoolbot.handler
 
+import dev.minn.jda.ktx.events.CoroutineEventListener
 import dev.minn.jda.ktx.util.SLF4J
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -11,6 +12,7 @@ import me.damon.schoolbot.ext.bodyAsString
 import me.damon.schoolbot.ext.string
 import me.damon.schoolbot.service.GuildService
 import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.requests.ErrorResponse
@@ -28,8 +30,9 @@ private val FILE_EXTENSIONS = listOf(
 private val supervisor = SupervisorJob()
 private val context = CoroutineScope(Dispatchers.IO + supervisor)
 @Component
-class MessageHandler(val service: GuildService)
+class MessageHandler(val service: GuildService) : CoroutineEventListener
 {
+
 
     private val logger by SLF4J
 
@@ -144,6 +147,13 @@ class MessageHandler(val service: GuildService)
         {
             message.editMessage("Error has occurred while trying to upload this to pastecord").queue()
             logger.error("Error has occurred", e)
+        }
+    }
+
+
+    override suspend fun onEvent(event: GenericEvent) {
+        when (event) {
+            is MessageReceivedEvent -> handle(event)
         }
     }
 }

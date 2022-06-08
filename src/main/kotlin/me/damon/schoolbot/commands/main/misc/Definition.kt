@@ -1,9 +1,14 @@
 package me.damon.schoolbot.commands.main.misc
 
+import me.damon.schoolbot.handler.ApiHandler
 import me.damon.schoolbot.objects.command.*
 import net.dv8tion.jda.api.interactions.commands.OptionType
+import org.springframework.stereotype.Component
 
-class Definition : Command(
+@Component
+class Definition(
+    private val apiHandler: ApiHandler
+) : Command(
     name = "Define",
     category = CommandCategory.MISC,
     description = "Gives a definition of a word that is specified",
@@ -34,10 +39,10 @@ class Definition : Command(
     {
         val word = event.getOption<String>("word")
         val locale = event.getOption("locale")?.asString ?: "en"
-        val response = event.schoolbot.apiHandler.dictionaryApi.getDefinition(locale, word)
-        if (response.code() == 404) return run { event.replyErrorEmbed("Could not find definition for `${word}`") }
-        if (!response.isSuccessful) return run { event.replyErrorEmbed("Response to dictionary api failed") }
-        val models = response.body() ?: return run { event.replyErrorEmbed("Error while retrieving the response body") }
+        val response = apiHandler.dictionaryApi.getDefinition(locale, word)
+        if (response.code() == 404) return event.replyErrorEmbed("Could not find definition for `${word}`")
+        if (!response.isSuccessful) return event.replyErrorEmbed("Response to dictionary api failed")
+        val models = response.body() ?: return event.replyErrorEmbed("Error while retrieving the response body")
         event.sendPaginator(models)
     }
 }

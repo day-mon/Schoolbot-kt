@@ -3,9 +3,8 @@ package me.damon.schoolbot.commands.sub.school.professor
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.edit
 import dev.minn.jda.ktx.messages.into
-import me.damon.schoolbot.Schoolbot
+
 import me.damon.schoolbot.ext.replyChoiceAndLimit
-import me.damon.schoolbot.ext.replyErrorEmbed
 import me.damon.schoolbot.ext.send
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
@@ -14,16 +13,24 @@ import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.school.Professor
 import me.damon.schoolbot.service.ProfessorService
+import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import org.springframework.stereotype.Component
 import java.util.*
 import kotlin.time.Duration.Companion.minutes
 
-class ProfessorRemove : SubCommand(
-    name = "remove", description = "Removes a professor", category = CommandCategory.SCHOOL, options = listOf(
+@Component
+class ProfessorRemove(
+    private val professorService: ProfessorService,
+) : SubCommand(
+    name = "remove",
+    description = "Removes a professor",
+    category = CommandCategory.SCHOOL,
+    options = listOf(
         CommandOptionData<String>(
             optionType = OptionType.STRING,
             name = "professor_name",
@@ -37,11 +44,10 @@ class ProfessorRemove : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val professorStringId = event.getOption<String>("professor_name")
-        val service = event.getService<ProfessorService>()
         val professorId = UUID.fromString(professorStringId)
 
 
-        val professor = try { service.findById(professorId) }
+        val professor = try { professorService.findById(professorId) }
         catch (e: Exception) { return event.replyErrorEmbed("An unexpected error has occurred") }
             ?: return event.replyErrorEmbed("Professor not found. It must've been deleted during or before this command was executed. ${Emoji.THINKING.getAsChat()}")
 
@@ -58,7 +64,7 @@ class ProfessorRemove : SubCommand(
             it.message.edit("Removing professor...", components = listOf())
             try
             {
-                event.getService<ProfessorService>().remove(professor)
+                professorService.remove(professor)
             }
             catch (e: Exception)
             {
@@ -76,11 +82,11 @@ class ProfessorRemove : SubCommand(
     }
 
 
-    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
+    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
+
     {
-        val service = schoolbot.professorService
         val guild = event.guild ?: return // shouldn't be possible unless handler is broken
-        val professors = service.findAllInGuild(guild.idLong)
+        val professors = professorService.findAllInGuild(guild.idLong)
         event.replyChoiceAndLimit(professors.map { Command.Choice(it.fullName, it.id.toString()) }).queue()
     }
 }

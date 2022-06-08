@@ -4,7 +4,7 @@ import dev.minn.jda.ktx.interactions.components.SelectMenu
 import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.interactions.components.option
 import dev.minn.jda.ktx.messages.into
-import me.damon.schoolbot.Schoolbot
+
 import me.damon.schoolbot.ext.replyChoiceAndLimit
 import me.damon.schoolbot.ext.send
 import me.damon.schoolbot.objects.command.CommandCategory
@@ -21,10 +21,16 @@ import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import org.springframework.stereotype.Component
 import java.util.*
 import kotlin.time.Duration.Companion.minutes
 
-class AssignmentRemove : SubCommand(
+@Component
+class AssignmentRemove(
+    private val schoolService: SchoolService,
+    private val courseService: CourseService,
+    private val assignmentService: AssignmentService
+) : SubCommand(
     name = "remove",
     description = "Removes an assignment from the course.",
     category = CommandCategory.SCHOOL,
@@ -45,10 +51,10 @@ class AssignmentRemove : SubCommand(
     {
         val uuidStr = event.getOption<String>("school")
         val uuid = try { UUID.fromString(uuidStr) } catch (e: Exception) { return event.replyErrorEmbed("That school is not available for deletion at this time") }
-        val school = try { event.getService<SchoolService>().findSchoolById(uuid) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find school. Please try again") }
+        val school = try { schoolService.findSchoolById(uuid) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find school. Please try again") }
             ?: return event.replyErrorEmbed("That school does not exist ${Emoji.THINKING.getAsChat()}")
 
-        val courses = try { event.getService<CourseService>().findEmptyAssignmentsBySchoolInGuild(school) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find courses. Please try again") }
+        val courses = try { courseService.findEmptyAssignmentsBySchoolInGuild(school) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find courses. Please try again") }
 
         if (courses.isEmpty()) return event.replyErrorEmbed("There are no courses in this school with assignments! ${Emoji.STOP_SIGN.getAsChat()}")
 
@@ -60,7 +66,6 @@ class AssignmentRemove : SubCommand(
         val index = menuEvent.values.first().toInt()
         val course = courses[index]
 
-        val assignmentService = event.getService<AssignmentService>()
 
         val assignments = try { assignmentService.findByCourse(course) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find assignments. Please try again") }
         if (assignments.isEmpty()) return event.replyErrorEmbed("This shouldn't have happened but... There are no assignments in this course! ${Emoji.STOP_SIGN.getAsChat()}")
@@ -104,10 +109,11 @@ class AssignmentRemove : SubCommand(
         return listOf(yes, no).into()
     }
 
-    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
+    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
+
     {
         val guildId = event.guild?.idLong ?: return logger.error("Guild is null. This should never happen.")
-        val schools = try { schoolbot.schoolService.findByNonEmptyCoursesInGuild(guildId) } catch (e: Exception) { return  }
+        val schools = try { schoolService.findByNonEmptyCoursesInGuild(guildId) } catch (e: Exception) { return  }
 
 
         event.replyChoiceAndLimit(

@@ -16,8 +16,12 @@ import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
+import org.springframework.stereotype.Component
 
-class Settings : Command(
+@Component
+class Settings(
+    private val guildService: GuildService
+) : Command(
     name = "Settings",
     description = "Allows you to enable/disable guild settings",
     category = CommandCategory.INFO,
@@ -26,7 +30,7 @@ class Settings : Command(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val settings = event.schoolbot.guildService.getGuildSettings(event.guildId)
+        val settings = guildService.getGuildSettings(event.guildId)
         event.send(message = "Buttons", embeds = listOf(getCourseSettingsEmbed(event, settings)), actionRows = settingsButtons(event, settings))
     }
 
@@ -59,7 +63,7 @@ class Settings : Command(
                 event.hook.editOriginalEmbeds(getCourseSettingsEmbed(event, settings))
                     .setActionRows(settingsButtons(event, settings)).queue()
             }
-            try { event.getService<GuildService>().save(settings) }
+            try { guildService.save(settings) }
             catch (e: Exception) { logger.error("Could not save guild settings for {}", event.guild.name) }
         }
 
@@ -74,7 +78,7 @@ class Settings : Command(
                 event.hook.editOriginalEmbeds(getCourseSettingsEmbed(event, settings))
                     .setActionRows(settingsButtons(event, settings)).queue()
             }
-            try { event.getService<GuildService>().save(settings) }
+            try { guildService.save(settings) }
             catch (e: Exception) { logger.error("Could not save guild settings for {}", event.guild.name) }
         }
 

@@ -10,8 +10,9 @@ import dev.minn.jda.ktx.messages.into
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.damon.schoolbot.Constants
-import me.damon.schoolbot.Schoolbot
+
 import me.damon.schoolbot.ext.*
+import me.damon.schoolbot.handler.ApiHandler
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
@@ -28,9 +29,15 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
+import org.springframework.stereotype.Component
 import java.time.LocalDate
 
-class CourseAddPitt : SubCommand(
+@Component
+class CourseAddPitt(
+    private val courseService: CourseService,
+    private val schoolService: SchoolService,
+    private val apiHandler: ApiHandler
+) : SubCommand(
     name = "pitt",
     description = "Adds a pitt class",
     category = CommandCategory.SCHOOL,
@@ -49,8 +56,7 @@ class CourseAddPitt : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val schoolService = event.getService<SchoolService>()
-        val courseService = event.getService<CourseService>()
+
         val schoolName = event.getOption<String>("school_name")
 
         val pittSchools = try { schoolService.getPittSchoolsInGuild(event.guild.idLong) }
@@ -77,7 +83,7 @@ class CourseAddPitt : SubCommand(
         val courseNumberStr = modalEvent.getValue<String>("course_number") ?: return modalEvent.replyErrorEmbed("Course Number field must not be empty").queue()
         val courseNumber = courseNumberStr.toLongOrNull() ?: return modalEvent.replyErrorEmbed("$courseNumberStr is not a number").queue()
 
-        val response = event.schoolbot.apiHandler.johnstownAPI.getCourse(termNumber, courseNumber)
+        val response = apiHandler.johnstownAPI.getCourse(termNumber, courseNumber)
         logger.debug("Response has been received from API. Request URL: {}", response.raw().request().url())
 
         if (!response.isSuccessful) run {
@@ -102,7 +108,7 @@ class CourseAddPitt : SubCommand(
 
 
 
-        val savedCourse = try { courseService.createPittCourse(event, school, course) } catch (e: Exception) {
+        val savedCourse = try { courseService.createPittCourse(event.guild, school, course) } catch (e: Exception) {
             logger.error("Error has occurred while trying to save course", e)
            return modalEvent.replyErrorEmbed("An error has occurred. I will clean up any of the channels/roles I have created.").queue()
         }
@@ -204,10 +210,11 @@ class CourseAddPitt : SubCommand(
         else -> throw IllegalStateException("lol")
     }
 
-    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
+    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
+
     {
         val id = event.guild?.idLong ?: return logger.error("Error has occurred while fetching guild id in autocomplete")
-        val pittSchools =  try { schoolbot.schoolService.getPittSchoolsInGuild(id) } catch (e: Exception)  { return }
+        val pittSchools =  try { schoolService.getPittSchoolsInGuild(id) } catch (e: Exception)  { return }
         event.replyChoiceStringAndLimit(pittSchools.map { it.name }
             .filter { it.startsWith(event.focusedOption.value, ignoreCase = true) })
             .queue()

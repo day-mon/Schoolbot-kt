@@ -5,8 +5,10 @@ import me.damon.schoolbot.ext.printWriter
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
+import org.springframework.stereotype.Component
 import java.io.File
 
+@Component
 class ClearErrorLog : Command(
     name = "clearerrorlog",
     description = "Clears the error log",
