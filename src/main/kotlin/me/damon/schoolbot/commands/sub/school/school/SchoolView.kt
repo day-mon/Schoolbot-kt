@@ -1,15 +1,20 @@
 package me.damon.schoolbot.commands.sub.school.school
 
-import me.damon.schoolbot.Schoolbot
+
 import me.damon.schoolbot.ext.replyChoiceStringAndLimit
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
+import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
+import org.springframework.stereotype.Component
 
-class SchoolView : SubCommand(
+@Component
+class SchoolView(
+    private val schoolService: SchoolService
+) : SubCommand(
     name = "view",
     description = "Views all of the schools in a guild",
     category = CommandCategory.SCHOOL,
@@ -29,7 +34,7 @@ class SchoolView : SubCommand(
             event.sentWithAnyOptions() ->
             {
                 val name = event.getOption<String>("school_name")
-                val school = try { event.schoolbot.schoolService.findSchoolInGuild(event.guildId, name) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find school with the name $name") } ?: return run {
+                val school = try { schoolService.findSchoolInGuild(event.guildId, name) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find school with the name $name") } ?: return run {
                     event.replyErrorEmbed("School does not exist")
                 }
 
@@ -38,7 +43,7 @@ class SchoolView : SubCommand(
             }
             else ->
             {
-                val schools = try { event.schoolbot.schoolService.findSchoolsInGuild(event.guildId)  } catch (e: Exception) {
+                val schools = try { schoolService.findSchoolsInGuild(event.guildId)  } catch (e: Exception) {
                    return  event.replyErrorEmbed("Error occurred while retrieving schools")  }
 
                 if (schools.isEmpty())
@@ -50,10 +55,11 @@ class SchoolView : SubCommand(
         }
     }
 
-    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
+    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
+
     {
         val guildId = event.guild?.idLong ?: return logger.error("Guild is null")
-        val schools = schoolbot.schoolService.findSchoolsInGuild(guildId)
+        val schools = schoolService.findSchoolsInGuild(guildId)
         event.replyChoiceStringAndLimit(
             schools.map { it.name }
                 .filter { it.startsWith(event.focusedOption.value, ignoreCase = true) }

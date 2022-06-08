@@ -1,3 +1,5 @@
+// https://spring.io/guides/tutorials/spring-boot-kotlin/
+
 application {
     mainClass.set("me.damon.schoolbot.SchoolbotKt")
 }
@@ -5,16 +7,19 @@ application {
 
 
 plugins {
+    // spring plugins
+    kotlin("plugin.spring") version "1.6.21"
+    // he default configuration declares the kotlin-spring plugin which automatically opens classes and methods (unlike in Java, the default qualifier is final in Kotlin) annotated or meta-annotated with Spring annotations.
+    id("org.springframework.boot") version "2.6.3"
+    id("io.spring.dependency-management") version "1.0.11.RELEASE"
 
     id("com.github.johnrengelman.shadow") version "7.1.1"
     kotlin("jvm") version "1.6.21"
     application
 
-    id("com.google.cloud.tools.jib") version "3.2.0"
     id("org.jetbrains.kotlin.plugin.noarg") version ("1.6.10")
     id("org.jetbrains.kotlin.plugin.serialization") version("1.4.30")
-    id("org.springframework.boot") version "2.6.3"
-    id("io.spring.dependency-management") version "1.0.11.RELEASE"
+
 }
 
 project.setProperty("mainClassName", "me.damon.schoolbot.SchoolbotKt")
@@ -36,29 +41,6 @@ noArg {
     annotation("javax.persistence.MappedSuperclass")
 }
 
-jib {
-    from {
-        image = "openjdk:17"
-    }
-
-    to {
-        image = "day-mon/schoolbot-kt"
-    }
-
-    container {
-        mainClass = "me.damon.schoolbot.SchoolbotKt"
-        jvmFlags = listOf(
-            "-server",
-            "-Djava.awt.headless=true",
-            "-XX:+UseG1GC",
-            "-XX:MaxGCPauseMillis=100",
-            "-XX:+UseStringDeduplication",
-            "-Xmx2G"
-        )
-        workingDirectory = "/home/schoolbot"
-        volumes = listOf("/schoolbot_cfg.json")
-    }
-}
 
 
 /**
@@ -78,7 +60,7 @@ dependencies {
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.10")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.21")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
     implementation(kotlin("stdlib-jdk8"))
 
@@ -96,15 +78,12 @@ dependencies {
     // Database
     implementation("org.postgresql:postgresql:42.3.4")
 
-    // Utils
-    implementation("org.reflections:reflections:0.10.2")
-
     // Misc
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
     implementation("ch.qos.logback:logback-classic:1.2.11")
-    implementation("com.yahoofinance-api:YahooFinanceAPI:3.15.0")
+    implementation("com.yahoofinance-api:YahooFinanceAPI:3.16.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("io.github.classgraph:classgraph:4.8.147")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.3"))
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 

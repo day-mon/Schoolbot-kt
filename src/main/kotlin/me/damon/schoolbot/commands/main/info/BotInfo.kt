@@ -5,8 +5,10 @@ import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.JDAInfo
+import org.springframework.stereotype.Component
 import java.lang.management.ManagementFactory
 
+@Component
 class BotInfo : Command(
     name = "BotInfo",
     description = "Shows bot information",

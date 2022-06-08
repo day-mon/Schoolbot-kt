@@ -5,16 +5,22 @@ import me.damon.schoolbot.commands.sub.school.laundry.LaundryReminderCancel
 import me.damon.schoolbot.commands.sub.school.laundry.LaundryView
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
+import org.springframework.stereotype.Component
 
-class Laundry : Command(
+@Component
+class Laundry(
+    laundryView: LaundryView,
+    laundryReminderAdd: LaundryReminderAdd,
+    laundryReminderCancel: LaundryReminderCancel
+) : Command(
     name = "Laundry",
     category = CommandCategory.SCHOOL,
     children = listOf(
-        LaundryView()
+        laundryView
     ),
     group = mapOf("reminder" to listOf(
-        LaundryReminderAdd(),
-        LaundryReminderCancel(),
+       laundryReminderAdd,
+        laundryReminderCancel
     )),
     description = "Displays laundry availability in a given dormitory",
 )

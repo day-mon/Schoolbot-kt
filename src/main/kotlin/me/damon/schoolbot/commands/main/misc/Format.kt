@@ -4,7 +4,9 @@ import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.EmbedBuilder
+import org.springframework.stereotype.Component
 
+@Component
 class Format : Command(
     name = "Format",
     category = CommandCategory.MISC,

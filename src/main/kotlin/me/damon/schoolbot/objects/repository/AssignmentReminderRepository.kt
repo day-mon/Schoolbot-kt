@@ -1,4 +1,4 @@
-package me.damon.schoolbot.objects.repository;
+package me.damon.schoolbot.objects.repository
 
 import me.damon.schoolbot.objects.school.Assignment
 import me.damon.schoolbot.objects.school.AssignmentReminder

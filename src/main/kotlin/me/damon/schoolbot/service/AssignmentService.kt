@@ -5,7 +5,6 @@ import me.damon.schoolbot.ext.logger
 import me.damon.schoolbot.objects.repository.AssignmentRepository
 import me.damon.schoolbot.objects.school.Assignment
 import me.damon.schoolbot.objects.school.Course
-import me.damon.schoolbot.objects.school.School
 import me.damon.schoolbot.objects.school.defaultReminders
 import org.springframework.stereotype.Service
 

@@ -28,10 +28,6 @@ class CourseReminderService(
         .onFailure { logger.error("Error has occurred while trying to delete reminders for a course") }
         .getOrThrow()
 
-    suspend fun findByCourse(course: Course) = runCatching { courseReminderRepository.findAllByCourse(course).await() }
-        .onFailure { logger.error("Error has occurred while trying to get reminders for {}", course.name) }
-        .getOrThrow()
-
      fun findAllExpiredReminders() = runCatching { courseReminderRepository.findAllExpired()  }
         .onFailure { logger.error("Error has occurred while trying to get reminders") }
         .getOrThrow()

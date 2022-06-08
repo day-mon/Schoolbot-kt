@@ -12,9 +12,11 @@ import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
+import org.springframework.stereotype.Component
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 
+@Component
 class Prune : Command (
     name = "Prune",
     category = CommandCategory.ADMIN,

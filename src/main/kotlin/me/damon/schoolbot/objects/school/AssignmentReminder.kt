@@ -23,14 +23,14 @@ fun defaultReminders(assignment: Assignment): List<AssignmentReminder> = listOf(
 
 @Table(name = "assignment_reminders")
 @Entity(name = "AssignmentReminder")
-open class AssignmentReminder(
+ class AssignmentReminder(
     @ManyToOne
     @JoinColumn(name = "assignment")
-    open val assignment: Assignment,
+     val assignment: Assignment,
 
-    open var remindTime: Instant,
+     var remindTime: Instant,
 
-    open val message: String = String.empty
+     val message: String = String.empty
 ) {
     @Id
     @GeneratedValue(generator = "UUID")
@@ -39,5 +39,5 @@ open class AssignmentReminder(
         strategy = "org.hibernate.id.UUIDGenerator"
     )
     @Column(name = "id", updatable = false, nullable = false)
-    open var id: UUID? = null
+     var id: UUID? = null
 }

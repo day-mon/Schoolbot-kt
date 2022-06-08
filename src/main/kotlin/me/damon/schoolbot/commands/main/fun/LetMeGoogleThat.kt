@@ -6,9 +6,10 @@ import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import net.dv8tion.jda.api.interactions.commands.OptionType
+import org.springframework.stereotype.Component
 import kotlin.time.Duration.Companion.seconds
 
-
+@Component
 class LetMeGoogleThat : Command(
     name = "lmgtfy",
     description = "Let Me Google That For You (lmgtfy) will send a lmgtfy you link with the args you specify",

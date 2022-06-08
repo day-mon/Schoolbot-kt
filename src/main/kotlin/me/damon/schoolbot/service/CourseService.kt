@@ -7,7 +7,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.damon.schoolbot.Constants
-import me.damon.schoolbot.objects.command.CommandEvent
+import me.damon.schoolbot.ext.plus
 import me.damon.schoolbot.objects.models.CourseModel
 import me.damon.schoolbot.objects.repository.ClassroomRepository
 import me.damon.schoolbot.objects.school.Course
@@ -25,6 +25,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.days
 
 @Service("CourseService")
  class CourseService(
@@ -40,10 +41,10 @@ import kotlin.random.Random
 
     private val logger by SLF4J
 
-     suspend fun deleteCourse(course: Course, commandEvent: CommandEvent) =
+     suspend fun deleteCourse(course: Course, guild: Guild) =
         runCatching { courseReminderService.deleteAllByCourse(course); classroomRepository.delete(course);  }
         .onFailure { logger.error("Error has occurred while trying to delete {} ", course.name, it) }
-        .onSuccess { runCleanUp(course, commandEvent) }
+        .onSuccess { runCleanUp(course, guild) }
         .getOrThrow()
 
      fun deleteCourse(course: Course, jda: JDA) = runCatching { classroomRepository.delete(course) }
@@ -64,25 +65,28 @@ import kotlin.random.Random
         var startingDateIt =
             if (startDate.isBefore(LocalDateTime.now(zone)))
             {
-                logger.debug("Changing reminder start date iteration to current day due to start date already passing.. ");
+                logger.debug("Changing reminder start date iteration to current day due to start date already passing.. ")
                 LocalDateTime.of(LocalDate.now(), startDate.toLocalTime())
             }
             else startDate
 
+        val reminders = mutableListOf<CourseReminder>()
+
         while (startingDateIt.isBefore(endDate) || startingDateIt.isEqual(endDate))
         {
             val day = startDate.dayOfWeek
-            if (day !in days) { startingDateIt = startingDateIt.plusDays(1); continue }
+            if (day !in days) { startingDateIt += 1.days; continue }
             val offset = zone.rules.getOffset(startingDateIt)
 
-            val reminders = listOf(
-                CourseReminder(course = course, remindTime = startingDateIt.minusHours(1).toInstant(offset)),
-                CourseReminder(course = course, remindTime = startingDateIt.minusMinutes(30).toInstant(offset)),
-                CourseReminder(course = course, remindTime = startingDateIt.minusMinutes(10).toInstant(offset)),
-                CourseReminder(course = course, remindTime = startingDateIt.toInstant(offset)),
+            reminders.addAll(
+                listOf(
+                    CourseReminder(course = course, remindTime = startingDateIt.minusHours(1).toInstant(offset)),
+                    CourseReminder(course = course, remindTime = startingDateIt.minusMinutes(30).toInstant(offset)),
+                    CourseReminder(course = course, remindTime = startingDateIt.minusMinutes(10).toInstant(offset)),
+                    CourseReminder(course = course, remindTime = startingDateIt.toInstant(offset)),
+                )
             )
 
-            courseReminderService.saveAll(reminders)
 
 
             startingDateIt =  if (days.last() == day)
@@ -95,21 +99,18 @@ import kotlin.random.Random
                 val next = days.indexOf(day) + 1
                 startingDateIt.with(TemporalAdjusters.next(days[next]))
             }
-
-
-
-
         }
+        courseReminderService.saveAll(reminders)
+
 
     }
 
     suspend fun createPittCourse(
-        commandEvent: CommandEvent, school: School, courseModel: CourseModel
+        guild: Guild,
+        school: School,
+        courseModel: CourseModel
     ): Course
     {
-        val guild = commandEvent.guild
-        val professorService = commandEvent.getService<ProfessorService>()
-
         val course = courseModel.asCourse(
             school = school, professorService = professorService
         )
@@ -136,11 +137,10 @@ import kotlin.random.Random
         }
 
         return runCatching { classroomRepository.save(course) }
-            .onFailure { logger.error("Error has occurred during the save", it); runCleanUp(course, commandEvent, professorDif) }
+            .onFailure { logger.error("Error has occurred during the save", it); runCleanUp(course, guild, professorDif) }
             .getOrThrow()
     }
 
-    @Throws(Exception::class)
     fun createReminders(course: Course)
     {
         val startTime = System.currentTimeMillis()
@@ -158,69 +158,66 @@ import kotlin.random.Random
         var startDateIt =
             if (startDate.isBefore(LocalDateTime.now(zone)))
             {
-                logger.debug("Changing reminder start date iteration to current day due to start date already passing.. ");
+                logger.debug("Changing reminder start date iteration to current day due to start date already passing.. ")
                 LocalDateTime.of(LocalDate.now(), startDate.toLocalTime())
             }
             else startDate
-        val days = meetingDays.split(",").map { it.uppercase().trim() }
 
+        val days = meetingDays.split(",").map { it.uppercase().trim() }
+        val reminders = mutableListOf<CourseReminder>()
 
 
         while (startDateIt.isBefore(endDate) || startDateIt.isEqual(endDate))
         {
             val day = startDateIt.dayOfWeek.name.uppercase()
-            if (day !in days)  { startDateIt = startDateIt.plusDays(1); logger.debug("Skipped day: {}", startDateIt); continue } // only for the first iteration
+            if (day !in days)  { startDateIt += 1.days; logger.debug("Skipped day: {}", startDateIt); continue } // only for the first iteration
 
             val offset = school.zone.rules.getOffset(startDateIt)
 
-            val reminders = listOf(
-                CourseReminder(course = course, remindTime = startDateIt.minusHours(1).toInstant(offset)),
-                CourseReminder(course = course, remindTime = startDateIt.minusMinutes(30).toInstant(offset)),
-                CourseReminder(course = course, remindTime = startDateIt.minusMinutes(10).toInstant(offset)),
-                CourseReminder(course = course, remindTime = startDateIt.toInstant(offset)),
+            reminders.addAll(
+                listOf(
+                    CourseReminder(course = course, remindTime = startDateIt.minusHours(1).toInstant(offset)),
+                    CourseReminder(course = course, remindTime = startDateIt.minusMinutes(30).toInstant(offset)),
+                    CourseReminder(course = course, remindTime = startDateIt.minusMinutes(10).toInstant(offset)),
+                    CourseReminder(course = course, remindTime = startDateIt.toInstant(offset)),
+                )
             )
 
-            courseReminderService.saveAll(reminders)
 
 
             startDateIt = if (days.last() == day)
             {
                 val start = days.first()
-                val day = DayOfWeek.valueOf(start)
-                startDateIt.with(TemporalAdjusters.next(day))
+                val nextDayOfWeek = DayOfWeek.valueOf(start)
+                startDateIt.with(TemporalAdjusters.next(nextDayOfWeek))
             }
             else
             {
                 val next = days.indexOf(day) + 1
-                val day = DayOfWeek.valueOf(days[next])
-                startDateIt.with(TemporalAdjusters.next(day))
+                val nextDayOfWeek = DayOfWeek.valueOf(days[next])
+                startDateIt.with(TemporalAdjusters.next(nextDayOfWeek))
 
             }
         }
 
+        courseReminderService.saveAll(reminders)
         logger.info("Reminder sequence for {} has concluded it took {}s", course.name, Duration.ofMillis(System.currentTimeMillis() - startTime).toSeconds())
     }
 
 
-    // update course
      fun update (course: Course): Course = runCatching { classroomRepository.save(course) }
         .onFailure { logger.error("Error has occurred while trying to update {} ", course.name, it) }
         .getOrThrow()
 
 
 
-     fun findAllByGuild(guildId: Long): List<Course> =
-        runCatching { classroomRepository.findAllByGuild(guildId) }.onFailure {
-            logger.error(
-                "Error has occurred while trying to get the courses for guild id: {}",
-                guildId,
-                it
-            )
-        }.getOrThrow()
+     suspend fun findAllByGuild(guildId: Long): List<Course> =
+        runCatching { classroomRepository.findAllByGuild(guildId).await() }
+            .onFailure { logger.error("Error has occurred while trying to get the courses for guild id: {}", guildId, it) }
+            .getOrThrow()
 
 
 
-    fun courseRoleAndChannelCleanUp(courses: List<Course>, guild: Guild) = courses.forEach { course ->  courseRoleAndChannelCleanUp(course, guild) }
     private fun courseRoleAndChannelCleanUp(course: Course, guild: Guild) {
 
         guild.getRoleById(course.roleId)?.delete()?.queue({
@@ -238,18 +235,18 @@ import kotlin.random.Random
     }
 
     private suspend fun runCleanUp(
-        course: Course, event: CommandEvent, professors: Collection<Professor> = mutableSetOf()
+        course: Course,
+        guild: Guild,
+        professors: Collection<Professor> = mutableSetOf()
     )
     {
             withContext(dispatcher)
             {
-                courseRoleAndChannelCleanUp(course, event.guild)
+                courseRoleAndChannelCleanUp(course, guild)
                 try { professorService.removeAll(professors = professors) }
                 catch (e: Exception) { logger.error("Error has occurred while removing professors", e) }
             }
     }
-
-
 
      suspend fun findDuplicateCourse(number: Long, termId: String) = withContext(dispatcher) {
         classroomRepository.findByNumberAndIdentifier(number, termId).await()
@@ -270,7 +267,7 @@ import kotlin.random.Random
 
 
      suspend fun findBySchool(school: School): List<Course> =
-        runCatching { classroomRepository.findBySchool(school = school).await() }
+        runCatching { classroomRepository.findBySchool(school).await() }
             .onFailure { logger.error("Error has occurred while trying to get the courses for school id: {}", school.name, it) }
             .getOrThrow()
 

@@ -5,7 +5,7 @@ import dev.minn.jda.ktx.messages.into
 import dev.minn.jda.ktx.messages.send
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import me.damon.schoolbot.Schoolbot
+
 import me.damon.schoolbot.ext.replyChoiceAndLimit
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
@@ -20,10 +20,15 @@ import net.dv8tion.jda.api.interactions.commands.Command.Choice
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import org.springframework.stereotype.Component
 import java.util.*
 import kotlin.time.Duration.Companion.minutes
 
-class SchoolRemove : SubCommand(
+@Component
+class SchoolRemove(
+    private val schoolService: SchoolService,
+    private val courseService: CourseService
+) : SubCommand(
     name = "remove",
     description = "Removes a school",
     category = CommandCategory.SCHOOL,
@@ -40,13 +45,12 @@ class SchoolRemove : SubCommand(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val service = event.getService<SchoolService>()
 
         val schoolId = event.getOption<String>("school_name")
         val id = try { UUID.fromString(schoolId) } catch (e: Exception) { return event.replyErrorEmbed("That is not a valid school to be deleted at this time.\nIn order for a school to be deleted it must have no classes and be added to your guild")}
-        val school = try {  service.findSchoolById(id) } catch (e: Exception) { return  event.replyErrorEmbed("Error occurred while searching for school")} ?: return event.replyErrorEmbed("${Emoji.ERROR} School not found")
+        val school = try {  schoolService.findSchoolById(id) } catch (e: Exception) { return  event.replyErrorEmbed("Error occurred while searching for school")} ?: return event.replyErrorEmbed("${Emoji.ERROR} School not found")
 
-        val courses = try { event.getService<CourseService>().findBySchool(school) } catch (e: Exception) { return event.replyErrorEmbed("Error occurred while checking if this school has any courses. \n Why would we check? Idk some of you are sneaky.")}
+        val courses = try { courseService.findBySchool(school) } catch (e: Exception) { return event.replyErrorEmbed("Error occurred while checking if this school has any courses. \n Why would we check? Idk some of you are sneaky.")}
         if (courses.isNotEmpty()) return event.replyErrorEmbed("School has courses. Remove them first. Nice try.")
 
         event.hook.send(content = "Are you sure you want to remove ${school.name}", embed = school.getAsEmbed(), components = getActionRows(event, school)).queue()
@@ -59,8 +63,7 @@ class SchoolRemove : SubCommand(
         val jda = cmdEvent.jda
         val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = cmdEvent.user, expiration = 1.minutes) {
 
-
-            cmdEvent.getService<SchoolService>().deleteSchool(school, cmdEvent)
+            try { schoolService.deleteSchool(school, cmdEvent) } catch (e: Exception) { return@button cmdEvent.replyErrorEmbed("Error occurred while trying to delete school") }
             val embed = withContext(Dispatchers.IO) { school.getAsEmbed() }
             hook.editOriginal("School has been deleted")
                 .setEmbeds(embed)
@@ -80,10 +83,11 @@ class SchoolRemove : SubCommand(
         return listOf(yes, no).into()
     }
 
-    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
+    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
+
     {
         val guildId = event.guild?.idLong ?: return logger.error("Event should have not been processed in a non-guild environment")
-        val schools = schoolbot.schoolService.findSchoolsWithNoClasses(guildId)
+        val schools = schoolService.findSchoolsWithNoClasses(guildId)
         event.replyChoiceAndLimit(
             schools.map { Choice(it.name, it.id.toString()) },
         ).queue()

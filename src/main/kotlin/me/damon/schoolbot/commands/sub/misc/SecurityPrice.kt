@@ -6,8 +6,10 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import net.dv8tion.jda.api.interactions.commands.OptionType
+import org.springframework.stereotype.Component
 import yahoofinance.YahooFinance
 
+@Component
 class SecurityPrice : SubCommand(
     name = "price",
     category = CommandCategory.MISC,

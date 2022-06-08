@@ -7,6 +7,7 @@ import dev.minn.jda.ktx.messages.editMessage_
 import dev.minn.jda.ktx.messages.into
 import me.damon.schoolbot.Constants
 import me.damon.schoolbot.ext.*
+import me.damon.schoolbot.handler.ApiHandler
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
@@ -18,9 +19,14 @@ import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEve
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import org.springframework.stereotype.Component
 import kotlin.time.Duration.Companion.minutes
 
-class SchoolAdd : SubCommand(
+@Component
+class SchoolAdd(
+    private val apiHandler: ApiHandler,
+    private val schoolService: SchoolService
+) : SubCommand(
     name = "add",
     description = "Adds a school",
     category = CommandCategory.SCHOOL,
@@ -40,7 +46,7 @@ class SchoolAdd : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val schoolName = event.getOption<String>("school_name")
-        val response = event.schoolbot.apiHandler.schoolApi.getSchools(schoolName)
+        val response = apiHandler.schoolApi.getSchools(schoolName)
 
 
         if (!response.isSuccessful)
@@ -71,7 +77,7 @@ class SchoolAdd : SubCommand(
         val selectionEvent = event.awaitMenu(menu, "Select an item from the menu to choose a school", acknowledge = true, deleteAfter = true) ?: return
         val school = models[selectionEvent.values.first().toInt()]
 
-        val duplicate = try { event.schoolbot.schoolService.findSchoolInGuild(event.guild.idLong, school.name) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while attempting to check if ${school.name} is a duplicate.. Try again!") }
+        val duplicate = try { schoolService.findSchoolInGuild(event.guild.idLong, school.name) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while attempting to check if ${school.name} is a duplicate.. Try again!") }
         if (duplicate != null) return  event.replyErrorEmbed("`${school.name}` already exist. You cannot add duplicate schools!")
 
 
@@ -101,7 +107,7 @@ class SchoolAdd : SubCommand(
             it.editMessage_(content = "Adding `${school.name}` to the database...",  components = listOf()).queue()
             val savedSchool = try
             {
-                cmdEvent.getService<SchoolService>().saveSchool(school, cmdEvent)
+                schoolService.saveSchool(school, cmdEvent)
             }
             catch (e: Exception)
             {

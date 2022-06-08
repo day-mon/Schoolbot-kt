@@ -8,7 +8,7 @@ import dev.minn.jda.ktx.messages.Embed
 import dev.minn.jda.ktx.messages.edit
 import dev.minn.jda.ktx.messages.into
 import me.damon.schoolbot.Constants
-import me.damon.schoolbot.Schoolbot
+
 import me.damon.schoolbot.ext.*
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
@@ -27,6 +27,7 @@ import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import org.springframework.stereotype.Component
 import java.net.URI
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -35,7 +36,11 @@ import java.util.*
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-class CourseEdit : SubCommand(
+@Component
+class CourseEdit(
+    private val schoolService: SchoolService,
+    private val courseService: CourseService
+) : SubCommand(
     name = "edit",
     category = CommandCategory.SCHOOL,
     description = "Edits a course given a school",
@@ -59,11 +64,10 @@ class CourseEdit : SubCommand(
         val id = event.getOption<String>("school_name").toUUID()
            ?: return event.replyErrorEmbed("Please use the auto complete feature to select a school. If you did and this happened.. I dont know how sorry, you're on your own")
 
-        val school = try { event.getService<SchoolService>().findSchoolById(id) }
+        val school = try { schoolService.findSchoolById(id) }
         catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to retrieve school") }
             ?: return event.replyErrorEmbed("School does not exist")
 
-        val courseService = event.getService<CourseService>()
 
         val courses = try { courseService.findBySchool(school) }
         catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while searching for courses")}
@@ -346,7 +350,7 @@ class CourseEdit : SubCommand(
         }
 
 
-        val updatedCourse = try { e.getService<CourseService>().update(course) }
+        val updatedCourse = try { courseService.update(course) }
         catch (e: Exception) { return@button it
                 .replyErrorEmbed("Error has occurred while trying to update course. Please try again in a bit.")
                 .queue() }
@@ -358,7 +362,6 @@ class CourseEdit : SubCommand(
         ).queue()
 
         val guild = e.guild
-        val courseService = e.getService<CourseService>()
 
         if (updateName) {
             guild.getRoleById(course.roleId)?.manager?.setName(updatedCourse.name)?.queue()
@@ -431,10 +434,11 @@ class CourseEdit : SubCommand(
 
 
 
-    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
+    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
+
     {
         val id = event.guild?.idLong ?: return logger.error("Error has occurred while fetching guild id in autocomplete")
-        val pittSchools =  try { schoolbot.schoolService.getPittSchoolsInGuild(id) } catch (e: Exception)  { return }
+        val pittSchools =  try { schoolService.getPittSchoolsInGuild(id) } catch (e: Exception)  { return }
         event.replyChoiceAndLimit(
             pittSchools.map { Command.Choice(it.name, it.id.toString()) }
         ).queue()

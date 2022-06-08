@@ -4,10 +4,12 @@ import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.EmbedBuilder
+import org.springframework.stereotype.Component
 import java.lang.management.ManagementFactory
 import java.time.Duration
 
 
+@Component
 class Uptime : Command(
     name = "Uptime",
     category = CommandCategory.INFO,

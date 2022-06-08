@@ -6,10 +6,12 @@ import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.requests.ErrorResponse
+import org.springframework.stereotype.Component
 import java.io.File
 import kotlin.io.path.Path
 import kotlin.io.path.fileSize
 
+@Component
 class ExportErrorLog : Command(
     name = "ExportErrorLog",
     description = "Exports the error log",
