@@ -1,14 +1,17 @@
 package me.damon.schoolbot.commands.main.info
 
 import dev.minn.jda.ktx.messages.Embed
-import me.damon.schoolbot.handler.CommandHandler
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
+import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.stream.Collectors
 
-class Commands : Command(
+@Component
+class Commands(
+    private val commands: List<Command>
+) : Command(
     name = "Commands",
     description = "List all available commands",
     category = CommandCategory.INFO,
@@ -16,10 +19,9 @@ class Commands : Command(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val commands = event.getHandler<CommandHandler>().commands.values
         val pages = mutableListOf<String>()
         commands.stream()
-            .collect(Collectors.groupingBy(Command::category))
+            .collect(Collectors.groupingBy { it.category })
             .forEach { (category, cmds) ->
                 if (cmds.isEmpty()) return@forEach
                 val page = StringBuilder()
@@ -48,7 +50,6 @@ class Commands : Command(
                                 .append(subC.description)
                                 .append("*")
                         }
-
                     }
 
                     it.children.forEach { sub ->

@@ -1,71 +1,53 @@
 package me.damon.schoolbot.handler
 
+import dev.minn.jda.ktx.events.CoroutineEventListener
+import dev.minn.jda.ktx.events.getDefaultScope
 import dev.minn.jda.ktx.util.SLF4J
-import io.github.classgraph.ClassGraph
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import me.damon.schoolbot.bot.Schoolbot
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandEvent
-import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.events.GenericEvent
+import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.stereotype.Component
-
-
-private const val COMMANDS_PACKAGE = "me.damon.schoolbot.commands"
-private val supervisor = SupervisorJob()
-private val scope = CoroutineScope(Dispatchers.Default + supervisor)
 
 @Component
 class CommandHandler(
-    private val context: ConfigurableApplicationContext
-    )
+    private val configHandler: ConfigHandler,
+    commandList: List<Command>
+) : CoroutineEventListener
 {
+    private val scope = getDefaultScope()
     private val logger by SLF4J
-    private val reflections = ClassGraph().acceptPackages(COMMANDS_PACKAGE)
-    val commands: MutableMap<String, Command> = mutableMapOf()
+    private val commands: Map<String, Command> = commandList.associateBy { it.name.lowercase() }
 
 
-    fun registerCommands(jda: JDA)
+    fun registerCommands(event: ReadyEvent)
     {
-        reflections.enableClassInfo().scan().use {
-            val classes = it.getSubclasses(Command::class.java).loadClasses()
-            val commandsUpdate = jda.updateCommands()
+        val commandsUpdate = event.jda.updateCommands()
+        commands.forEach {
+          commandsUpdate.addCommands(it.value.commandData)
+        }
+        commandsUpdate.queue()
+        logger.info("{} commands have been successfully registered", commands.size)
+    }
 
-
-            for (cls in classes)
-            {
-                val constructors = cls.constructors
-
-                if (constructors.isEmpty() || constructors.first().parameterCount > 0) continue
-
-                val instance = constructors.first().newInstance()
-
-                if (instance !is Command)
-                {
-                    logger.warn("Non command found in the commands package {}", instance.javaClass.packageName)
-                    continue
-                }
-
-                val name = instance.name.lowercase()
-                commands[name] = instance
-                commandsUpdate.addCommands(instance.commandData)
-            }
-
-
-            commandsUpdate.queue()
-            logger.info("${commands.count()} have been loaded successfully")
-            logger.debug("{}", commands.toList())
+    override suspend fun onEvent(event: GenericEvent)
+    {
+        when (event) {
+            is SlashCommandInteractionEvent -> handleSlashCommand(event)
+            is CommandAutoCompleteInteractionEvent -> handleAutoComplete(event)
+            is ReadyEvent -> registerCommands(event)
         }
     }
 
-    fun handle(event: SlashCommandInteractionEvent)
+
+    fun handleSlashCommand(event: SlashCommandInteractionEvent)
     {
-        val schoolbot = context.getBean(Schoolbot::class.java)
+        if (event.guild == null)
+            return event.reply("This command must be sent from a guild").queue()
+
         val cmdName = event.name
         val group = event.subcommandGroup
         val subCommand = event.subcommandName
@@ -81,11 +63,11 @@ class CommandHandler(
                 event.deferReply().queue()
 
             sub.process(
-                CommandEvent(schoolbot =  schoolbot, command = sub, slashEvent = event)
+                CommandEvent(command = sub, slashEvent = event), configHandler
             )
 
         }
-        else if (subCommand != null)  scope.launch{
+        else if (subCommand != null) scope.launch {
             val sub = command.children.find { it.name == event.subcommandName }
                 ?: return@launch event.reply("${command.name} $subCommand has not been found").queue()
 
@@ -93,7 +75,7 @@ class CommandHandler(
                 event.deferReply().queue()
 
             sub.process(
-                CommandEvent(schoolbot =  schoolbot, command = sub, slashEvent = event)
+                CommandEvent(command = sub, slashEvent = event), configHandler
             )
 
         }
@@ -102,14 +84,16 @@ class CommandHandler(
                 event.deferReply().queue()
 
             command.process(
-                CommandEvent(schoolbot =  schoolbot, command = command, slashEvent = event)
+                CommandEvent(command = command, slashEvent = event), configHandler
             )
         }
     }
 
     fun handleAutoComplete(event: CommandAutoCompleteInteractionEvent)
     {
-        val schoolbot = context.getBean(Schoolbot::class.java)
+        if (event.guild == null)
+            return
+
         val command = event.name
         val group = event.subcommandGroup
         val sub = event.subcommandName
@@ -119,15 +103,15 @@ class CommandHandler(
         if (group != null) scope.launch {
             val subC = commandF.group[group]?.find { it.name ==  sub }
                 ?: return@launch logger.error("${commandF.name} $group $sub could not be found")
-            subC.onAutoCompleteSuspend(event, schoolbot)
+            subC.onAutoCompleteSuspend(event)
         }
         else if (sub != null)  scope.launch {
             val subCommand = commandF.children.find { it.name == event.subcommandName }
                 ?: return@launch logger.error("${commandF.name} $sub could not be found")
-            subCommand.onAutoCompleteSuspend(event, schoolbot)
+            subCommand.onAutoCompleteSuspend(event)
         }
         else scope.launch {
-            commandF.onAutoCompleteSuspend(event, schoolbot)
+            commandF.onAutoCompleteSuspend(event)
         }
     }
 

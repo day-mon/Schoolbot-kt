@@ -8,7 +8,7 @@ import dev.minn.jda.ktx.messages.edit
 import dev.minn.jda.ktx.messages.editMessage_
 import dev.minn.jda.ktx.messages.into
 import me.damon.schoolbot.Constants
-import me.damon.schoolbot.bot.Schoolbot
+
 import me.damon.schoolbot.ext.*
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
@@ -27,12 +27,19 @@ import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import org.springframework.stereotype.Component
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.*
 
-class AssignmentAdd : SubCommand(
+@Component
+class AssignmentAdd(
+    private val courseService: CourseService,
+    private val schoolService: SchoolService,
+    private val assignmentService: AssignmentService,
+    private val assignmentReminderService: AssignmentReminderService
+) : SubCommand(
     name = "add",
     description = "Adds an assignment to the course",
     category = CommandCategory.SCHOOL,
@@ -51,8 +58,7 @@ class AssignmentAdd : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val schoolId = event.getOption<String>("school")
-        val schoolService = event.getService<SchoolService>()
-        val courseService = event.getService<CourseService>()
+
 
         val schoolUUID = UUID.fromString(schoolId)
 
@@ -87,7 +93,7 @@ class AssignmentAdd : SubCommand(
         val index = menuEvent.values.first().toInt()
         val course = courses[index]
 
-        val assignments = try { event.getService<AssignmentService>().findByCourse(course) } catch (e: Exception) {  return event.replyErrorEmbed("Error has occurred while trying to find the assignments.") }
+        val assignments = try { assignmentService.findByCourse(course) } catch (e: Exception) {  return event.replyErrorEmbed("Error has occurred while trying to find the assignments.") }
         if (assignments.size == Constants.SELECTION_MENU_MAX_SIZE) return event.replyErrorEmbed("There are too many assignments in this course. Please remove some assignments before adding more.")
 
 
@@ -127,7 +133,7 @@ class AssignmentAdd : SubCommand(
             name = name, description = description, dueDate = dueDateTime, points = points.toInt(), course = course
         )
 
-        val savedAssignment = try { event.getService<AssignmentService>().save(assignment) }
+        val savedAssignment = try { assignmentService.save(assignment) }
         catch (e: IllegalArgumentException) { return event.replyErrorEmbed("This should not have happened. Please contact the developer.") }
         catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to save the assignment.") }
 
@@ -149,7 +155,7 @@ class AssignmentAdd : SubCommand(
             it.message.edit("Adding reminders...", components = emptyList()).queue()
 
 
-          val addedReminders = try { event.getService<AssignmentReminderService>().saveAll(defaultReminders(assignment)) }
+          val addedReminders = try { assignmentReminderService.saveAll(defaultReminders(assignment)) }
           catch (e: Exception) { return@button it.message.editMessage("Error has occurred while trying to save the reminders.").queue() }
 
             it.message.editMessage("**${addedReminders.size}** Reminders added! Have a nice day ${Emoji.SMILEY.getAsChat()} ! ${ if (addedReminders.size < 5) "\n **WAIT** Just in case you are wondering the reason why you didnt get all of the times added is because one or more of the times added has already happened." else "" }").queue()
@@ -205,12 +211,12 @@ class AssignmentAdd : SubCommand(
         return String.empty
     }
 
-    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
+    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
     {
         val guildId = event.guild?.idLong ?: return logger.error("Guild is null. This should never happen.")
         val schools = try
         {
-            schoolbot.schoolService.findNonEmptySchoolsInGuild(guildId)
+            schoolService.findNonEmptySchoolsInGuild(guildId)
         }
         catch (e: Exception)
         {

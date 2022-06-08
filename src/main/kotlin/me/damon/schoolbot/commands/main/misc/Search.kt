@@ -9,7 +9,9 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import org.jsoup.Jsoup
+import org.springframework.stereotype.Component
 
+@Component
 class Search : Command (
     name = "Search",
     description = "Conducts a internet search given with the given parameters",

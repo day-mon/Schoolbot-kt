@@ -8,6 +8,7 @@ import me.damon.schoolbot.objects.school.School
 import net.dv8tion.jda.api.entities.Guild
 import org.springframework.stereotype.Service
 import java.util.*
+import kotlin.random.Random
 
 @Service("SchoolService")
 class SchoolService(
@@ -19,14 +20,13 @@ class SchoolService(
 
 
     private val logger by SLF4J
-    private val random = Random()
 
 
     // @Cacheable
     suspend fun saveSchool(school: School, commandEvent: CommandEvent): School
     {
         val guild = commandEvent.guild
-        val role = guild.createRole().setColor(random.nextInt(0xFFFFF)).setName(school.name.replace(Constants.SPACE_REGEX, "-")).await()
+        val role = guild.createRole().setColor(Random.nextInt(0xFFFFF)).setName(school.name.replace(Constants.SPACE_REGEX, "-")).await()
 
 
 
@@ -50,27 +50,9 @@ class SchoolService(
             .onFailure { logger.error("Error occurred while retrieving schools with no classrooms in guild {}", guildId) }
             .getOrThrow()
 
-//    suspend fun adjustRemindTimes(school: School) {
-//        val courses = courseService.findBySchool(school)
-//        val offset = ZoneId.of(school.timeZone).toOffset()
-//        courses.forEach { course ->
-//            val courseReminders =  courseReminderService.findByCourse(course)
-//            val z = courseReminders
-//            courseReminders.forEach { it.remindTime = it.remindTime.atOffset(offset).toInstant() }
-//            courseReminderService.saveAll(courseReminders)
-//
-//            val assignments = assignmentService.findByCourse(course)
-//            assignments.forEach { assignment ->
-//                val assignmentReminders = assignmentReminderService.findByAssignment(assignment)
-//                assignmentReminders.forEach { it.remindTime = it.remindTime.atOffset(offset).toInstant() }
-//                assignmentReminderService.saveAll(assignmentReminders)
-//            }
-//        }
-//    }
 
-
-    fun findSchoolsInGuild(guildId: Long): List<School> =
-        runCatching { schoolRepository.findInGuild(guildId) }
+    suspend fun findSchoolsInGuild(guildId: Long): List<School> =
+        runCatching { schoolRepository.findInGuild(guildId).await() }
             .onFailure { logger.error("Error occurred while retrieving schools in guild {}", guildId) }
             .getOrThrow()
 
@@ -101,11 +83,6 @@ class SchoolService(
         .getOrThrow()
 
 
-    suspend fun findDuplicateSchool(guildId: Long, name: String): Boolean =
-        runCatching { schoolRepository.findByNameInGuild(name, guildId).await() == null }
-            .onFailure { logger.error("Error occurred while trying to fetch {} in guild {}", name, guildId, it) }
-            .getOrThrow()
-
     fun deleteSchool(school: School, event: CommandEvent)
     {
         professorService.deleteBySchool(school)
@@ -120,7 +97,6 @@ class SchoolService(
         logger.error("An error has occurred while trying to delete role for {}", school.name, it)
     }
 
-     fun roleCleanUp(schools: List<School>, guild: Guild) = schools.forEach { roleCleanUp(it, guild) }
 
     suspend fun findByNonEmptyCoursesInGuild(guildId: Long): List<School> =
         runCatching { schoolRepository.findByNonEmptyCoursesInGuild(guildId).await() }

@@ -3,13 +3,18 @@ package me.damon.schoolbot.commands.sub.school.laundry
 import me.damon.schoolbot.Constants
 import me.damon.schoolbot.ext.asCommandChoice
 import me.damon.schoolbot.ext.asException
+import me.damon.schoolbot.handler.ApiHandler
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import net.dv8tion.jda.api.interactions.commands.OptionType
+import org.springframework.stereotype.Component
 
-class LaundryView : SubCommand(
+@Component
+class LaundryView(
+    private val apiHandler: ApiHandler
+) : SubCommand(
     name = "view",
     category = CommandCategory.SCHOOL,
     description = "Views laundry in the target dormitory",
@@ -28,7 +33,7 @@ class LaundryView : SubCommand(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val dorm = event.getOption<String>("dormitory")
-        val response = event.schoolbot.apiHandler.johnstownAPI.getLaundryItems(dorm)
+        val response = apiHandler.johnstownAPI.getLaundryItems(dorm)
 
         if (!response.isSuccessful)
         {

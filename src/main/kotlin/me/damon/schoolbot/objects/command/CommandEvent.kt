@@ -3,14 +3,8 @@ package me.damon.schoolbot.objects.command
 import dev.minn.jda.ktx.interactions.components.replyPaginator
 import dev.minn.jda.ktx.interactions.components.sendPaginator
 import dev.minn.jda.ktx.util.SLF4J
-import me.damon.schoolbot.bot.Schoolbot
 import me.damon.schoolbot.ext.*
-import me.damon.schoolbot.handler.ApiHandler
-import me.damon.schoolbot.handler.CommandHandler
-import me.damon.schoolbot.handler.ConfigHandler
-import me.damon.schoolbot.handler.TaskHandler
 import me.damon.schoolbot.objects.misc.Pagable
-import me.damon.schoolbot.service.*
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageEmbed
@@ -22,11 +16,11 @@ import java.util.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
+
 class CommandEvent(
-    val schoolbot: Schoolbot,
     val slashEvent: SlashCommandInteraction,
-    val command: AbstractCommand,
-)
+    val command: AbstractCommand
+    )
 {
     val logger by SLF4J
     val jda = slashEvent.jda
@@ -35,7 +29,6 @@ class CommandEvent(
     val guildId = slashEvent.guild!!.idLong
     val member = slashEvent.member!!
     val hook = slashEvent.hook
-    val service = getService<SchoolService>()
     val options: MutableList<OptionMapping> = slashEvent.options
 
     fun replyEmbed(embed: MessageEmbed, content: String = String.empty) = slashEvent.replyEmbed(embed, content)
@@ -95,7 +88,7 @@ class CommandEvent(
         if (embeds.isEmpty()) return replyErrorEmbed("There are no embeds to display")
         if (embeds.size == 1) return replyEmbed(embeds.first())
 
-        if (slashEvent.isAcknowledged)
+        return if (slashEvent.isAcknowledged)
         {
             hook.sendPaginator(
                 pages = embeds, expireAfter = 5.minutes
@@ -128,24 +121,6 @@ class CommandEvent(
         else -> throw IllegalArgumentException("Unknown type ${T::class}")
     }
 
-    inline fun <reified T: SpringService> getService(): T = when (T::class)
-    {
-        GuildService::class -> schoolbot.guildService as T
-        SchoolService::class -> schoolbot.schoolService as T
-        ProfessorService::class -> schoolbot.professorService as T
-        CourseService::class -> schoolbot.courseService as T
-        AssignmentService::class -> schoolbot.assignmentService as T
-        AssignmentReminderService::class -> schoolbot.assignmentReminderService as T
-        else -> throw IllegalArgumentException("Unknown type ${T::class}")
-    }
-
-    inline fun <reified T> getHandler(): T = when (T::class) {
-        CommandHandler::class -> schoolbot.commandHandler as T
-        ApiHandler::class -> schoolbot.apiHandler as T
-        TaskHandler::class -> schoolbot.taskHandler as T
-        ConfigHandler::class -> schoolbot.configHandler as T
-        else -> throw IllegalArgumentException("Unknown type ${T::class}")
-    }
 
     fun getOption(option: String) = slashEvent.getOption(option)
     fun getSentOptions() =

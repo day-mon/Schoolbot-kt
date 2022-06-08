@@ -3,7 +3,9 @@ package me.damon.schoolbot.commands.main.`fun`
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
+import org.springframework.stereotype.Component
 
+@Component
 class Ask : Command(
     name = "Ask",
     description = "Dont ask to ask",

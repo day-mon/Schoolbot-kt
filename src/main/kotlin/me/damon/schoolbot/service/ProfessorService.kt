@@ -13,11 +13,9 @@ import java.util.*
 
 @Service("ProfessorService")
  class ProfessorService(
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val professorRepository: ProfessorRepository
 ) : SpringService
 {
-    @Autowired
-    private lateinit var professorRepository: ProfessorRepository
     private val logger by SLF4J
 
     @Throws(Exception::class)
@@ -35,7 +33,6 @@ import java.util.*
 
      fun removeAll(professors: Collection<Professor>) = professorRepository.deleteAll(professors)
 
-    fun removeAllInGuild(guildId: Long) = professorRepository.deleteAllInGuild(guildId)
 
     fun remove(professor: Professor) = runCatching { professorRepository.delete(professor) }
         .onFailure { logger.error("Error occurred while trying to remove professor", it) }
@@ -55,11 +52,7 @@ import java.util.*
         .onFailure { logger.error("Error occurred while retrieving professors in school {}", id) }
         .getOrThrow()
 
-    @Throws
-     suspend fun findBySchoolName(name: String, guildId: Long): List<Professor>  =
-        runCatching { professorRepository.findAllBySchoolNameInGuild(name, guildId).await() }
-            .onFailure { logger.error("Error has occurred while trying to find professors in guild $guildId") }
-            .getOrThrow()
+
     @Throws
      fun findById(id: UUID): Professor? = runCatching { professorRepository.getById(id) }
         .onFailure { logger.error("Error occurred while retrieving professor with id {}", id) }

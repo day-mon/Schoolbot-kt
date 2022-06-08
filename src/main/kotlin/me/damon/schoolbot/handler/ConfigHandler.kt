@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.slf4j.event.Level
 import org.springframework.stereotype.Component
 import java.io.File
 import kotlin.system.exitProcess
@@ -36,6 +37,7 @@ class ConfigHandler
                 Config(
                     token = "token",
                     developerIds = listOf("-1".repeat(3)),
+                    logLevel = "INFO"
                 )
             )
             configFile.writeText(defaultValues)
@@ -48,11 +50,25 @@ class ConfigHandler
     {
         try
         {
-            return Json.decodeFromString(
+            val config: Config = Json.decodeFromString(
                 File(CONFIG_NAME)
                     .readLines()
                     .joinToString(separator = "\n")
             )
+
+
+            config.apply {
+                logLevel = try { Level.valueOf(logLevel.uppercase()).name }
+                catch (e: Exception)
+                {
+                    logger.warn("{} is not a valid logging level. \nValid Logging Levels: {} \nSetting Logging Level to 'INFO'", logLevel, Level.values().joinToString { it.toString() })
+                    "INFO"
+                }
+            }
+
+            return config
+
+
 
         } catch (e: Exception)
         {
@@ -66,6 +82,7 @@ class ConfigHandler
     data class Config(
         val developerIds: List<String>,
         val token: String,
+        var logLevel: String
     )
 
 

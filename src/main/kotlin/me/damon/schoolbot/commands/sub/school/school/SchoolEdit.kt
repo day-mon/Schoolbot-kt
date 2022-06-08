@@ -7,7 +7,7 @@ import dev.minn.jda.ktx.messages.edit
 import dev.minn.jda.ktx.messages.into
 import dev.minn.jda.ktx.messages.send
 import me.damon.schoolbot.Constants
-import me.damon.schoolbot.bot.Schoolbot
+
 import me.damon.schoolbot.ext.*
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
@@ -22,10 +22,14 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import org.springframework.stereotype.Component
 import java.net.URI
 import kotlin.time.Duration.Companion.minutes
 
-class SchoolEdit : SubCommand(
+@Component
+class SchoolEdit(
+    private val schoolService: SchoolService
+) : SubCommand(
     name = "edit",
     description = "Edits a school",
     memberPermissions = enumSetOf(Permission.MANAGE_ROLES),
@@ -46,7 +50,7 @@ class SchoolEdit : SubCommand(
     {
         val schoolName = event.getOption<String>("school_name")
 
-        val school = try { event.schoolbot.schoolService.findSchoolInGuild(name = schoolName, guildId = event.guildId)  }
+        val school = try { schoolService.findSchoolInGuild(name = schoolName, guildId = event.guildId)  }
         catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find $name in our database!") } ?: return event.replyErrorEmbed("$name was deleted during/after the autocomplete process!")
 
 
@@ -98,7 +102,6 @@ class SchoolEdit : SubCommand(
                 this.url = url?.toString() ?: "N/A"
                 this.emailSuffix = emailSuffix!!
                 this.timeZone = timeZone!!
-                this.roleId = roleId
             }
 
             it.hook.send(
@@ -122,11 +125,10 @@ class SchoolEdit : SubCommand(
             user = event.user,
             expiration = 1.minutes
         ) { button ->
-            val service = event.getService<SchoolService>()
 
             val joke = Constants.JOKES.random()
             button.message.edit(content = "Making changes to ${school.name}. Here's a joke $joke", components = listOf()).queue()
-            val updatedSchool = try  { service.update(school) }
+            val updatedSchool = try  { schoolService.update(school) }
             catch (e: Exception) { return@button button.message.editErrorEmbed("Error has occurred while trying to update school").queue() }
 
 
@@ -152,10 +154,11 @@ class SchoolEdit : SubCommand(
     }
 
 
-    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
+    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
+
     {
         val guildId = event.guild?.idLong ?: return logger.error("Guild is null")
-        val schools: List<School> =  schoolbot.schoolService.findSchoolsInGuild(guildId)
+        val schools: List<School> =  schoolService.findSchoolsInGuild(guildId)
         event.replyChoiceStringAndLimit(
             schools.map { it.name }
         ).queue()

@@ -25,7 +25,8 @@ interface SchoolRepository : JpaRepository<School, UUID>
     @Async
     fun findEmptyClassesInGuild(guildId: Long): CompletableFuture<List<School>>
     @Query("select s from School s where s.guildId = ?1")
-    fun findInGuild(guildId: Long): List<School>
+    @Async
+    fun findInGuild(guildId: Long): CompletableFuture<List<School>>
     @Query("select s from School s where s.classes is not empty and s.guildId = ?1")
     @Async
     fun findByNonEmptyInAndGuildId(guildId: Long): CompletableFuture<List<School>>

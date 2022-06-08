@@ -1,5 +1,6 @@
 package me.damon.schoolbot.handler
 
+import dev.minn.jda.ktx.events.CoroutineEventListener
 import dev.minn.jda.ktx.messages.Embed
 import dev.minn.jda.ktx.util.SLF4J
 import me.damon.schoolbot.ext.toDiscordTimeZone
@@ -11,6 +12,8 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.OnlineStatus
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.entities.MessageEmbed
+import net.dv8tion.jda.api.events.GenericEvent
+import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.requests.ErrorResponse
 import org.springframework.stereotype.Component
@@ -29,7 +32,7 @@ class TaskHandler(
     private val guildService: GuildService,
     private val courseService: CourseService,
     private val assignmentService: AssignmentService
-)
+) : CoroutineEventListener
 {
     private val activityList = listOf(
         Activity.watching("mark sleep"),
@@ -112,6 +115,7 @@ class TaskHandler(
                 logger.error("Error has occurred in sending assignment alert", e)
             }
         }
+        logger.info("Started {} tasks named -> {}", tasks.size, tasks.keys.joinToString { it })
     }
 
     fun cancelTask(name: String) = tasks[name]?.cancel(false)
@@ -242,5 +246,12 @@ class TaskHandler(
 
         logger.debug("Due time: {} min", due)
 
+    }
+
+    override suspend fun onEvent(event: GenericEvent)
+    {
+        when (event) {
+            is ReadyEvent -> startOnReadyTask(event.jda)
+        }
     }
 }

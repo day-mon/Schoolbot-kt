@@ -43,8 +43,8 @@ import kotlin.time.Duration.Companion.minutes
 fun Instant.minus(duration: Duration): Instant = this.minus(duration.inWholeMilliseconds, ChronoUnit.MILLIS)
 
 fun <T> WebhookMessageUpdateAction<T>.queueAfter(duration: Duration) = this.queueAfter(duration.inWholeMilliseconds, TimeUnit.MILLISECONDS)
-fun ZoneId.toOffset(): ZoneOffset = this.rules.getOffset(Instant.now())
-
+operator fun LocalDateTime.plus(duration: Duration): LocalDateTime?
+= this.plus(duration.inWholeMilliseconds, ChronoUnit.MILLIS)
 fun <T> RestAction<T>.queueAfter(duration: Duration) = this.queueAfter(duration.inWholeMilliseconds, TimeUnit.MILLISECONDS)
 fun Stock.getAsQEmbed(): MessageEmbed
 {

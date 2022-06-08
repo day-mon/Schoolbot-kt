@@ -4,20 +4,23 @@ import dev.minn.jda.ktx.interactions.components.Modal
 import dev.minn.jda.ktx.interactions.components.SelectMenu
 import dev.minn.jda.ktx.interactions.components.option
 import dev.minn.jda.ktx.messages.into
-import me.damon.schoolbot.bot.Schoolbot
 import me.damon.schoolbot.ext.*
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
 import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
-import me.damon.schoolbot.objects.school.Professor
 import me.damon.schoolbot.service.ProfessorService
+import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
+import org.springframework.stereotype.Component
 
-class ProfessorEdit : SubCommand(
+@Component
+class ProfessorEdit(
+    private val schoolService: SchoolService,
+    private val professorService: ProfessorService
+) : SubCommand(
     name = "edit", category = CommandCategory.SCHOOL, description = "Edits a professor", options = listOf(
         CommandOptionData<String>(
             optionType = OptionType.STRING,
@@ -34,9 +37,8 @@ class ProfessorEdit : SubCommand(
     {
         val schoolId = event.getOption<String>("school_name").toUUID()
             ?: return event.replyErrorEmbed("School with that name has not been found")
-        val service = event.getService<ProfessorService>()
 
-        val professors = try { service.findBySchoolId(schoolId) }
+        val professors = try { professorService.findBySchoolId(schoolId) }
         catch (e: Exception) { return event.replyErrorEmbed("Error occurred while trying to fetch professors by school.") }
 
         val professorMenu = SelectMenu("professor_edit") {
@@ -75,7 +77,7 @@ class ProfessorEdit : SubCommand(
             ?: return event.replyErrorEmbed(error = "Email field cannot be empty")
 
 
-        val duplicateProfessor = service
+        val duplicateProfessor = professorService
             .findByNameInSchool("$firstName $lastName", professor.school)
 
         if (duplicateProfessor != null && professor.fullName != duplicateProfessor.fullName) return modalEvent.replyErrorEmbed("Professor with the name $firstName $lastName already exist").queue()
@@ -87,62 +89,20 @@ class ProfessorEdit : SubCommand(
             this.emailPrefix = email
         }
 
-        val professorSaved = try { service.save(professor) }
+        val professorSaved = try { professorService.save(professor) }
         catch (e: Exception) { return modalEvent.replyErrorEmbed("Failed to save ${professor.fullName} ").queue() }
 
         modalEvent.replyEmbeds(professorSaved.getAsEmbed()).queue()
     }
 
 
-    private suspend fun evaluateChangeRequest(
-        event: CommandEvent, messageResponse: MessageReceivedEvent, choice: String, professor: Professor
-    ): Professor?
-    {
-        val message = messageResponse.message.contentStripped
-        val professorService = event.getService<ProfessorService>()
-        return when (choice)
-        {
-            "first_name", "last_name" ->
-            {
-                val name = if (choice == "first_name") "$message ${professor.lastName}" else "${professor.firstName} $message"
-                val duplicate = try
-                {
-                    professorService.findByNameInSchool("$message ${professor.lastName}", professor.school)
-                }
-                catch (e: Exception)
-                {
-                    event.replyErrorEmbed("An unexpected error has occurred while trying to find the professor")
-                    return null
-                }
-
-                if (duplicate != null)
-                {
-                    event.replyErrorEmbed("Professor with this name already exists")
-                    return null
-                }
-
-                professor.apply {
-                    if (choice == "first_name") firstName = message else lastName = message
-                    fullName = name
-                }
-            }
-            "prefix" ->
-            {
-                professor.apply { emailPrefix = message }
-            }
-            else ->
-            {
-                logger.error("{} has not been implemented as a valid choice", choice)
-                throw NotImplementedError("$choice has not been implemented as a valid choice")
-            }
-        }
-    }
 
 
-    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
+    override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
+
     {
         val guildId = event.guild?.idLong ?: return logger.error("Guild is null")
-        val schools = schoolbot.schoolService.findByEmptyProfessors(guildId)
+        val schools = schoolService.findByEmptyProfessors(guildId)
         event.replyChoiceAndLimit(schools.map { Command.Choice(it.name, it.id.toString()) }).queue()
     }
 }

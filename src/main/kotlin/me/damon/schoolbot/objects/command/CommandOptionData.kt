@@ -58,7 +58,7 @@ data class CommandOptionData<T>(
 
     private fun isValid(any: Any) =  validate(type.cast(any))
 
-    fun asOptionData(): OptionData = OptionData(/* type = */ optionType as OptionType, /* name = */
+    fun asOptionData(): OptionData = OptionData(/* type = */ optionType, /* name = */
         name, /* description = */
         description, /* isRequired = */
         isRequired, /* isAutoComplete = */

@@ -5,8 +5,9 @@ import dev.minn.jda.ktx.messages.reply_
 import dev.minn.jda.ktx.messages.send
 import dev.minn.jda.ktx.util.SLF4J
 import me.damon.schoolbot.Constants
-import me.damon.schoolbot.bot.Schoolbot
+
 import me.damon.schoolbot.ext.empty
+import me.damon.schoolbot.handler.ConfigHandler
 import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.Permission
@@ -17,6 +18,7 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData
 import java.util.*
 import kotlin.time.Duration
+
 
 abstract class AbstractCommand : Pagable
 {
@@ -42,13 +44,16 @@ abstract class AbstractCommand : Pagable
                         SubcommandGroupData(it.key, "This ${it.key}'s")
                             .addSubcommands(it.value.map { cmd -> cmd.subCommandData })
                     })
-            if (children.isNotEmpty()) s.addSubcommands(children.map { it.subCommandData })
-            else s.addOptions(options.map { it.asOptionData() })
+            if (children.isNotEmpty())
+                s.addSubcommands(children.map { it.subCommandData })
+            else
+                s.addOptions(options.map { it.asOptionData() })
+
             return s
         }
 
 
-    suspend fun process(event: CommandEvent)
+    suspend fun process(event: CommandEvent, configHandler: ConfigHandler)
     {
         event.getSentOptions().forEach {
             if (!it.validate(event.getOption(it.name)!!))
@@ -72,7 +77,7 @@ abstract class AbstractCommand : Pagable
         }
         else if (category == CommandCategory.DEV)
         {
-            if (event.user.id !in event.schoolbot.configHandler.config.developerIds)
+            if (event.user.id !in configHandler.config.developerIds)
                 return sendMessage(event, "You must be a developer to run this command")
 
             logger.info("${event.user.asTag} has executed $name")
@@ -98,7 +103,7 @@ abstract class AbstractCommand : Pagable
         throw NotImplementedError("Execution for $name has not implemented ")
     }
 
-    open suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent, schoolbot: Schoolbot)
+    open suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
     {
         throw NotImplementedError("Autocomplete for $name has not implemented ")
     }
