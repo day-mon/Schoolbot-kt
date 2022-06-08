@@ -1,8 +1,8 @@
 name: Docker Build
 
 on:
-  release:
-    types: [published]
+  push:
+    branches: [ master, workflow-test ]
 
 env:
   BOT_IMAGE_NAME: bot
