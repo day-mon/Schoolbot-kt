@@ -30,7 +30,7 @@ import kotlin.time.Duration.Companion.days
 @Service("CourseService")
  class CourseService(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
-) : SpringService
+)
 {
     @Autowired
     lateinit var classroomRepository: ClassroomRepository

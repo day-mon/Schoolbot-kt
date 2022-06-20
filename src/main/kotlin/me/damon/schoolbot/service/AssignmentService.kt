@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
 class AssignmentService(
     private val assignmentRepository: AssignmentRepository,
     private val assignmentReminderService: AssignmentReminderService
-) : SpringService
+)
 {
     fun save(assignment: Assignment) = runCatching { assignmentRepository.save(assignment) }
         .onFailure { logger.error("Error has occurred while trying to save an assignment") }

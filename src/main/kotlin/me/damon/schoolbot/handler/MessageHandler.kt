@@ -24,7 +24,7 @@ import java.io.InputStream
 @Component
 class MessageHandler(val guildService: GuildService) : CoroutineEventListener
 {
-    private val fileExtentions = listOf(
+    private val fileExtensions = listOf(
         "txt", "java", "cpp", "xml", "csharp", "asm", "js", "php", "r", "py", "go", "python", "ts", "html", "css", "scss", "kt"
     )
     private val logger by SLF4J
@@ -50,7 +50,7 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
         val attachments = message.attachments
 
         attachments
-            .filter { it.fileExtension in fileExtentions }
+            .filter { it.fileExtension in fileExtensions }
             .map {
                 try
                 {
@@ -90,8 +90,6 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
         try
         {
             client.newCall(request).await().use { response ->
-
-                
                 if (response.code() == 413)
                 {
                     message.editMessage("Your payload is too large ").queue()
@@ -104,7 +102,6 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
                 {
                     logger.error("Strange error has occurred", response.asException())
                     return message.editMessage("Strange error has occurred while trying to upload your message").queue()
-
                 }
 
                 val body = response.bodyAsString() ?: run {
@@ -114,7 +111,8 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
 
                 val responseJson = DataObject.fromJson(body)
 
-                if (!responseJson.hasKey("key")) {
+                if (!responseJson.hasKey("key"))
+                {
                     logger.error("Body is either malformed or body responded with an unexpected response \nBody: {}", body)
                     return message.editMessage("Body returned unexpected response").queue()
                 }

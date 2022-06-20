@@ -1,6 +1,5 @@
 package me.damon.schoolbot.service
 
-import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.util.SLF4J
 import me.damon.schoolbot.objects.repository.CourseReminderRepository
 import me.damon.schoolbot.objects.school.Course
@@ -11,7 +10,7 @@ import java.time.Instant
 @Service("CourseReminderService")
 class CourseReminderService(
     private val courseReminderRepository: CourseReminderRepository,
-) : SpringService
+)
 {
     val logger by SLF4J
 

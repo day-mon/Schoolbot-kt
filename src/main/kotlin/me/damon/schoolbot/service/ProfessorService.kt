@@ -2,19 +2,16 @@ package me.damon.schoolbot.service
 
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.util.SLF4J
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import me.damon.schoolbot.objects.repository.ProfessorRepository
 import me.damon.schoolbot.objects.school.Professor
 import me.damon.schoolbot.objects.school.School
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
 
 @Service("ProfessorService")
  class ProfessorService(
     private val professorRepository: ProfessorRepository
-) : SpringService
+)
 {
     private val logger by SLF4J
 

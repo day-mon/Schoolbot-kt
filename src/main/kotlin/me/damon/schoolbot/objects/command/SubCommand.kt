@@ -18,6 +18,7 @@ abstract class SubCommand(
     override val selfPermissions: EnumSet<Permission> = emptyEnumSet(),
     override val children: List<SubCommand> = listOf(),
     override val options: List<CommandOptionData<*>> = listOf(),
+    override val id: Int = "$name$children".hashCode(),
     val subCommandData: SubcommandData
         = SubcommandData(name, description)
         .addOptions(options.map { it.asOptionData() })

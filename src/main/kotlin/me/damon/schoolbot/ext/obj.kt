@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.exceptions.ErrorHandler
+import net.dv8tion.jda.api.interactions.Interaction
 import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback
 import net.dv8tion.jda.api.interactions.commands.Command
@@ -33,12 +34,22 @@ import net.dv8tion.jda.api.requests.restaction.WebhookMessageUpdateAction
 import yahoofinance.Stock
 import java.math.BigDecimal
 import java.net.URI
-import java.time.*
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
+private fun errorEmbed(
+    errorString: String
+) =  Embed {
+        this.title = "${Emoji.STOP_SIGN.getAsChat()} $title"
+        this.description = errorString
+        this.color = Constants.RED
+}
 
 fun Instant.minus(duration: Duration): Instant = this.minus(duration.inWholeMilliseconds, ChronoUnit.MILLIS)
 
@@ -175,12 +186,12 @@ fun <T: IReplyCallback> T.replyEmbed(embed: MessageEmbed, content: String = Stri
     }
 }
 
-fun <T: IReplyCallback> T.replyErrorEmbed(errorString: String, title: String = "Error has occurred"): WebhookMessageAction<Message> {
+fun <T: IReplyCallback> T.replyErrorEmbed(errorString: String, title: String = "Error has occurred", color: Int = Constants.YELLOW): WebhookMessageAction<Message> {
 
     val embed = Embed {
         this.title = "${Emoji.STOP_SIGN.getAsChat()} $title"
         this.description = errorString
-        this.color = Constants.RED
+        this.color = color
     }
 
     if (this.isAcknowledged.not())
@@ -216,6 +227,8 @@ suspend fun <T: CommandInteraction> T.awaitButton(
             .also { it.message.editMessageComponents(listOf()).queue() /*remove buttons after*/ }
     }
 }
+
+
 
 
 suspend fun <T: CommandInteraction> T.awaitMenu(
@@ -261,6 +274,36 @@ suspend fun <T: ComponentInteraction> T.awaitMenu(
     replyErrorEmbed("Command has timed out try again please")
     null
 }
+
+suspend fun <T: Interaction> T.awaitModal(
+    modal: Modal,
+    duration: Duration = 1.minutes,
+    deferReply: Boolean = false,
+    deferEdit: Boolean = false
+): ModalInteractionEvent?
+{
+
+    if (this.isAcknowledged) {
+        val errorEmbed = errorEmbed(
+            errorString = "This interaction has already been acknowledged. If this keeps occurring please contact that developer."
+        )
+        this.textChannel.sendMessageEmbeds(errorEmbed).queue()
+        return null
+    }
+
+    return withTimeoutOrNull<ModalInteractionEvent>(duration.inWholeMilliseconds) {
+        when (this@awaitModal) {
+            is CommandInteraction -> this@awaitModal.replyModal(modal).queue()
+            is ComponentInteraction -> this@awaitModal.replyModal(modal).queue()
+            else -> throw IllegalStateException("${this@awaitModal.javaClass.name} is not a interaction with a replyModal function")
+        }
+        jda.await { it.member?.idLong == this@awaitModal.member?.idLong && it.modalId == modal.id }
+    }.also { if (deferReply) it?.deferReply()?.queue() else if (deferEdit) it?.deferEdit()?.queue()  } ?: run {
+        errorEmbed("")
+        null
+    }
+}
+
 
 suspend fun <T: ComponentInteraction> T.awaitModal(
     modal: Modal,

@@ -3,6 +3,7 @@ package me.damon.schoolbot.objects.command
 import dev.minn.jda.ktx.interactions.components.replyPaginator
 import dev.minn.jda.ktx.interactions.components.sendPaginator
 import dev.minn.jda.ktx.util.SLF4J
+import me.damon.schoolbot.Constants
 import me.damon.schoolbot.ext.*
 import me.damon.schoolbot.objects.misc.Pagable
 import net.dv8tion.jda.api.Permission
@@ -11,6 +12,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.Modal
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import java.util.*
 import kotlin.time.Duration
@@ -32,9 +34,10 @@ class CommandEvent(
     val options: MutableList<OptionMapping> = slashEvent.options
 
     fun replyEmbed(embed: MessageEmbed, content: String = String.empty) = slashEvent.replyEmbed(embed, content)
-    fun replyErrorEmbed(error: String, embedTitle: String = "Error has occurred") = slashEvent.replyErrorEmbed(
+    fun replyErrorEmbed(error: String, embedTitle: String = "Error has occurred", color: Int = Constants.YELLOW) = slashEvent.replyErrorEmbed(
         errorString = error,
-        title = embedTitle
+        title = embedTitle,
+        color = color
     ).queue()
 
     fun replyAndEditWithDelay(message: String, delayMessage: String, duration: Duration) = when {
@@ -81,6 +84,14 @@ class CommandEvent(
         acknowledge,
         deleteAfter,
         disableAfter
+    )
+
+    suspend fun awaitModal(
+        modal: Modal,
+        timeoutDuration: Duration = 1.minutes
+    ) = slashEvent.awaitModal(
+        modal,
+        timeoutDuration
     )
 
     fun sendPaginator(vararg embeds: MessageEmbed)

@@ -18,6 +18,7 @@ abstract class Command(
     override val selfPermissions: EnumSet<Permission> = emptyEnumSet(),
     override val children: List<SubCommand> = listOf(),
     override val options: List<CommandOptionData<*>> = listOf(),
+    override val id: Int = "$name$children".hashCode(),
     val group: Map<String, List<SubCommand>> = mapOf()
 ) : AbstractCommand()
 

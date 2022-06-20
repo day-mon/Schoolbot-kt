@@ -1,18 +1,16 @@
 package me.damon.schoolbot.service
 
-import dev.minn.jda.ktx.coroutines.await
 import me.damon.schoolbot.ext.logger
 import me.damon.schoolbot.objects.repository.AssignmentReminderRepository
-import me.damon.schoolbot.objects.repository.AssignmentRepository
 import me.damon.schoolbot.objects.school.Assignment
 import me.damon.schoolbot.objects.school.AssignmentReminder
 import org.springframework.stereotype.Service
 import java.time.Instant
 
-@Service("AssignmentReminderService")
+@Service
 class AssignmentReminderService(
     private val assignmentReminderRepository: AssignmentReminderRepository
-) : SpringService
+)
 {
     fun saveAll(reminders: List<AssignmentReminder>): MutableList<AssignmentReminder>
     {

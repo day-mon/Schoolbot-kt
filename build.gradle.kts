@@ -61,7 +61,6 @@ dependencies {
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.21")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
     implementation(kotlin("stdlib-jdk8"))
 
 
@@ -72,19 +71,28 @@ dependencies {
     // Spring
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.jsoup:jsoup:1.14.3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     // Database
-    implementation("org.postgresql:postgresql:42.3.4")
+    implementation("org.postgresql:postgresql:42.3.6")
 
     // Misc
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
     implementation("ch.qos.logback:logback-classic:1.2.11")
-    implementation("com.yahoofinance-api:YahooFinanceAPI:3.16.0")
+    implementation("com.yahoofinance-api:YahooFinanceAPI:3.17.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.3"))
+    implementation("ch.obermuhlner:java-scriptengine:2.0.0")
+    implementation("com.facebook:ktfmt:0.18")
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.10.0"))
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
+    // prometheus
+    implementation("io.prometheus:simpleclient:0.15.0")
+    implementation("io.prometheus:simpleclient_hotspot:0.15.0")
+    implementation("io.prometheus:simpleclient_httpserver:0.15.0")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus")
 }

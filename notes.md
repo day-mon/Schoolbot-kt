@@ -106,5 +106,50 @@ Coroutines can be thought of as light-weight threads, but there is a number of i
 > ``` 
 >
 
+**[Information for prometheus exporting with Springboot](https://www.tutorialworks.com/spring-boot-prometheus-micrometer/)**
 
+**Prometheus**
+- Prometheus uses a pull based architecture
+- It uses a set of instructions, to determine which applications to fetch metrics from, and how to do it.
+- Instead, Prometheus polls your application for its latest metrics data – this is known as **scraping**
 
+**Micrometer**
+- Micrometer is a set of libraries for Java that allow you to capture metrics and expose them to several tools – including Prometheus.
+- Micrometer acts as a facade – an intermediate layer – between your application and some of the more popular monitoring tools. This makes it easier to publish metrics to Prometheus **and** other tools like Elastic, Datadog or Dynatrace.
+
+**Prometheus Exporting**
+1. Counter
+    - Counters go up and up only, they will restart when the process restarts
+    - You can increase by `.inc()` on a **counter object**
+2. Gauge
+    - Gauges can go up and down. Aren't restarted
+    - You can increase by using `.inc()`
+    - You can decrease by using `.dec()`
+    - You can set by using `.set()`
+      - All of these can be used on a **gauge object**, they are also thread safe
+> Summaries and Histograms can both be used to monitor distributions, like latencies or request sizes.
+> ```java
+> class YourClass {
+>   private static final Summary requestLatency = Summary.build()
+>      .name("requests_latency_seconds")
+>      .help("request latency in seconds")
+>      .register();
+>
+>   private static final Summary receivedBytes = Summary.build()
+>      .name("requests_size_bytes")
+>      .help("request size in bytes")
+>      .register();
+>
+>   public void processRequest(Request req) {
+>       Summary.Timer requestTimer = requestLatency.startTimer();
+>       try {
+>        // Your code here.
+>       } finally {
+>         requestTimer.observeDuration();
+>        receivedBytes.observe(req.size());
+>      }
+>    }
+> }
+> ```
+
+**[Spring and Prometheus Exporting](https://tanzu.vmware.com/developer/guides/spring-prometheus/)**

@@ -14,14 +14,12 @@ import org.springframework.stereotype.Component
 
 @Component
 class CommandHandler(
-    private val configHandler: ConfigHandler,
     commandList: List<Command>
 ) : CoroutineEventListener
 {
     private val scope = getDefaultScope()
     private val logger by SLF4J
     private val commands: Map<String, Command> = commandList.associateBy { it.name.lowercase() }
-
 
     fun registerCommands(event: ReadyEvent)
     {
@@ -45,8 +43,7 @@ class CommandHandler(
 
     fun handleSlashCommand(event: SlashCommandInteractionEvent)
     {
-        if (event.guild == null)
-            return event.reply("This command must be sent from a guild").queue()
+        if (!event.isFromGuild) return event.reply("This command must be sent from a guild").queue()
 
         val cmdName = event.name
         val group = event.subcommandGroup
@@ -55,63 +52,64 @@ class CommandHandler(
             ?: return event.reply("$cmdName not found").queue()
 
 
-        if (group != null) scope.launch {
-            val sub = command.group[group]?.find { it.name ==  subCommand }
-                ?: return@launch  event.reply("${command.name} $group $subCommand has not been found").queue()
+        when
+        {
+            group != null -> scope.launch {
+                val sub = command.group[group]?.find { it.name ==  subCommand }
+                    ?: return@launch  event.reply("${command.name} $group $subCommand has not been found").queue()
 
-            if (sub.deferredEnabled)
-                event.deferReply().queue()
+                if (sub.deferredEnabled)
+                    event.deferReply().queue()
 
-            sub.process(
-                CommandEvent(command = sub, slashEvent = event), configHandler
-            )
+                sub.process(
+                    CommandEvent(command = sub, slashEvent = event)
+                )
+            }
+            subCommand != null -> scope.launch {
+                val sub = command.children.find { it.name == event.subcommandName }
+                    ?: return@launch event.reply("${command.name} $subCommand has not been found").queue()
 
-        }
-        else if (subCommand != null) scope.launch {
-            val sub = command.children.find { it.name == event.subcommandName }
-                ?: return@launch event.reply("${command.name} $subCommand has not been found").queue()
+                if (sub.deferredEnabled)
+                    event.deferReply().queue()
 
-            if (sub.deferredEnabled)
-                event.deferReply().queue()
+                sub.process(
+                    CommandEvent(command = sub, slashEvent = event))
 
-            sub.process(
-                CommandEvent(command = sub, slashEvent = event), configHandler
-            )
+            }
+            else -> scope.launch {
+                if (command.deferredEnabled)
+                    event.deferReply().queue()
 
-        }
-        else scope.launch {
-            if (command.deferredEnabled)
-                event.deferReply().queue()
-
-            command.process(
-                CommandEvent(command = command, slashEvent = event), configHandler
-            )
+                command.process(
+                    CommandEvent(command = command, slashEvent = event)
+                )
+            }
         }
     }
 
     fun handleAutoComplete(event: CommandAutoCompleteInteractionEvent)
     {
-        if (event.guild == null)
-            return
-
+        if (!event.isFromGuild) return
         val command = event.name
         val group = event.subcommandGroup
         val sub = event.subcommandName
         val commandF = commands[command]
             ?: return logger.error("$command could not be found")
 
-        if (group != null) scope.launch {
-            val subC = commandF.group[group]?.find { it.name ==  sub }
-                ?: return@launch logger.error("${commandF.name} $group $sub could not be found")
-            subC.onAutoCompleteSuspend(event)
-        }
-        else if (sub != null)  scope.launch {
-            val subCommand = commandF.children.find { it.name == event.subcommandName }
-                ?: return@launch logger.error("${commandF.name} $sub could not be found")
-            subCommand.onAutoCompleteSuspend(event)
-        }
-        else scope.launch {
-            commandF.onAutoCompleteSuspend(event)
+        when {
+            group != null -> scope.launch {
+                val subC = commandF.group[group]?.find { it.name ==  sub }
+                    ?: return@launch logger.error("${commandF.name} $group $sub could not be found")
+                subC.onAutoCompleteSuspend(event)
+            }
+            sub != null -> scope.launch {
+                val subCommand = commandF.children.find { it.name == event.subcommandName }
+                    ?: return@launch logger.error("${commandF.name} $sub could not be found")
+                subCommand.onAutoCompleteSuspend(event)
+            }
+            else -> scope.launch {
+                commandF.onAutoCompleteSuspend(event)
+            }
         }
     }
 

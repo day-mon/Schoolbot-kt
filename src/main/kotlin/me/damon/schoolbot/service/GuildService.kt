@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service
 @Service("GuildService")
  class GuildService(
     private val guildRepository: GuildSettingsRepository
-) : SpringService
+)
 {
     fun getGuildSettings(guildId: Long): GuildSettings
     {

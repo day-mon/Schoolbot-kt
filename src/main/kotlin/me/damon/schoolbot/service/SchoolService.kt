@@ -13,7 +13,7 @@ import kotlin.random.Random
 class SchoolService(
     private val schoolRepository: SchoolRepository,
     private val professorService: ProfessorService
-) : SpringService
+)
 {
     private val logger by SLF4J
 
@@ -21,8 +21,6 @@ class SchoolService(
     {
         val guild = commandEvent.guild
         val role = guild.createRole().setColor(Random.nextInt(0xFFFFF)).setName(school.name.replace(Constants.SPACE_REGEX, "-")).await()
-
-
 
         school.apply {
             roleId = role.idLong
@@ -35,9 +33,9 @@ class SchoolService(
         }.getOrThrow()
     }
     
-    fun update(school: School): School = runCatching { schoolRepository.save(school) }.onFailure {
-        logger.error("Error occurred while trying to save the school", it)
-    }.getOrThrow()
+    fun update(school: School): School = runCatching { schoolRepository.save(school) }
+        .onFailure { logger.error("Error occurred while trying to save the school", it) }
+        .getOrThrow()
 
     suspend fun findSchoolsWithNoClasses(guildId: Long): List<School> =
         runCatching { schoolRepository.findEmptyClassesInGuild(guildId).await() }

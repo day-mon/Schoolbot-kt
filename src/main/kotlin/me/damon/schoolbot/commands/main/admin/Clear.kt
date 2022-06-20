@@ -90,7 +90,5 @@ class Clear : Command(
                 .queue()
         }
         return listOf(confirm, exit).into()
-
-
     }
 }
