@@ -1,9 +1,9 @@
 package me.damon.schoolbot.commands.main.misc
 
+import dev.minn.jda.ktx.messages.Embed
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
-import net.dv8tion.jda.api.EmbedBuilder
 import org.springframework.stereotype.Component
 
 @Component
@@ -15,10 +15,9 @@ class Format : Command(
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        event.replyEmbed(
-            EmbedBuilder()
-                .setTitle("How to format!")
-                .setDescription("""
+        val formatEmbed = Embed {
+            title = "How to format!"
+            description = """
                      Surround code with:
                              \`\`\` kt
                             val p = Person() \`\`\`
@@ -29,7 +28,7 @@ class Format : Command(
                                                     
                      This character can be found at the top left of your keyboard!
                 """.trimIndent()
-                ).build()
-        )
+        }
+        event.replyEmbed(formatEmbed)
     }
 }

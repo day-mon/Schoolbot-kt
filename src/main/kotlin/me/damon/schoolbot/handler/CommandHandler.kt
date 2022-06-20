@@ -73,7 +73,8 @@ class CommandHandler(
                     event.deferReply().queue()
 
                 sub.process(
-                    CommandEvent(command = sub, slashEvent = event))
+                    CommandEvent(command = sub, slashEvent = event)
+                )
 
             }
             else -> scope.launch {

@@ -25,7 +25,9 @@ import java.io.InputStream
 class MessageHandler(val guildService: GuildService) : CoroutineEventListener
 {
     private val fileExtensions = listOf(
-        "txt", "java", "cpp", "xml", "csharp", "asm", "js", "php", "r", "py", "go", "python", "ts", "html", "css", "scss", "kt"
+        "txt", "java", "cpp", "xml", "csharp", "asm", "js",
+        "php", "r", "py", "go", "python", "ts", "html", "css",
+        "scss", "kt"
     )
     private val logger by SLF4J
 
@@ -39,7 +41,6 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
 
             if (autoUpload)
                 handleFile(event)
-
         }
 
     }
@@ -61,7 +62,7 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
                 catch (e: Exception)
                 {
                     event.channel.sendMessage("Error occurred while trying to retrieve file or sending original message").queue()
-                   return logger.error("An error has occurred while attempting to send the message", e)
+                    return logger.error("An error has occurred while attempting to send the message", e)
                 }
         }.forEach { doUpload(it, event) }
     }
@@ -78,7 +79,7 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
         val payload = stream.string()
 
         val request = Request.Builder().url("https://pastecord.com/documents")
-            .addHeader("User-Agent", "School bot (https://github.com/tykoooo/School-Bot-kt)")
+            .addHeader("User-Agent", "School bot (https://github.com/day-mon/School-Bot-kt)")
             .post(
                 RequestBody.create(
                     MediaType.parse("application/json"),

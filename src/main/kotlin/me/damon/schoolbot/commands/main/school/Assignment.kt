@@ -18,5 +18,11 @@ class Assignment(
     name = "Assignment",
     description = "Allows you to add/remove/view assignments.",
     category = CommandCategory.SCHOOL,
+    children = listOf(
+        assignmentAdd,
+        assignmentEdit,
+        assignmentView,
+        assignmentRemove
+    )
 
 )

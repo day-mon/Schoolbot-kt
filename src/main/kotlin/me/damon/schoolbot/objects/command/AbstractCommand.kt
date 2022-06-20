@@ -26,6 +26,10 @@ import kotlin.time.Duration
 abstract class AbstractCommand : Pagable
 {
     val logger by SLF4J
+    @Autowired
+    lateinit var cooldownHandler: CooldownHandler
+    @Autowired
+    lateinit var configHandler: ConfigHandler
     abstract val id: Int
     abstract val name: String
     abstract val category: CommandCategory
@@ -55,12 +59,6 @@ abstract class AbstractCommand : Pagable
 
             return s
         }
-
-    @Autowired
-    lateinit var cooldownHandler: CooldownHandler
-    @Autowired
-    lateinit var configHandler: ConfigHandler
-
 
     suspend fun process(event: CommandEvent)
     {
