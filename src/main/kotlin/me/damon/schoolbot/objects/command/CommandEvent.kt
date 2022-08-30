@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.Modal
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import java.util.*
 import kotlin.time.Duration
@@ -50,7 +51,7 @@ class CommandEvent(
                 it.editOriginal(delayMessage).queueAfter(duration)
             }
     }
-    fun send(message: String, actionRows: List<ActionRow> = emptyList(), embeds: List<MessageEmbed> = emptyList()) = slashEvent.send(content = message, actionRows = actionRows, embeds = embeds)
+    fun send(message: String, actionRows: List<Button> = emptyList(), embeds: List<MessageEmbed> = emptyList()) = slashEvent.send(content = message, actionRows = actionRows, embeds = embeds)
 
     fun replyMessage(message: String) = when  {
         slashEvent.isAcknowledged -> hook.sendMessage(message).queue()
@@ -58,8 +59,8 @@ class CommandEvent(
     }
 
     fun replyMessageAndClear(message: String) = when  {
-        slashEvent.isAcknowledged -> hook.editOriginal(message).setActionRows(emptyList()).setEmbeds(emptyList()).queue()
-        else -> slashEvent.reply(message).addActionRows(emptyList()).addActionRows(emptyList()).queue()
+        slashEvent.isAcknowledged -> hook.editOriginal(message).setActionRow(emptyList()).setEmbeds(emptyList()).queue()
+        else -> slashEvent.reply(message).addActionRow(emptyList()).addActionRow(emptyList()).queue()
     }
 
     fun <T : Pagable> sendPaginator(embeds: Collection<T>) =

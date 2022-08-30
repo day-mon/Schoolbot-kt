@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.springframework.stereotype.Component
 import java.util.*
@@ -57,7 +58,7 @@ class ProfessorRemove(
 
     }
 
-    fun getActionRows(event: CommandEvent, professor: Professor): List<ActionRow>
+    fun getActionRows(event: CommandEvent, professor: Professor): List<Button>
     {
         val jda = event.jda
         val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = event.user, expiration = 1.minutes) {
@@ -78,7 +79,7 @@ class ProfessorRemove(
             it.message.edit("Professor will not be removed", components = listOf()).queue()
         }
 
-        return listOf(yes, no).into()
+        return listOf(yes, no)
     }
 
 

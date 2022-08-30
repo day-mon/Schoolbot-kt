@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.springframework.stereotype.Component
 import kotlin.time.Duration.Companion.minutes
@@ -99,7 +100,7 @@ class SchoolAdd(
     }
 
 
-    private fun getActionRows(event: SelectMenuInteractionEvent, cmdEvent: CommandEvent, school: School): List<ActionRow>
+    private fun getActionRows(event: SelectMenuInteractionEvent, cmdEvent: CommandEvent, school: School): List<Button>
     {
         val jda = event.jda
         val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = event.user, expiration = 1.minutes) {
@@ -125,6 +126,6 @@ class SchoolAdd(
             event.hook.editOriginalAndClear("Aborting. Thank you for using Schoolbot!")
         }
 
-        return listOf(yes, no).into()
+        return listOf(yes, no)
     }
 }

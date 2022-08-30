@@ -130,10 +130,10 @@ class CourseEdit(
             sectionTwoButton(event, course),
             completeSave(event, course),
             exitProcess(event, course)
-        ).into()
+        )
 
         it.reply("Here are the edits as of now")
-            .addActionRows(buttons)
+            .addActionRow(buttons)
             .addEmbeds(getCourseEmbed(course, event.jda))
             .queue()
     }
@@ -292,7 +292,7 @@ class CourseEdit(
             color = Constants.YELLOW
             timestamp = Instant.now()
         }
-        it.message.edit(embeds = listOf(), embed = embed, components = emptyList())
+        it.message.edit(embeds = listOf(embed), components = emptyList())
             .queue { message -> message.delete().queueAfter(15.seconds) }
     }
 

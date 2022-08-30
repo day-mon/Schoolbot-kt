@@ -53,7 +53,7 @@ class SchoolRemove(
         val courses = try { courseService.findBySchool(school) } catch (e: Exception) { return event.replyErrorEmbed("Error occurred while checking if this school has any courses. \n Why would we check? Idk some of you are sneaky.")}
         if (courses.isNotEmpty()) return event.replyErrorEmbed("School has courses. Remove them first. Nice try.")
 
-        event.hook.send(content = "Are you sure you want to remove ${school.name}", embed = school.getAsEmbed(), components = getActionRows(event, school)).queue()
+        event.hook.send(content = "Are you sure you want to remove ${school.name}", embeds = listOf(school.getAsEmbed()), components = getActionRows(event, school)).queue()
 
     }
 
@@ -67,7 +67,7 @@ class SchoolRemove(
             val embed = withContext(Dispatchers.IO) { school.getAsEmbed() }
             hook.editOriginal("School has been deleted")
                 .setEmbeds(embed)
-                .setActionRows(emptyList())
+                .setComponents(emptyList())
                 .queue()
 
 
@@ -75,7 +75,7 @@ class SchoolRemove(
 
         val no = jda.button(label = "No", style = ButtonStyle.DANGER, user = cmdEvent.user, expiration = 1.minutes) {
             hook.editOriginal("Aborting.. Thank you for using Schoolbot!")
-                .setActionRows(emptyList())
+                .setComponents(emptyList())
                 .setEmbeds(emptyList())
                 .queue()
         }

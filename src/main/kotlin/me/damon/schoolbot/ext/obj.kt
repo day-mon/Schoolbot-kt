@@ -29,8 +29,8 @@ import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import net.dv8tion.jda.api.interactions.modals.ModalMapping
 import net.dv8tion.jda.api.requests.ErrorResponse
 import net.dv8tion.jda.api.requests.RestAction
-import net.dv8tion.jda.api.requests.restaction.WebhookMessageAction
-import net.dv8tion.jda.api.requests.restaction.WebhookMessageUpdateAction
+import net.dv8tion.jda.api.requests.restaction.MessageEditAction
+import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction
 import yahoofinance.Stock
 import java.math.BigDecimal
 import java.net.URI
@@ -53,7 +53,8 @@ private fun errorEmbed(
 
 fun Instant.minus(duration: Duration): Instant = this.minus(duration.inWholeMilliseconds, ChronoUnit.MILLIS)
 
-fun <T> WebhookMessageUpdateAction<T>.queueAfter(duration: Duration) = this.queueAfter(duration.inWholeMilliseconds, TimeUnit.MILLISECONDS)
+
+fun MessageEditAction.queueAfter(duration: Duration) = this.queueAfter(duration.inWholeMilliseconds, TimeUnit.MILLISECONDS)
 operator fun LocalDateTime.plus(duration: Duration): LocalDateTime?
 = this.plus(duration.inWholeMilliseconds, ChronoUnit.MILLIS)
 fun <T> RestAction<T>.queueAfter(duration: Duration) = this.queueAfter(duration.inWholeMilliseconds, TimeUnit.MILLISECONDS)
@@ -163,7 +164,7 @@ fun Stock.getAsQEmbed(): MessageEmbed
 
 
 fun InteractionHook.editOriginalAndClear(content: String) = editMessageById("@original", content)
-    .setActionRows(emptyList())
+    .setComponents(emptyList())
     .setEmbeds(emptyList())
     .queue()
 
@@ -186,7 +187,7 @@ fun <T: IReplyCallback> T.replyEmbed(embed: MessageEmbed, content: String = Stri
     }
 }
 
-fun <T: IReplyCallback> T.replyErrorEmbed(errorString: String, title: String = "Error has occurred", color: Int = Constants.YELLOW): WebhookMessageAction<Message> {
+fun <T: IReplyCallback> T.replyErrorEmbed(errorString: String, title: String = "Error has occurred", color: Int = Constants.YELLOW): WebhookMessageCreateAction<Message> {
 
     val embed = Embed {
         this.title = "${Emoji.STOP_SIGN.getAsChat()} $title"
@@ -215,7 +216,7 @@ suspend fun <T: CommandInteraction> T.awaitButton(
     timeout: Duration = 1.minutes
 ): ButtonInteractionEvent?
 {
-    val buttonList = button?.let { listOf(it).into() } ?: buttons.into()
+    val buttonList = button?.let { listOf(it) } ?: buttons
     this.send(
         content = message,
         embeds = embed?.let { listOf(embed) } ?: embeds,
@@ -223,7 +224,7 @@ suspend fun <T: CommandInteraction> T.awaitButton(
     )
 
     return withTimeoutOrNull(timeout.inWholeMilliseconds) {
-        jda.await<ButtonInteractionEvent> { buttonEvent -> buttonEvent.user.idLong == this@awaitButton.member?.idLong && buttonEvent.button.id in buttonList.flatMap { it.buttons.map { id } } }
+        jda.await<ButtonInteractionEvent> { buttonEvent -> buttonEvent.user.idLong == this@awaitButton.member?.idLong && buttonEvent.button.id in buttonList.map { it.id } }
             .also { it.message.editMessageComponents(listOf()).queue() /*remove buttons after*/ }
     }
 }
@@ -287,7 +288,7 @@ suspend fun <T: Interaction> T.awaitModal(
         val errorEmbed = errorEmbed(
             errorString = "This interaction has already been acknowledged. If this keeps occurring please contact that developer."
         )
-        this.textChannel.sendMessageEmbeds(errorEmbed).queue()
+        this.messageChannel.sendMessageEmbeds(errorEmbed).queue()
         return null
     }
 
@@ -335,9 +336,13 @@ fun IReplyCallback.send(
     embed: MessageEmbed? = null,
     embeds: List<MessageEmbed> = emptyList(),
     ephemeral: Boolean = false,
-    actionRows: List<ActionRow> = emptyList()
-) = if (this.isAcknowledged) this.hook.sendMessage(content).setEphemeral(ephemeral).addActionRows(actionRows).addEmbeds(embed?.let { listOf(it) } ?: embeds).queue()
-    else this.reply(content).setEphemeral(ephemeral).addActionRows(actionRows).addEmbeds(embed?.let { listOf(it) } ?: embeds).queue()
+    actionRows: List<Button> = emptyList()
+) = if (this.isAcknowledged) this.hook.sendMessage(content).setEphemeral(ephemeral).addActionRow(actionRows).addEmbeds(embed?.let { listOf(it) } ?: embeds).queue()
+    else this.reply(content)
+        .setEphemeral(ephemeral)
+        .addActionRow(actionRows)
+        .addEmbeds(embed?.let { listOf(it) } ?: embeds)
+        .queue()
 
 inline fun <reified T> ModalInteractionEvent.getValue(id: String): T? {
     val value = getValue(id)?.asStringTrimmed() ?: return null

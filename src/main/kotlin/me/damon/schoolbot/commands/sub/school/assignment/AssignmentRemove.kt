@@ -20,6 +20,7 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.springframework.stereotype.Component
 import java.util.*
@@ -84,11 +85,11 @@ class AssignmentRemove(
 
     }
 
-    private fun getActionRows(event: CommandEvent, assignment: Assignment, assignmentService: AssignmentService): List<ActionRow>
+    private fun getActionRows(event: CommandEvent, assignment: Assignment, assignmentService: AssignmentService): List<Button>
     {
         val jda = event.jda
         val yes = jda.button(user = event.user, style = ButtonStyle.PRIMARY, expiration = 1.minutes, label = "Yes") {
-            it.message.editMessage("Deleting assignment `${assignment.name}` from the course `${assignment.course.name}`..)").setActionRows(emptyList()).queue()
+            it.message.editMessage("Deleting assignment `${assignment.name}` from the course `${assignment.course.name}`..)").setActionRow(emptyList()).queue()
 
             try
             {
@@ -103,10 +104,10 @@ class AssignmentRemove(
         }
 
         val no = jda.button(user = event.user, style = ButtonStyle.DANGER, expiration = 1.minutes, label = "No" ) {
-            it.message.editMessage("Cancelling removal of assignment ${assignment.name} from the course ${assignment.course.name}..)").setActionRows(emptyList()).queue()
+            it.message.editMessage("Cancelling removal of assignment ${assignment.name} from the course ${assignment.course.name}..)").setActionRow(emptyList()).queue()
         }
 
-        return listOf(yes, no).into()
+        return listOf(yes, no)
     }
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)

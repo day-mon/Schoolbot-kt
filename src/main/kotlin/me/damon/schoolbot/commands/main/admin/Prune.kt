@@ -10,6 +10,7 @@ import me.damon.schoolbot.objects.command.CommandEvent
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
 import org.springframework.stereotype.Component
@@ -30,11 +31,11 @@ class Prune : Command (
     {
         event.slashEvent
             .reply_("This will clear the last 50 bot messages within the last two weeks in this channel. Would you like to proceed?")
-            .addActionRows(getActionRows(event))
+            .addActionRow(getActionRows(event))
             .queue()
     }
 
-    private fun getActionRows(event: CommandEvent): List<ActionRow>
+    private fun getActionRows(event: CommandEvent): List<Button>
     {
         val jda = event.jda
         val selfUser = jda.selfUser
@@ -62,6 +63,6 @@ class Prune : Command (
         val exit = jda.button(label = "Exit", style = ButtonStyle.DANGER, user = event.user) {
             it.reply("Operation was successfully cancelled").queue()
         }
-        return listOf(confirm, exit).into()
+        return listOf(confirm, exit)
     }
 }

@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
 import org.springframework.stereotype.Component
@@ -51,14 +52,14 @@ class Clear : Command(
 
        slash
             .reply_("You are about to delete `$amount` messages, click the checkmark to continue, click `Exit` to cancel. (30 seconds to make a choice)")
-            .addActionRows(getActionRows(event, amount))
+            .addActionRow(getActionRows(event, amount))
             .queue { it.deleteOriginal().queueAfter(30, TimeUnit.SECONDS, null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE)) }
 
 
     }
 
 
-    private fun getActionRows(event: CommandEvent, amount: Long): List<ActionRow>
+    private fun getActionRows(event: CommandEvent, amount: Long): List<Button>
     {
         val jda = event.jda
         val confirm = jda.button(label = "Confirm", style = ButtonStyle.SUCCESS, user = event.user) { button ->
@@ -75,7 +76,7 @@ class Clear : Command(
                     return@thenApplyAsync subList.size
                 }.thenAcceptAsync { size ->
                     event.hook.editOriginal("Successfully purged `$size` messages!")
-                        .setActionRows(emptyList())
+                        .setComponents(emptyList())
                         .queue {
                         it.delete()
                             .queueAfter(5, TimeUnit.SECONDS, null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))
@@ -86,9 +87,9 @@ class Clear : Command(
 
         val exit = jda.button(label = "Exit", style = ButtonStyle.DANGER, user = event.user) {
             event.hook.editOriginal("Operation was successfully cancelled")
-                .setActionRows(emptyList())
+                .setComponents(emptyList())
                 .queue()
         }
-        return listOf(confirm, exit).into()
+        return listOf(confirm, exit)
     }
 }

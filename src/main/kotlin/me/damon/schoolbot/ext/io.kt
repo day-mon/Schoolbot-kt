@@ -5,6 +5,7 @@ import dev.minn.jda.ktx.util.SLF4J
 import me.damon.schoolbot.Constants
 import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import java.io.*
 import java.util.*
 
@@ -41,13 +42,13 @@ fun File.tryDelete(): Boolean
     }
 }
 
-fun InteractionHook.replyErrorEmbed(mainTitle: String = "Error has occurred", body: String, actionRows: List<ActionRow> = emptyList(), content: String = String.empty) = this.editOriginalEmbeds(
+fun InteractionHook.replyErrorEmbed(mainTitle: String = "Error has occurred", body: String, actionRows: List<Button> = emptyList(), content: String = String.empty) = this.editOriginalEmbeds(
     Embed {
         title = mainTitle
         description = body
         color = Constants.RED
     }
-).setActionRows(actionRows)
+).setActionRow(actionRows)
     .setContent(content)
     .queue()
 fun File.printWriter(append: Boolean = false ): PrintWriter =

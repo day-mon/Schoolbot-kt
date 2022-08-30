@@ -27,6 +27,7 @@ import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.Modal
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.springframework.stereotype.Component
 import java.time.*
@@ -150,7 +151,7 @@ class AssignmentAdd(
         )
     }
 
-    private fun getActionRows(event: CommandEvent, assignment: Assignment): List<ActionRow>
+    private fun getActionRows(event: CommandEvent, assignment: Assignment): List<Button>
     {
         val jda = event.jda
 
@@ -169,7 +170,7 @@ class AssignmentAdd(
             it.editMessage_(components = emptyList(), content = "Okay have a nice day ${Emoji.THUMB_UP.getAsChat()}").queue()
         }
 
-        return listOf(yes, no).into()
+        return listOf(yes, no)
     }
 
     private fun evaluateModalFields(

@@ -27,6 +27,7 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
 import org.springframework.stereotype.Component
@@ -122,11 +123,11 @@ class CourseAddPitt(
             .queue()
 
         modalEvent.hook.sendMessage("Would you like to add reminders for this course? (I will remind you **60**, **30**, **10** and **0 minutes** before class starts)")
-            .addActionRows(getActionRows(savedCourse, event, courseService))
+            .addActionRow(getActionRows(savedCourse, event, courseService))
             .queue()
     }
 
-    private fun getActionRows(course: Course, event: CommandEvent, service: CourseService): List<ActionRow>
+    private fun getActionRows(course: Course, event: CommandEvent, service: CourseService): List<Button>
     {
         val jda = event.jda
         val confirm = jda.button(label = "Confirm", style = ButtonStyle.SUCCESS, user = event.user) {
@@ -151,7 +152,7 @@ class CourseAddPitt(
             it.editMessage_(components = emptyList(), content = "Okay have a nice day ${Emoji.THUMB_UP.getAsChat()}").queue()
         }
 
-        return listOf(confirm, exit).into()
+        return listOf(confirm, exit)
 
     }
 

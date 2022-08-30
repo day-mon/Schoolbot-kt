@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.ErrorResponse
 import org.springframework.stereotype.Component
@@ -51,17 +52,17 @@ class Settings(
         }
     }
 
-    private fun settingsButtons(event: CommandEvent, settings: GuildSettings): List<ActionRow>
+    private fun settingsButtons(event: CommandEvent, settings: GuildSettings): List<Button>
     {
         val jda = event.jda
         val longMessageButton = jda.button(
             style = if (settings.longMessageUploading) ButtonStyle.SUCCESS else ButtonStyle.DANGER,
-            emoji = net.dv8tion.jda.api.entities.Emoji.fromUnicode(Emoji.ONE.asUnicode())
+            emoji = net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(Emoji.ONE.asUnicode())
         ) {
             settings.apply {
                 this.longMessageUploading = this.longMessageUploading.not()
                 event.hook.editOriginalEmbeds(getCourseSettingsEmbed(event, settings))
-                    .setActionRows(settingsButtons(event, settings)).queue()
+                    .setActionRow(settingsButtons(event, settings)).queue()
             }
             try { guildService.save(settings) }
             catch (e: Exception) { logger.error("Could not save guild settings for {}", event.guild.name) }
@@ -70,13 +71,13 @@ class Settings(
 
         val deleteEntityButton = jda.button(
             style = if (settings.deleteRemindableEntityOnLastReminder) ButtonStyle.SUCCESS else ButtonStyle.DANGER,
-            emoji = net.dv8tion.jda.api.entities.Emoji.fromUnicode(Emoji.TWO.asUnicode())
+            emoji = net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(Emoji.TWO.asUnicode())
 
         ) {
             settings.apply {
                 this.deleteRemindableEntityOnLastReminder = this.deleteRemindableEntityOnLastReminder.not()
                 event.hook.editOriginalEmbeds(getCourseSettingsEmbed(event, settings))
-                    .setActionRows(settingsButtons(event, settings)).queue()
+                    .setActionRow(settingsButtons(event, settings)).queue()
             }
             try { guildService.save(settings) }
             catch (e: Exception) { logger.error("Could not save guild settings for {}", event.guild.name) }
@@ -84,11 +85,11 @@ class Settings(
 
         val trashButton = jda.button(
             style = ButtonStyle.DANGER,
-            emoji =  net.dv8tion.jda.api.entities.Emoji.fromUnicode(Emoji.WASTE_BASKET.asUnicode())
+            emoji =  net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(Emoji.WASTE_BASKET.asUnicode())
         ) {
             event.hook.deleteOriginal().queue(null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))
         }
 
-        return listOf(longMessageButton, deleteEntityButton, trashButton).into()
+        return listOf(longMessageButton, deleteEntityButton, trashButton)
     }
 }

@@ -1,6 +1,7 @@
 package me.damon.schoolbot.objects.command
 
 import dev.minn.jda.ktx.messages.Embed
+import dev.minn.jda.ktx.messages.SendDefaults
 import dev.minn.jda.ktx.messages.reply_
 import dev.minn.jda.ktx.messages.send
 import dev.minn.jda.ktx.util.SLF4J
@@ -118,8 +119,9 @@ abstract class AbstractCommand : Pagable
 
     private fun sendMessage(e: CommandEvent, message: String =  String.empty, embed: MessageEmbed? = null)
     {
-        if (deferredEnabled) e.hook.send(content = message, embed = embed).queue()
-        else e.slashEvent.reply_(content = message, embed = embed).queue()
+        val embeds = if (embed == null) SendDefaults.embeds else listOf(embed)
+        if (deferredEnabled) e.hook.send(content = message, embeds = embeds).queue()
+        else e.slashEvent.reply_(content = message, embeds = embeds).queue()
     }
 
     suspend fun onExecuteSuspend(event: CommandEvent)

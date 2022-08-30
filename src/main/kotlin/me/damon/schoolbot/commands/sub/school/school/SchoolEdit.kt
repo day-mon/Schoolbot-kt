@@ -95,6 +95,7 @@ class SchoolEdit(
 
             if (strBuffer.isNotEmpty()) return@button it.replyErrorEmbed(strBuffer.toString()).queue()
 
+
             val updateName = (schoolName == name).not()
 
             school.apply {
@@ -105,7 +106,7 @@ class SchoolEdit(
             }
 
             it.hook.send(
-                embed = school.getAsEmbed(guild = event.guild),
+                embeds = listOf(school.getAsEmbed(guild = event.guild)),
                 content = "Does this look correct?",
                 components = getActionRows(event, school, updateName)
             ).queue()

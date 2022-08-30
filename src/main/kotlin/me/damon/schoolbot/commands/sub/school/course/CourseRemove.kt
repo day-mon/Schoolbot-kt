@@ -13,6 +13,7 @@ import me.damon.schoolbot.service.CourseService
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.springframework.stereotype.Component
 import kotlin.time.Duration.Companion.minutes
@@ -55,12 +56,12 @@ class CourseRemove(
 
 
         selection.reply("Are you sure you want to remove `${course.name}` from `${course.school.name}`")
-            .addActionRows(getActionRows(event.guild, selection, course, courseService))
+            .addActionRow(getActionRows(event.guild, selection, course, courseService))
             .queue()
 
     }
 
-    private fun getActionRows(guild: Guild, event: SelectMenuInteractionEvent, course: Course, service: CourseService): List<ActionRow>
+    private fun getActionRows(guild: Guild, event: SelectMenuInteractionEvent, course: Course, service: CourseService): List<Button>
     {
         val jda = event.jda
         val yes = jda.button(label = "Yes", style = ButtonStyle.SUCCESS, user = event.user, expiration = 1.minutes) {
@@ -72,17 +73,17 @@ class CourseRemove(
             }
             event.hook.editOriginal("Course has been deleted successfully")
                 .setEmbeds(course.getAsEmbed())
-                .setActionRows(emptyList())
+                .setComponents(emptyList())
                 .queue()
         }
 
         val no = jda.button(label = "No", style = ButtonStyle.DANGER, user = event.user, expiration = 1.minutes) {
             event.hook.editOriginal("Aborting.. Thank you for using Schoolbot!")
-                .setActionRows(emptyList())
+                .setComponents(emptyList())
                 .setEmbeds(emptyList())
                 .queue()
         }
 
-        return listOf(yes, no).into()
+        return listOf(yes, no)
     }
 }

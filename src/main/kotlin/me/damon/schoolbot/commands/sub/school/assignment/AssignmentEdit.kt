@@ -22,6 +22,7 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import org.springframework.stereotype.Component
 import java.time.*
@@ -106,7 +107,7 @@ class AssignmentEdit(
 
     }
 
-    private fun getActionRows(event: CommandEvent, updateReminders: Boolean, assignment: Assignment): List<ActionRow>
+    private fun getActionRows(event: CommandEvent, updateReminders: Boolean, assignment: Assignment): List<Button>
     {
         val jda = event.jda
         val yesButton = jda.button(style = ButtonStyle.PRIMARY, label = "Yes") {
@@ -115,14 +116,14 @@ class AssignmentEdit(
             try { if (updateReminders) assignmentService.update(assignment) else assignmentService.save(assignment) }
             catch (e: Exception) { return@button it.message.edit(content = "Error has occurred while trying to update as `${assignment.name}`").queue() }
 
-            it.message.edit(content = "Assignment updated successfully!", embed = assignment.getAsEmbed()).queue()
+            it.message.edit(content = "Assignment updated successfully!", embeds = listOf(assignment.getAsEmbed())).queue()
         }
 
         val noButton = jda.button(style = ButtonStyle.DANGER, label = "No") {
             it.message.edit("Cancelling update of ${assignment.name}", components = emptyList()).queue()
         }
 
-        return listOf(yesButton, noButton).into()
+        return listOf(yesButton, noButton)
     }
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
