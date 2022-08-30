@@ -99,7 +99,7 @@ class CourseEdit(
 
 
        courseAttributes.putAll(
-           "name" to course.name,
+           "name" to if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${name.substring(0..42)}..." else course.name,
            "description" to course.description,
            "url" to course.url,
            "start_date" to course.startDate.atZone(school.zone).toLocalDate().format(Constants.DEFAULT_DATE_FORMAT),
@@ -173,7 +173,7 @@ class CourseEdit(
         if (!daysValidated) return@button modalEvent.replyErrorEmbed("$days is not in the correct format. Each day of the week must be seperated by a comma").queue()
 
 
-        courseAttributes["name"] = name
+        courseAttributes["name"] = if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${name.substring(0..42)}..." else course.name
         courseAttributes["description"] = description
         courseAttributes["start_date"] = startDate.format(Constants.DEFAULT_DATE_FORMAT)
         courseAttributes["end_date"] = endDate.format(Constants.DEFAULT_DATE_FORMAT)
@@ -435,7 +435,6 @@ class CourseEdit(
 
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
-
     {
         val id = event.guild?.idLong ?: return logger.error("Error has occurred while fetching guild id in autocomplete")
         val pittSchools =  try { schoolService.getPittSchoolsInGuild(id) } catch (e: Exception)  { return }

@@ -179,6 +179,7 @@ object Constants
     const val MAX_MENTIONABLE_LENGTH = 100
     const val MAX_CHANNEL_COUNT = 500
     const val SELECTION_MENU_MAX_SIZE = 25
+    const val MAX_EMBED_TITLE_COUNT = 45
     val DEFAULT_CLIENT: OkHttpClient =
         OkHttpClient.Builder()
             .writeTimeout(60, TimeUnit.SECONDS)
