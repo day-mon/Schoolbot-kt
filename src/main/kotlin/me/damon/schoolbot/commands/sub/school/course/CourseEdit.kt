@@ -99,7 +99,7 @@ class CourseEdit(
 
 
        courseAttributes.putAll(
-           "name" to if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${name.substring(0..42)}..." else course.name,
+           "name" to if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${course.name.substring(0..42)}..." else course.name,
            "description" to course.description,
            "url" to course.url,
            "start_date" to course.startDate.atZone(school.zone).toLocalDate().format(Constants.DEFAULT_DATE_FORMAT),
@@ -149,7 +149,7 @@ class CourseEdit(
             title = "Editing Section One of ${course.name}"
         ) {
 
-            short(id = "name", label = "Name", value = courseAttributes["name"], requiredLength = 1..Constants.MAX_MENTIONABLE_LENGTH)
+            short(id = "name", label = "Name", value = if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${course.name.substring(0..42)}..." else course.name, requiredLength = 1..Constants.MAX_MENTIONABLE_LENGTH)
             paragraph(id = "description", label = "Description", value = courseAttributes["description"])
             short(id = "start_date", label = "Start date", value = courseAttributes["start_date"])
             short(id = "end_date", label = "End date", value = courseAttributes["end_date"])
@@ -173,7 +173,7 @@ class CourseEdit(
         if (!daysValidated) return@button modalEvent.replyErrorEmbed("$days is not in the correct format. Each day of the week must be seperated by a comma").queue()
 
 
-        courseAttributes["name"] = if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${name.substring(0..42)}..." else course.name
+        courseAttributes["name"] = if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${course.name.substring(0..42)}..." else course.name
         courseAttributes["description"] = description
         courseAttributes["start_date"] = startDate.format(Constants.DEFAULT_DATE_FORMAT)
         courseAttributes["end_date"] = endDate.format(Constants.DEFAULT_DATE_FORMAT)
