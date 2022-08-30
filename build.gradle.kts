@@ -59,24 +59,24 @@ this platform has org.jetbrains.kotlin:kotlin-stdlib-jdk8 within it and a specif
 dependencies {
 
     // Kotlin
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.21")
     implementation(kotlin("stdlib-jdk8"))
 
 
     // Discord
     implementation("net.dv8tion:JDA:5.0.0-alpha.11")
-    implementation("com.github.minndevelopment:jda-ktx:bf7cd96")
+    implementation("com.github.minndevelopment:jda-ktx:081a177")
 
     // Spring
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.jsoup:jsoup:1.14.3")
+    implementation("org.jsoup:jsoup:1.15.3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     // Database
-    implementation("org.postgresql:postgresql:42.3.6")
+    implementation("org.postgresql:postgresql:42.5.0")
 
     // Misc
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
@@ -85,14 +85,11 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("ch.obermuhlner:java-scriptengine:2.0.0")
-    implementation("com.facebook:ktfmt:0.18")
+    implementation("com.facebook:ktfmt:0.39")
     implementation(platform("com.squareup.okhttp3:okhttp-bom:4.10.0"))
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     // prometheus
-    implementation("io.prometheus:simpleclient:0.15.0")
-    implementation("io.prometheus:simpleclient_hotspot:0.15.0")
-    implementation("io.prometheus:simpleclient_httpserver:0.15.0")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("io.micrometer:micrometer-registry-prometheus")
 }
