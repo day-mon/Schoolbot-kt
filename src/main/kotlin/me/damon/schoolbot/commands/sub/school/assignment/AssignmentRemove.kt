@@ -89,7 +89,7 @@ class AssignmentRemove(
     {
         val jda = event.jda
         val yes = jda.button(user = event.user, style = ButtonStyle.PRIMARY, expiration = 1.minutes, label = "Yes") {
-            it.message.editMessage("Deleting assignment `${assignment.name}` from the course `${assignment.course.name}`..)").setActionRow(emptyList()).queue()
+            it.message.editMessage("Deleting assignment `${assignment.name}` from the course `${assignment.course.name}`..)").setComponents(emptyList()).queue()
 
             try
             {
@@ -104,14 +104,13 @@ class AssignmentRemove(
         }
 
         val no = jda.button(user = event.user, style = ButtonStyle.DANGER, expiration = 1.minutes, label = "No" ) {
-            it.message.editMessage("Cancelling removal of assignment ${assignment.name} from the course ${assignment.course.name}..)").setActionRow(emptyList()).queue()
+            it.message.editMessage("Cancelling removal of assignment ${assignment.name} from the course ${assignment.course.name}..)").setComponents(emptyList()).queue()
         }
 
         return listOf(yes, no)
     }
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
-
     {
         val guildId = event.guild?.idLong ?: return logger.error("Guild is null. This should never happen.")
         val schools = try { schoolService.findByNonEmptyCoursesInGuild(guildId) } catch (e: Exception) { return  }
