@@ -99,7 +99,7 @@ class CourseEdit(
 
 
        courseAttributes.putAll(
-           "name" to if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${course.name.substring(0..42)}..." else course.name,
+           "name" to course.name,
            "description" to course.description,
            "url" to course.url,
            "start_date" to course.startDate.atZone(school.zone).toLocalDate().format(Constants.DEFAULT_DATE_FORMAT),
@@ -143,14 +143,15 @@ class CourseEdit(
         user = event.user,
         label = "Section 1"
     ) { button ->
-        val courseName = if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${course.name.substring(0..42)}..." else course.name
+        val header = "Editing Section One of ${course.name}"
+        val title = if (header.length > Constants.MAX_EMBED_TITLE_COUNT) "${header.substring(0..Constants.MAX_EMBED_TITLE_COUNT)}..." else header
 
         val modal = Modal(
             id = "sectionOneCourseEdit",
-            title = "Editing Section One of $courseName"
+            title = title
         ) {
 
-            short(id = "name", label = "Name", value = if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${course.name.substring(0..42)}..." else course.name, requiredLength = 1..Constants.MAX_MENTIONABLE_LENGTH)
+            short(id = "name", label = "Name", value = course.name, requiredLength = 1..Constants.MAX_MENTIONABLE_LENGTH)
             paragraph(id = "description", label = "Description", value = courseAttributes["description"])
             short(id = "start_date", label = "Start date", value = courseAttributes["start_date"])
             short(id = "end_date", label = "End date", value = courseAttributes["end_date"])
@@ -174,7 +175,7 @@ class CourseEdit(
         if (!daysValidated) return@button modalEvent.replyErrorEmbed("$days is not in the correct format. Each day of the week must be seperated by a comma").queue()
 
 
-        courseAttributes["name"] = if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${course.name.substring(0..42)}..." else course.name
+        courseAttributes["name"] = name
         courseAttributes["description"] = description
         courseAttributes["start_date"] = startDate.format(Constants.DEFAULT_DATE_FORMAT)
         courseAttributes["end_date"] = endDate.format(Constants.DEFAULT_DATE_FORMAT)
@@ -201,11 +202,12 @@ class CourseEdit(
         user = event.user,
         label = "Section 2"
     ) { button ->
-        val courseName = if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${course.name.substring(0..42)}..." else course.name
+        val header = "Editing Section Two of ${course.name}"
+        val title = if (header.length > Constants.MAX_EMBED_TITLE_COUNT) "${header.substring(0..Constants.MAX_EMBED_TITLE_COUNT)}..." else header
 
         val modal = Modal(
             id = "sectionTwoCourseEdit",
-            title = "Editing Section Two of $courseName"
+            title = title
         ) {
             short(id = "start_time", label = "Start Time", value = courseAttributes["start_time"])
             short(id = "end_time", label = "End Time", value = courseAttributes["end_time"])
