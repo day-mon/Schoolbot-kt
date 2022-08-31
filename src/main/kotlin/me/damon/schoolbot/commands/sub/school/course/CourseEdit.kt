@@ -144,7 +144,7 @@ class CourseEdit(
         label = "Section 1"
     ) { button ->
         val header = "Editing Section One of ${course.name}"
-        val title = if (header.length > Constants.MAX_EMBED_TITLE_COUNT) "${header.substring(0..42)}..." else header
+        val title = if (header.length > Constants.MAX_EMBED_TITLE_COUNT) "${header.substring(0..40)}..." else header
 
         val modal = Modal(
             id = "sectionOneCourseEdit",
@@ -203,7 +203,7 @@ class CourseEdit(
         label = "Section 2"
     ) { button ->
         val header = "Editing Section Two of ${course.name}"
-        val title = if (header.length > Constants.MAX_EMBED_TITLE_COUNT) "${header.substring(0..42)}..." else header
+        val title = if (header.length > Constants.MAX_EMBED_TITLE_COUNT) "${header.substring(0..40)}..." else header
 
         val modal = Modal(
             id = "sectionTwoCourseEdit",
