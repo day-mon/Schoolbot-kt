@@ -143,10 +143,11 @@ class CourseEdit(
         user = event.user,
         label = "Section 1"
     ) { button ->
+        val courseName = if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${course.name.substring(0..42)}..." else course.name
 
         val modal = Modal(
             id = "sectionOneCourseEdit",
-            title = "Editing Section One of ${course.name}"
+            title = "Editing Section One of $courseName"
         ) {
 
             short(id = "name", label = "Name", value = if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${course.name.substring(0..42)}..." else course.name, requiredLength = 1..Constants.MAX_MENTIONABLE_LENGTH)
@@ -200,9 +201,11 @@ class CourseEdit(
         user = event.user,
         label = "Section 2"
     ) { button ->
+        val courseName = if (course.name.length > Constants.MAX_EMBED_TITLE_COUNT) "${course.name.substring(0..42)}..." else course.name
+
         val modal = Modal(
             id = "sectionTwoCourseEdit",
-            title = "Editing Section Two of ${course.name}"
+            title = "Editing Section Two of $courseName"
         ) {
             short(id = "start_time", label = "Start Time", value = courseAttributes["start_time"])
             short(id = "end_time", label = "End Time", value = courseAttributes["end_time"])
