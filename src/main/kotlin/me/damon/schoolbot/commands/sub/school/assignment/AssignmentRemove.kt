@@ -89,7 +89,9 @@ class AssignmentRemove(
     {
         val jda = event.jda
         val yes = jda.button(user = event.user, style = ButtonStyle.PRIMARY, expiration = 1.minutes, label = "Yes") {
-            it.message.editMessage("Deleting assignment `${assignment.name}` from the course `${assignment.course.name}`..)").setComponents(emptyList()).queue()
+            it.message.editMessage("Deleting assignment `${assignment.name}` from the course `${assignment.course.name}`..)")
+                .setActionRow(emptyList())
+                .queue()
 
             try
             {
