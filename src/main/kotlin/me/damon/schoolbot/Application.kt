@@ -39,7 +39,7 @@ class Application(
     @Bean
     fun jda(): JDA = light(configHandler.config.token, enableCoroutines = true) {
         setEventManager(CoroutineEventManager())
-        setEnabledIntents(GatewayIntent.MESSAGE_CONTENT)
+        setEnabledIntents(GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MESSAGES)
         addEventListeners(commandHandler, messageHandler, guildListeners, taskHandler)
         setActivity(Activity.watching("1's turning to 0's and 0's turning to 1's"))
     }

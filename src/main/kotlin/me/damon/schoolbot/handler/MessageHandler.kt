@@ -27,7 +27,8 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
     private val fileExtensions = listOf(
         "txt", "java", "cpp", "xml", "csharp", "asm", "js",
         "php", "r", "py", "go", "python", "ts", "html", "css",
-        "scss", "kt"
+        "scss", "kt", "c", "h", "cs", "json", "yaml", "yml", "md",
+
     )
     private val logger by SLF4J
 
@@ -56,7 +57,7 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
                 try
                 {
                     val sendingMessage = event.channel.sendMessage("Uploading to pastecord...").await()
-                    val inputStream = it.retrieveInputStream().await()
+                    val inputStream = it.proxy.download().await()
                     return@map sendingMessage to inputStream
                 }
                 catch (e: Exception)
