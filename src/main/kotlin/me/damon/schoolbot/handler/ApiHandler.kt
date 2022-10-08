@@ -12,7 +12,7 @@ import retrofit2.create
 @Component
 class ApiHandler(
     private val schoolbotRetrofit: Retrofit = Retrofit.Builder()
-        .baseUrl("https://johnstown.schoolbot.dev/api/v1/")
+        .baseUrl("https://schoolapi.schoolbot.dev/v1/api/")
         .client(Constants.DEFAULT_CLIENT)
         .addConverterFactory(GsonConverterFactory.create())
         .build(),

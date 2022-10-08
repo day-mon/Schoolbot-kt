@@ -22,7 +22,7 @@ data class LaundryModel(
 
             field {
                 name = "Appliance Type"
-                value = type
+                value = if (type.lowercase().contains("d")) "Dryer" else "Washer"
                 inline = false
             }
 
