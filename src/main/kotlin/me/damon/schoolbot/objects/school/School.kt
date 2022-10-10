@@ -19,7 +19,7 @@ class School(
     @Column(name = "id", unique = true, updatable = false)
     override val id: UUID = UUID.randomUUID(),
 
-    @Column(name = "name", nullable = false, unique = true)
+    @Column(name = "name", nullable = false, unique = false)
      var name: String,
 
     @Column(name = "url", nullable = true)

@@ -88,6 +88,8 @@ dependencies {
     implementation("com.facebook:ktfmt:0.39")
     implementation(platform("com.squareup.okhttp3:okhttp-bom:4.10.0"))
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("de.jollyday:jollyday:0.5.10")
+
 
     // prometheus
     implementation("org.springframework.boot:spring-boot-starter-actuator")

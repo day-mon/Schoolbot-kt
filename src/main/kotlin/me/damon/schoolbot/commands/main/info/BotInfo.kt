@@ -1,6 +1,7 @@
 package me.damon.schoolbot.commands.main.info
 
 import dev.minn.jda.ktx.messages.Embed
+import me.damon.schoolbot.Constants
 import me.damon.schoolbot.objects.command.Command
 import me.damon.schoolbot.objects.command.CommandCategory
 import me.damon.schoolbot.objects.command.CommandEvent
@@ -64,6 +65,12 @@ class BotInfo : Command(
                 field {
                     name = "User Count"
                     value = jda.guilds.stream().mapToInt { it.memberCount }.sum().toString()
+                    inline = false
+                }
+
+                field {
+                    name = "Bot Version"
+                    value = Constants.VERSION
                     inline = false
                 }
             }

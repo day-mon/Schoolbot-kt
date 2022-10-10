@@ -24,6 +24,7 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
+import java.util.UUID
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.days
 
@@ -51,6 +52,9 @@ import kotlin.time.Duration.Companion.days
         .onFailure { logger.error("Error has occurred while trying to delete {}", course.name) }
         .getOrThrow()
 
+    fun findById(id: UUID): Course? = runCatching { classroomRepository.findById(id).orElse(null) }
+        .onFailure { logger.error("Error has occurred while trying to find course with $id") }
+        .getOrThrow()
     fun refactorRemindersByCourse(course: Course) = runCatching { courseReminderService.deleteAllByCourse(course); createReminders(course) }
         .onFailure { logger.error("Error has occurred while trying to refactor courses") }
         .getOrThrow()

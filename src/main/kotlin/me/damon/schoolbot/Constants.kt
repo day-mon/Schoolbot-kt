@@ -1,5 +1,8 @@
 package me.damon.schoolbot
 
+import de.jollyday.HolidayCalendar
+import de.jollyday.HolidayManager
+import de.jollyday.ManagerParameters
 import okhttp3.OkHttpClient
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -23,6 +26,11 @@ object Constants
         "larkspur",
         "cpas",
     )
+
+
+    val AMERICAN_HOLIDAYS: HolidayManager = HolidayManager.getInstance(ManagerParameters.create(HolidayCalendar.UNITED_STATES))
+
+    const val VERSION: String = "1.0.1"
 
     val TIMEZONES = mapOf(
         "Pacific Time - Los Angeles" to "America/Los_Angeles",

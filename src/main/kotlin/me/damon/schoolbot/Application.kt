@@ -34,6 +34,7 @@ class Application(
         val level = Level.valueOf(configHandler.config.logLevel.uppercase())
         (LoggerFactory.getLogger("ROOT") as ch.qos.logback.classic.Logger).level = level
         logger.info("Application has successfully built, Log Level set to: {}", configHandler.config.logLevel)
+        logger.info("Running Schoolbot on VERSION: ${Constants.VERSION}")
     }
 
     @Bean

@@ -25,7 +25,15 @@ class CooldownHandler
     fun isOnCooldown(event: CommandEvent): Boolean
     {
         val key = "${event.user.idLong}_${event.command.id}"
-        return cooledCommandMap.containsKey(key)
+        if (!cooledCommandMap.containsKey(key)) return false
+
+        val cooledCommand = cooledCommandMap[key]!!
+        if (cooledCommand.time < System.currentTimeMillis())
+        {
+            cooledCommandMap.remove(key)
+            return false
+        }
+        return true
     }
 
     fun getCooldownTime(event: CommandEvent): Long

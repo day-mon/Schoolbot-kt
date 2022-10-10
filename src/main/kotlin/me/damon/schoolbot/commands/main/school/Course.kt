@@ -11,7 +11,8 @@ class Course(
     courseAddPitt: CourseAddPitt,
     courseView: CourseView,
     courseRemove: CourseRemove,
-    courseEdit: CourseEdit
+    courseEdit: CourseEdit,
+    courseCancel: CourseCancel
 ) : Command(
     name = "Course",
     category = CommandCategory.SCHOOL,
@@ -25,6 +26,7 @@ class Course(
     children = listOf(
         courseView,
         courseRemove,
-        courseEdit
+        courseEdit,
+        courseCancel
     )
 )
