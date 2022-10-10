@@ -53,7 +53,7 @@ class CourseAddPitt(
             isRequired = true
         )
     ),
-    )
+)
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
@@ -61,7 +61,7 @@ class CourseAddPitt(
         val schoolName = event.getOption<String>("school_name")
 
         val pittSchools = try { schoolService.getPittSchoolsInGuild(event.guild.idLong) }
-            catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while thing to get schools in `${event.guild.name}`") }
+        catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while thing to get schools in `${event.guild.name}`") }
 
         if (pittSchools.isEmpty()) return event.replyErrorEmbed("There are no pitt schools in ${event.guild.name}")
 
@@ -111,7 +111,7 @@ class CourseAddPitt(
 
         val savedCourse = try { courseService.createPittCourse(event.guild, school, course) } catch (e: Exception) {
             logger.error("Error has occurred while trying to save course", e)
-           return modalEvent.replyErrorEmbed("An error has occurred. I will clean up any of the channels/roles I have created.").queue()
+            return modalEvent.replyErrorEmbed("An error has occurred. I will clean up any of the channels/roles I have created.").queue()
         }
 
 
@@ -134,18 +134,18 @@ class CourseAddPitt(
 
             it.message.edit(content = "Adding reminders... While we wait here's a joke. `${Constants.JOKES.random()}`", components = emptyList()).queue()
 
-             try { service.createReminders(course) }
-             catch (e : Exception)
-             {
-                 // to future me:  error handling is supposed to here
-                 it.message.editMessage("Reminders were not created. Please try again")
-                     .queue()
-                 logger.error("Error occurred while creating reminders", e)
-                 return@button
-             }
+            try { service.createReminders(course) }
+            catch (e : Exception)
+            {
+                // to future me:  error handling is supposed to here
+                it.message.editMessage("Reminders were not created. Please try again")
+                    .queue()
+                logger.error("Error occurred while creating reminders", e)
+                return@button
+            }
 
 
-             it.message.edit("Reminders have been created for `${course.name}`! Have a nice day ${Emoji.THUMB_UP.getAsChat()}").queue(null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION))
+            it.message.edit("Reminders have been created for `${course.name}`! Have a nice day ${Emoji.THUMB_UP.getAsChat()}").queue(null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_INTERACTION))
         }
 
         val exit = jda.button(label = "Exit", style = ButtonStyle.DANGER, user = event.user) {
@@ -183,7 +183,7 @@ class CourseAddPitt(
             4 to "Spring", 7 to "Summer", 1 to "Fall"
         )
 
-        var date = LocalDate.now()
+        var date = if (term == 1) LocalDate.now().plusYears(1) else LocalDate.now()
         var x = 0
         while (x <= 3)
         {
@@ -191,9 +191,10 @@ class CourseAddPitt(
             {
                 if (x >= 3) break
                 val yr = date.year.toString().substring(4 - 2)
+                val yrShowingTxt = if (i == 1) date.year.minus(1).toString().substring(4 - 2) else date.year.toString().substring(4 - 2)
                 val ending = "'$yr"
 
-                list.add("${map[i]} $ending" to "2${ending.removeRange(0..0)}$i")
+                list.add("${map[i]} '$yrShowingTxt" to "2${ending.removeRange(0..0)}$i")
                 x = x.plus(1)
             }
             if (x >= 3) break

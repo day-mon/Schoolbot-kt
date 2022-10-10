@@ -18,26 +18,32 @@ data class CourseModel(
     val classCapacity: Int,
     val classNumber: Int,
     val components: String,
-    val courseUrl: String,
+    val courseUrl: String?,
     val description: String?,
     val dropConsent: Any?,
     val endDateAndEndTime: Long,
+    val startDate: String,
+    val endDate: String,
+    val endTime: String,
+    val timeZone: String,
+    val startTime: String,
     val enrollmentRequirements: String,
     val grading: String,
     val identifier: String,
-    val instructor: List<String>,
+    val instructors: List<String>,
     val location: String,
     val meetingDays: List<String>,
     val name: String,
     val restrictedSeats: Int,
     val room: String,
+    val showTopic: Boolean,
     val seatsOpen: Int,
     val seatsTaken: Int,
     val session: String?,
     val startDateAndStartTime: Long,
     val status: String,
     val topic: String?,
-    val units: Int,
+    val units: String,
     val unrestrictedSeats: Int,
     val waitListCapacity: Int,
     val waitListTotal: Int,
@@ -52,16 +58,16 @@ data class CourseModel(
         termIdentifier = term,
         prerequisite = enrollmentRequirements,
         subjectAndIdentifier = identifier,
-        topic = topic,
-        url = courseUrl,
+        topic = if (showTopic) topic else null,
         startDate = Instant.ofEpochMilli(startDateAndStartTime),
         endDate = Instant.ofEpochMilli(endDateAndEndTime),
         guildId = school.guildId, // kinda silly..
-        professors = processProfessors(instructor, school, professorService),
+        professors = processProfessors(instructors, school, professorService),
         assignments = listOf(),
         meetingDays = meetingDays.joinToString { it },
         autoFilled = true,
-        school = school
+        school = school,
+        url = courseUrl ?: "https://schoolbot.dev",
     )
     @JsonIgnore
     private suspend fun processProfessors(professors: List<String>, school: School, professorService: ProfessorService): List<Professor>
@@ -85,7 +91,6 @@ data class CourseModel(
                 if (professor.contains(Constants.SPACE_REGEX)) handleCorrectPattern(professor, school, professorService) ?: continue
                 else handleIncorrectPattern(school, professor)
             profs.add(professorToAdd)
-            logger.debug("{}", professorToAdd.fullName)
 
         }
         return profs
