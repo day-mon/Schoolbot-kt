@@ -1,5 +1,6 @@
 package me.damon.schoolbot.service
 
+import dev.minn.jda.ktx.coroutines.await
 import me.damon.schoolbot.ext.logger
 import me.damon.schoolbot.objects.repository.AssignmentReminderRepository
 import me.damon.schoolbot.objects.school.Assignment
@@ -34,5 +35,9 @@ class AssignmentReminderService(
 
     fun findAllExpiredReminders() = runCatching { assignmentReminderRepository.findByExpiredAssignments() }
         .onFailure { logger.error("Error has occurred while getting expired reminders") }
+        .getOrThrow()
+
+    suspend fun findByAssignment(assignment: Assignment) = runCatching { assignmentReminderRepository.findByAssignment(assignment).await() }
+        .onFailure { logger.error("Error has occurred while getting reminders by assignment") }
         .getOrThrow()
 }

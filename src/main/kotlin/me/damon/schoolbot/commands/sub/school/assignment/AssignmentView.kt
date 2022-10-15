@@ -57,8 +57,10 @@ class AssignmentView(
         val course = courses[index]
 
 
-        val assignments = try { assignmentService.findByCourse(course) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find assignments. Please try again") }
+        val assignments = try { assignmentService.loadAssignmentsAndReminders(course) } catch (e: Exception) { return event.replyErrorEmbed("Error has occurred while trying to find assignments. Please try again") }
         if (assignments.isEmpty()) return event.replyErrorEmbed("This shouldn't have happened but... There are no assignments in this course! ${Emoji.STOP_SIGN.getAsChat()}")
+
+        // load the assignment reminders for each assignment
 
         event.sendPaginator(assignments)
     }

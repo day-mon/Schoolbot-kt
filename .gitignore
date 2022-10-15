@@ -4,3 +4,5 @@ build
 *.properties
 *.log
 schoolbot_cfg.json
+.fleet
+.DS_Store

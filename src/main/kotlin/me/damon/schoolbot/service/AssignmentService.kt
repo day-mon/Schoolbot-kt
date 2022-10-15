@@ -22,6 +22,17 @@ class AssignmentService(
         .onFailure { logger.error("Error has occurred while trying to find assignments by course") }
         .getOrThrow()
 
+
+    // load all assignments and reminders in a course
+    suspend fun loadAssignmentsAndReminders(course: Course): List<Assignment>
+    {
+        val assignments = findByCourse(course)
+        assignments.forEach { assignment ->
+            assignment.reminders = assignmentReminderService.findByAssignment(assignment)
+        }
+        return assignments
+    }
+
     fun delete(assignment: Assignment) = runCatching { assignmentReminderService.deleteByAssignment(assignment); assignmentRepository.delete(assignment) }
         .onFailure { logger.error("Error has occurred while trying to delete an assignment") }
         .getOrThrow()
