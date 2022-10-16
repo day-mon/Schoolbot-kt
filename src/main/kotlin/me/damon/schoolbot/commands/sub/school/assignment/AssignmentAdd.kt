@@ -38,66 +38,35 @@ import java.util.*
 @Component
 class AssignmentAdd(
     private val courseService: CourseService,
-    private val schoolService: SchoolService,
     private val assignmentService: AssignmentService,
     private val assignmentReminderService: AssignmentReminderService
 ) : SubCommand(
     name = "add",
     description = "Adds an assignment to the course",
     category = CommandCategory.SCHOOL,
+    deferredEnabled = false,
     options = listOf(
         CommandOptionData<String>(
-            name = "school",
+            name = "course",
             optionType = OptionType.STRING,
-            description = "The school that has the course that you wish to add the assignment to",
+            description = "The course that you wish to add the assignment to",
             autoCompleteEnabled = true,
             isRequired = true
         )
     )
-
 )
 {
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
-        val schoolId = event.getOption<String>("school")
 
 
-        val schoolUUID = UUID.fromString(schoolId)
-
-        val school = try
-        {
-            schoolService.findSchoolById(schoolUUID)
-        }
-        catch (e: Exception)
-        {
-            return event.replyErrorEmbed("Error has occurred while trying to find the school.")
-        } ?: return event.replyErrorEmbed("That school has not been found.")
-
-        val courses = try
-        {
-            courseService.findBySchool(school)
-        }
-        catch (e: Exception)
-        {
-            return event.replyErrorEmbed("Error has occurred while trying to find the courses. In this school.")
-        }
-
-        // this should really never happen unless someone randomly guesses an uuid lol. better safe than sorry
-        if (courses.isEmpty()) return event.replyErrorEmbed("There are no courses in this school.")
+        val id = event.getOption<String>("course").toUUID()
+            ?: return event.replyErrorEmbed("Invalid course id")
 
 
+        val course = courseService.findById(id)
+            ?: return event.replyErrorEmbed("Course not found")
 
-        val menu = SelectMenu(customId = "ASSIGNMENT_ADD_MENU_${event.guild.id}_${event.slashEvent.id}") {
-            courses.forEachIndexed { index, course -> option(course.name, index.toString()) }
-        }
-
-        val menuEvent = event.awaitMenu(
-            menu,
-            deleteAfter = true,
-            message =  "Please select the course that you wish to add the assignment to."
-        ) ?: return
-        val index = menuEvent.values.first().toInt()
-        val course = courses[index]
 
         val assignments = try { assignmentService.findByCourse(course) } catch (e: Exception) {  return event.replyErrorEmbed("Error has occurred while trying to find the assignments.") }
         if (assignments.size == Constants.SELECTION_MENU_MAX_SIZE) return event.replyErrorEmbed("There are too many assignments in this course. Please remove some assignments before adding more.")
@@ -114,10 +83,8 @@ class AssignmentAdd(
         }
 
 
-        val modalEvent = menuEvent.awaitModal(
-            modal = modal,
-            deferReply = true,
-        ) ?: return
+        val modalEvent = event.awaitModal(modal = modal)
+            ?: return
 
         val name = modalEvent.getValue("assignment-name")?.asString ?: return
         val description = modalEvent.getValue("assignment-add-description")?.asString ?: return
@@ -129,7 +96,7 @@ class AssignmentAdd(
 
         if (error != String.empty) return modalEvent.replyErrorEmbed(errorString = error).queue()
 
-        val offset = ZoneId.of(school.timeZone).rules.getOffset(Instant.now())
+        val offset = ZoneId.of(course.school.timeZone).rules.getOffset(Instant.now())
 
         val dueDateTime = LocalDateTime.parse(
             "$dueDate $dueTime",
@@ -239,14 +206,8 @@ class AssignmentAdd(
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
     {
         val guildId = event.guild?.idLong ?: return logger.error("Guild is null. This should never happen.")
-        val schools = try
-        {
-            schoolService.findNonEmptySchoolsInGuild(guildId)
-        }
-        catch (e: Exception)
-        {
-            return
-        }
+        val schools = try { courseService.findAllByGuild(guildId) }
+        catch (e: Exception) { return }
         event.replyChoiceAndLimit(schools.map { Command.Choice(it.name, it.id.toString()) }).queue()
 
     }
