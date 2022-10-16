@@ -6,7 +6,8 @@ import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.interactions.components.option
 import dev.minn.jda.ktx.messages.edit
 import dev.minn.jda.ktx.messages.editMessage_
-import dev.minn.jda.ktx.messages.into
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import me.damon.schoolbot.Constants
 
 import me.damon.schoolbot.ext.*
@@ -16,8 +17,8 @@ import me.damon.schoolbot.objects.command.CommandOptionData
 import me.damon.schoolbot.objects.command.SubCommand
 import me.damon.schoolbot.objects.misc.Emoji
 import me.damon.schoolbot.objects.school.Assignment
+import me.damon.schoolbot.objects.school.AssignmentType
 import me.damon.schoolbot.objects.school.Course
-import me.damon.schoolbot.objects.school.defaultReminders
 import me.damon.schoolbot.service.AssignmentReminderService
 import me.damon.schoolbot.service.AssignmentService
 import me.damon.schoolbot.service.CourseService
@@ -25,7 +26,6 @@ import me.damon.schoolbot.service.SchoolService
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
-import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.Modal
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
@@ -91,7 +91,11 @@ class AssignmentAdd(
             courses.forEachIndexed { index, course -> option(course.name, index.toString()) }
         }
 
-        val menuEvent = event.awaitMenu(menu, "Please select the course that you wish to add the assignment to.") ?: return
+        val menuEvent = event.awaitMenu(
+            menu,
+            deleteAfter = true,
+            message =  "Please select the course that you wish to add the assignment to."
+        ) ?: return
         val index = menuEvent.values.first().toInt()
         val course = courses[index]
 
@@ -132,10 +136,28 @@ class AssignmentAdd(
             DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mm a", Constants.DEFAULT_LOCALE)
         ).toInstant(offset)
 
+        val assignmentTypeMenu = SelectMenu(customId = "ASSIGNMENT_ADD_REMINDER_MENU_${event.guild.id}_${event.slashEvent.id}") {
+            AssignmentType.values().forEachIndexed { index, type -> option(type.name.toTitleCase(), index.toString()) }
+        }
 
-        val assignment = Assignment(
-            name = name, description = description, dueDate = dueDateTime, points = points.toInt(), course = course
-        )
+        val selectMenu = modalEvent.awaitMenu(
+            assignmentTypeMenu,
+            deleteAfter = true,
+            message = "Please select the type of assignment that you wish to add."
+        ) ?: return
+        val assignmentType = AssignmentType.values()[selectMenu.values.first().toInt()]
+
+
+        val assignment = withContext(Dispatchers.IO) {
+            Assignment(
+                name = name,
+                description = description,
+                dueDate = dueDateTime,
+                points = points.toInt(),
+                course = course,
+                assignmentType = assignmentType
+            )
+        }
 
         val savedAssignment = try { assignmentService.save(assignment) }
         catch (e: IllegalArgumentException) { return event.replyErrorEmbed("This should not have happened. Please contact the developer.") }
@@ -146,7 +168,7 @@ class AssignmentAdd(
 
 
         modalEvent.send(
-            content = "Would you like to add reminders for this assignment? ** I will add reminders for 1 day, 6 hours, 1 hour, 10 minutes, and at due time **",
+            content = "Would you like to add reminders for this assignment?. Reminders will occur on these dates:\n${savedAssignment.getInitialReminders().joinToString (separator = "\n", transform =  { "${it.remindTime.toDiscordTimeZoneLDST()} - (${it.remindTime.toDiscordTimeZoneRelative()}) " })}",
             actionRows = getActionRows(event, assignment)
         )
     }
@@ -159,11 +181,10 @@ class AssignmentAdd(
             it.message.edit("Adding reminders...", components = emptyList()).queue()
 
 
-          val addedReminders = try { assignmentReminderService.saveAll(defaultReminders(assignment)) }
-          catch (e: Exception) { return@button it.message.editMessage("Error has occurred while trying to save the reminders.").queue() }
+            val addedReminders = try { assignmentReminderService.saveAll(assignment.getInitialReminders()) }
+            catch (e: Exception) { return@button it.message.editMessage("Error has occurred while trying to save the reminders.").queue() }
 
             it.message.editMessage("**${addedReminders.size}** Reminders added! Have a nice day ${Emoji.SMILEY.getAsChat()} ! ${ if (addedReminders.size < 5) "\n **WAIT** Just in case you are wondering the reason why you didnt get all of the times added is because one or more of the times added has already happened." else "" }").queue()
-
         }
 
         val no = jda.button(style = ButtonStyle.DANGER, user = event.user, label = "No") {

@@ -170,7 +170,7 @@ fun InteractionHook.editOriginalAndClear(content: String) = editMessageById("@or
 
 fun Instant.toDiscordTimeZone() = "<t:${this.epochSecond}>"
 fun Instant.toDiscordTimeZoneRelative() = "<t:${this.epochSecond}:R>"
-fun Instant.toDiscordTimeZoneLDST() = "<t:${this.epochSecond}:F"
+fun Instant.toDiscordTimeZoneLDST() = "<t:${this.epochSecond}:F>"
 
 
 fun <T: IReplyCallback> T.replyEmbed(embed: MessageEmbed, content: String = String.empty) = when {
@@ -231,7 +231,27 @@ suspend fun <T: CommandInteraction> T.awaitButton(
     }
 }
 
+suspend fun <T: IReplyCallback> T.awaitMenu(
+    menu: SelectMenu,
+    message: String,
+    timeoutDuration: Duration = 1.minutes,
+    acknowledge: Boolean = false,
+    deleteAfter: Boolean = false,
+    disableAfter: Boolean = false,
+) = withTimeoutOrNull(timeMillis = timeoutDuration.inWholeMilliseconds) {
+    if (this@awaitMenu.isAcknowledged) hook.sendMessage("$message | Time out is set to ${timeoutDuration.inWholeMinutes} minute(s)").addActionRow(menu).queue()
+    else  this@awaitMenu.reply("$message | Timeout is set to $timeoutDuration minute(s)").addActionRow(menu).queue()
 
+    jda.await<SelectMenuInteractionEvent> { it.member!!.idLong == member?.idLong && it.selectMenu.id == menu.id}
+        .also {
+            if (acknowledge) it.deferEdit().queue()
+            else if (disableAfter) it.editComponents(it.component.asDisabled().into()).queue()
+            else if (deleteAfter) it.message.delete().queue(null) { ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE) }
+        }
+} ?: run {
+    replyErrorEmbed("Command has timed out try again please")
+    null
+}
 
 
 suspend fun <T: CommandInteraction> T.awaitMenu(
@@ -240,10 +260,11 @@ suspend fun <T: CommandInteraction> T.awaitMenu(
     timeoutDuration: Duration = 1.minutes,
     acknowledge: Boolean = false,
     deleteAfter: Boolean = false,
-    disableAfter: Boolean = false
+    disableAfter: Boolean = false,
 ) = withTimeoutOrNull(timeMillis = timeoutDuration.inWholeMilliseconds) {
     if (this@awaitMenu.isAcknowledged) hook.sendMessage("$message | Time out is set to ${timeoutDuration.inWholeMinutes} minute(s)").addActionRow(menu).queue()
-    else  this@awaitMenu.reply("$message | Timeout is set to $timeoutDuration minute(s)").addActionRow(menu).queue()
+    else this@awaitMenu.reply("$message | Timeout is set to $timeoutDuration minute(s)").addActionRow(menu).queue()
+
 
     jda.await<SelectMenuInteractionEvent> { it.member!!.idLong == member?.idLong && it.selectMenu.id == menu.id}
         .also {
@@ -262,7 +283,7 @@ suspend fun <T: ComponentInteraction> T.awaitMenu(
     timeoutDuration: Duration = 1.minutes,
     acknowledge: Boolean = false,
     deleteAfter: Boolean = false,
-    disableAfter: Boolean = false
+    disableAfter: Boolean = false,
 ) = withTimeoutOrNull(timeoutDuration.inWholeMilliseconds) {
     if (this@awaitMenu.isAcknowledged) hook.sendMessage("$message | Time out is set to ${timeoutDuration.inWholeMinutes} minute(s)").addActionRow(menu).queue()
     else  this@awaitMenu.reply("$message | Timeout is set to $timeoutDuration minute(s)").addActionRow(menu).queue()
@@ -312,7 +333,7 @@ suspend fun <T: ComponentInteraction> T.awaitModal(
     modal: Modal,
     duration: Duration = 1.minutes,
     deferReply: Boolean = false,
-    deferEdit: Boolean = false
+    deferEdit: Boolean = false,
 ): ModalInteractionEvent?
 {
     if (this.isAcknowledged) {
