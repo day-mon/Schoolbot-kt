@@ -62,7 +62,7 @@ class Assignment (
         description = this@Assignment.description
         field("Points", points.toString(), true)
         field("Due Date", dueDate.toDiscordTimeZone(), true)
-        field("Type", assignmentType.name ?: "None", true)
+        field("Type", assignmentType?.name ?: "None", true)
         try
         {
             field(
