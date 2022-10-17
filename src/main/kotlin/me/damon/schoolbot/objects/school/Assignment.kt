@@ -58,17 +58,18 @@ class Assignment (
 
 
     override fun getAsEmbed(): MessageEmbed = Embed {
-        title =this@Assignment.name
+        title = this@Assignment.name
         description = this@Assignment.description
         field("Points", points.toString(), true)
         field("Due Date", dueDate.toDiscordTimeZone(), true)
-        field("Type", assignmentType.name.toTitleCase(), true)
-        if (reminders != null && reminders.isNotEmpty())
+        field("Type", assignmentType.name ?: "None", true)
+        try
         {
-            field("Reminders", reminders.joinToString(
-                separator = "\n",
-                transform = { "${it.remindTime.toDiscordTimeZoneLDST()} (${it.remindTime.toDiscordTimeZoneRelative()})" }))
-        }
+            field(
+                "Reminders", reminders.joinToString(separator = "\n",
+                    transform = { "${it.remindTime.toDiscordTimeZoneLDST()} (${it.remindTime.toDiscordTimeZoneRelative()})" })
+            )
+        } catch (e: Exception) { }
 
     }
 
