@@ -40,4 +40,8 @@ class AssignmentReminderService(
     suspend fun findByAssignment(assignment: Assignment) = runCatching { assignmentReminderRepository.findByAssignment(assignment).await() }
         .onFailure { logger.error("Error has occurred while getting reminders by assignment") }
         .getOrThrow()
+
+    fun findByAssignmentBlock(assignment: Assignment) = runCatching { assignmentReminderRepository.findByAssignmentBlock(assignment) }
+        .onFailure { logger.error("Error has occurred while getting reminders by assignment") }
+        .getOrThrow()
 }

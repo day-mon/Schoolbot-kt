@@ -17,6 +17,10 @@ interface AssignmentReminderRepository : JpaRepository<AssignmentReminder, UUID>
     @Async
     fun findByAssignment(assignment: Assignment): CompletableFuture<List<AssignmentReminder>>
 
+    @Query("select a from AssignmentReminder a where a.assignment = ?1")
+    fun findByAssignmentBlock(assignment: Assignment): List<AssignmentReminder>
+
+
     @Modifying
     @Transactional
     @Query("delete from AssignmentReminder a where a.assignment = ?1")
