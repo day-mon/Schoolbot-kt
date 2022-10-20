@@ -135,7 +135,7 @@ class AssignmentAdd(
 
 
         modalEvent.send(
-            content = "Would you like to add reminders for this assignment?. Reminders will occur on these dates:\n${savedAssignment.getInitialReminders().filter { it.remindTime.isBefore(Instant.now()) }.joinToString (separator = "\n", transform =  { "${it.remindTime.toDiscordTimeZoneLDST()} - (${it.remindTime.toDiscordTimeZoneRelative()}) " })}",
+            content = "Would you like to add reminders for this assignment?. Reminders will occur on these dates:\n${savedAssignment.getInitialReminders().filter { it.remindTime.isAfter(Instant.now()) }.joinToString (separator = "\n", transform =  { "${it.remindTime.toDiscordTimeZoneLDST()} - (${it.remindTime.toDiscordTimeZoneRelative()}) " })}",
             actionRows = getActionRows(event, assignment)
         )
     }

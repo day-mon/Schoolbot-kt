@@ -107,7 +107,7 @@ class AssignmentEdit(
 
     }
 
-    private fun getActionRows(event: CommandEvent, updateReminders: Boolean, assignment: Assignment): List<Button>
+    private suspend fun getActionRows(event: CommandEvent, updateReminders: Boolean, assignment: Assignment): List<Button>
     {
         val jda = event.jda
         val yesButton = jda.button(style = ButtonStyle.PRIMARY, label = "Yes") {
@@ -127,7 +127,6 @@ class AssignmentEdit(
     }
 
     override suspend fun onAutoCompleteSuspend(event: CommandAutoCompleteInteractionEvent)
-
     {
         val guildId = event.guild?.idLong ?: return logger.error("Guild is null. This should never happen.")
         val schools = try { schoolService.findByNonEmptyCoursesInGuild(guildId) } catch (e: Exception) { return  }

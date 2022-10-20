@@ -13,4 +13,7 @@ interface AssignmentRepository : JpaRepository<Assignment, UUID>
     @Query("select a from assignment a where a.course = ?1")
     @Async
     fun findByCourse(course: Course): CompletableFuture<List<Assignment>>
+
+    @Query("select a from assignment a where a.course = ?1")
+    fun findByCourseBlock(course: Course): List<Assignment>
 }

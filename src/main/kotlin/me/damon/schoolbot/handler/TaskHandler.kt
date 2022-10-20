@@ -139,7 +139,14 @@ class TaskHandler(
 
         val channel = jda.getTextChannelById(course.channelId) ?: return logger.warn("Channel with ID [{}] not found", course.channelId)
         val mention = jda.getRoleById(course.roleId)?.asMention ?: return logger.warn("Role with ID [{}] not found", course.roleId)
-        val dueMessage = "$mention, **$assignmentName** is due in ${assignment.dueDate.toDiscordTimeZoneRelative()}"
+        val dueMessage = when {
+            assignment.dueDate.isBefore(Instant.now().minusSeconds(300)) -> "$mention, Sorry I could not remind you on time. $assignmentName was due ${assignment.dueDate.toDiscordTimeZoneRelative()}"
+            else -> "$mention, **$assignmentName** is due ${assignment.dueDate.toDiscordTimeZoneRelative()}"
+        }
+        // 10/19/2022 03:59 PM
+        // 10/19/2022 7:19 PM
+
+
 
 
         val sendingEmbed = Embed {
@@ -159,11 +166,9 @@ class TaskHandler(
 
         val deleteAfterLastReminder = guildService.getGuildSettings(channel.guild.idLong).deleteRemindableEntityOnLastReminder
 
-
-        // load assignment reminders again to check if there are any left
         val assignmentReminders = assignmentReminderService.findByAssignmentBlock(assignment)
 
-        if (assignmentReminders.size == 1 && deleteAfterLastReminder)
+        if (assignmentReminders.isEmpty() && deleteAfterLastReminder)
         {
             try { assignmentService.delete(assignment) }
             catch (e: Exception)
@@ -191,6 +196,57 @@ class TaskHandler(
                 )
             }..."
             else -> course.name
+        }
+
+
+        val localTime = reminder.remindTime.atZone(course.school.zone).toLocalTime()
+
+        val instant = localTime.atDate(LocalDate.now()).atZone(course.school.zone).toInstant()
+
+        val dueMessage = when {
+            instant.isBefore(Instant.now().minusSeconds(300)) -> "$mention, Sorry I could not remind you on time. $courseName was supposed to start ${instant.toDiscordTimeZoneRelative()}"
+            else -> "$mention, **$courseName** is starting in ${instant.toDiscordTimeZoneRelative()}"
+        }
+
+        val sendingEmbed = Embed {
+            title = "Reminder for $courseName"
+            if (course.url.isNotBlank()) url = course.url
+            field(name = "Time until class start", value = dueMessage, inline = false)
+            field(name = "Class start time today", value = instant.toDiscordTimeZone(), inline = false)
+            if (reminder.specialMessage.isNotBlank()) field(name = "Special Message", value = reminder.specialMessage, inline = false)
+        }
+
+        channel.sendMessageEmbeds(sendingEmbed).queue()
+
+        courseReminderService.remove(reminder)
+
+        // get count of reminders left
+        val remindersLeft = courseReminderService.findCountByCourse(course)
+
+        val deleteAfterLastReminder = guildService.getGuildSettings(channel.guild.idLong).deleteRemindableEntityOnLastReminder
+
+        if (remindersLeft == 0L && deleteAfterLastReminder)
+        {
+            val assignments = assignmentService.findByCourseBlock(course)
+            if (assignments.isNotEmpty())
+            {
+                return channel.sendMessage("There are still assignments for ${course.name} that need to be completed. Please delete them before deleting the course.").queue(null) {
+                    ErrorHandler().handle(ErrorResponse.UNKNOWN_CHANNEL) {
+                        logger.error("Could not warn user about class not being able to be deleted.. Idk what to do here to be quite honest")
+                    }
+                }
+            }
+
+
+            try { courseService.deleteCourse(course, jda) }
+            catch (e: Exception)
+            {
+                channel.sendMessage("An error occurred while trying to delete ${course.name}.").queue(null) {
+                    ErrorHandler().handle(ErrorResponse.UNKNOWN_CHANNEL) {
+                        logger.error("Could not warn user about class not being able to be deleted.. Idk what to do here to be quite honest")
+                    }
+                }
+            }
         }
     }
 
