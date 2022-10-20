@@ -2,6 +2,27 @@
 
 application {
     mainClass.set("me.damon.schoolbot.ApplicationKt")
+
+    // give best jvm args for performance
+    applicationDefaultJvmArgs = listOf(
+        "-XX:+UseG1GC",
+        "-XX:MaxGCPauseMillis=200",
+        "-XX:+UnlockExperimentalVMOptions",
+        "-XX:+UseStringDeduplication",
+        "-XX:+ParallelRefProcEnabled",
+        "-XX:+AlwaysPreTouch",
+        "-XX:G1HeapRegionSize=32M",
+        "-XX:G1ReservePercent=20",
+        "-XX:InitiatingHeapOccupancyPercent=15",
+        "-XX:G1MixedGCCountTarget=4",
+        "-XX:G1MixedGCLiveThresholdPercent=90",
+        "-XX:G1RSetUpdatingPauseTimePercent=5",
+        "-XX:SurvivorRatio=32",
+        "-XX:+PerfDisableSharedMem",
+        "-XX:MaxTenuringThreshold=1",
+        "-Dusing.aikars.flags=https://mcflags.emc.gs",
+        "-Daikars.new.flags=true"
+    )
 }
 
 

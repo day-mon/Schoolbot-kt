@@ -36,10 +36,11 @@ class TaskHandler(
 ) : CoroutineEventListener
 {
     private val activityList = listOf(
-        Activity.watching("mark sleep"),
         Activity.streaming("warner growing", "https://www.youtube.com/watch?v=PLOPygVcaVE"),
-        Activity.watching("damon bench joesphs weight"),
-        Activity.streaming("chakra balancing seminar", "https://www.youtube.com/watch?v=vqklftk89Nw")
+        Activity.streaming("chakra balancing seminar", "https://www.youtube.com/watch?v=vqklftk89Nw"),
+        Activity.watching("Scanrdro escape the barbers"),
+        Activity.watching("Townies arguing at Walmart"),
+        Activity.streaming("Johnstown INN Wing Eating Competition", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
     )
     private val scheduler = Executors.newScheduledThreadPool(10) { Thread(it, "Schoolbot TaskHandler-Thread") }
     private val logger by SLF4J
@@ -55,10 +56,10 @@ class TaskHandler(
     ): ScheduledFuture<*>
     {
         val job = scheduler.scheduleAtFixedRate(
-            /* p0 = */ block,
-            /* p1 = */ delay,
-            /* p2 = */ duration.inWholeMilliseconds,
-            /* p3 = */ TimeUnit.MILLISECONDS
+            block,
+            delay,
+            duration.inWholeMilliseconds,
+            TimeUnit.MILLISECONDS
         )
         tasks[name] = job
         return job
@@ -143,11 +144,6 @@ class TaskHandler(
             assignment.dueDate.isBefore(Instant.now().minusSeconds(300)) -> "$mention, Sorry I could not remind you on time. $assignmentName was due ${assignment.dueDate.toDiscordTimeZoneRelative()}"
             else -> "$mention, **$assignmentName** is due ${assignment.dueDate.toDiscordTimeZoneRelative()}"
         }
-        // 10/19/2022 03:59 PM
-        // 10/19/2022 7:19 PM
-
-
-
 
         val sendingEmbed = Embed {
             this.title = "Reminder for $assignmentName"
@@ -199,7 +195,7 @@ class TaskHandler(
         }
 
 
-        val localTime = reminder.remindTime.atZone(course.school.zone).toLocalTime()
+        val localTime = course.startDate.atZone(course.school.zone).toLocalTime()
 
         val instant = localTime.atDate(LocalDate.now()).atZone(course.school.zone).toInstant()
 
