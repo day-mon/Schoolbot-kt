@@ -52,12 +52,17 @@ class CourseCancel(
     override suspend fun onExecuteSuspend(event: CommandEvent)
     {
         val courseIdPot = event.getOption<String>("course_name")
-        val date = event.getOption<String>("date")
         val cancelDate =
-            if (date.isEmpty()) LocalDate.now()
-        else
-            try { LocalDate.parse(date, Constants.DEFAULT_DATE_FORMAT) }
-            catch (e: Exception) { return event.replyErrorEmbed("Error parsing date. Try MM/dd/yyyy") }
+            if (event.sentWithOption("date"))
+            {
+                val date = event.getOption<String>("date")
+                try { LocalDate.parse(date, Constants.DEFAULT_DATE_FORMAT) }
+                catch (e: Exception) { return event.replyErrorEmbed("Error parsing date. Try MM/dd/yyyy") }
+            }
+            else
+                LocalDate.now()
+
+
 
         if (courseIdPot.lowercase() == "all")
         {
@@ -110,7 +115,7 @@ class CourseCancel(
      val rows = try { courseReminderService.cancelReminderOnDate(course, instant) }
        catch (e: Exception) { return event.replyErrorEmbed("Error occurred while trying to cancel course") }
 
-        if (rows == 0) {
+        if (rows != 0) {
             event.replyMessage("Successfully removed $rows reminders for the course `${course.name.toTitleCase()}`on `${cancelDate.format(Constants.DEFAULT_DATE_FORMAT)}`")
         } else {
             event.replyMessage("There were no reminders to remove")
