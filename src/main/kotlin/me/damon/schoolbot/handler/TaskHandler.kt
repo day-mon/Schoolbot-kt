@@ -142,7 +142,7 @@ class TaskHandler(
         val mention = jda.getRoleById(course.roleId)?.asMention ?: return logger.warn("Role with ID [{}] not found", course.roleId)
         val dueMessage = when {
             assignment.dueDate.isBefore(Instant.now().minusSeconds(300)) -> "$mention, Sorry I could not remind you on time. $assignmentName was due ${assignment.dueDate.toDiscordTimeZoneRelative()}"
-            else -> "$mention, **$assignmentName** is due ${assignment.dueDate.toDiscordTimeZoneRelative()}"
+            else -> "$mention, **$assignmentName** is/was due ${assignment.dueDate.toDiscordTimeZoneRelative()}"
         }
 
         val sendingEmbed = Embed {
@@ -201,7 +201,7 @@ class TaskHandler(
 
         val dueMessage = when {
             instant.isBefore(Instant.now().minusSeconds(300)) -> "$mention, Sorry I could not remind you on time. $courseName was supposed to start ${instant.toDiscordTimeZoneRelative()}"
-            else -> "$mention, **$courseName** is starting in ${instant.toDiscordTimeZoneRelative()}"
+            else -> "$mention, **$courseName** is/was starting ${instant.toDiscordTimeZoneRelative()}"
         }
 
         val sendingEmbed = Embed {
