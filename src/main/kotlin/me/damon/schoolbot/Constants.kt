@@ -30,7 +30,7 @@ object Constants
 
     val AMERICAN_HOLIDAYS: HolidayManager = HolidayManager.getInstance(ManagerParameters.create(HolidayCalendar.UNITED_STATES))
 
-    const val VERSION: String = "1.2.3"
+    const val VERSION: String = "1.2.4"
 
     val TIMEZONES = mapOf(
         "Pacific Time - Los Angeles" to "America/Los_Angeles",

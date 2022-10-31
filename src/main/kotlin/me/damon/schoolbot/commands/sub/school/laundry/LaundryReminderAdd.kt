@@ -40,7 +40,6 @@ class LaundryReminderAdd(
         val dorm = event.getOption<String>("dormitory")
         val response = apiHandler.johnstownAPI.getLaundryItems(dorm)
 
-
         if (response.isSuccessful.not())
         {
             logger.error("Error has occurred", response.raw().asException() )
@@ -51,8 +50,8 @@ class LaundryReminderAdd(
         val models = response.body()?.filter { it.isInUse && !(it.timeRemaining.contains("Ext") || it.timeRemaining.contains("Offline")) }?.toList()
             ?: run {
                 logger.debug("{}", response.errorBody())
-              return event.replyMessage("Error has occurred while trying to get the response body")
-        }
+                return event.replyMessage("Error has occurred while trying to get the response body")
+            }
 
         if (models.isEmpty()) return run { event.replyMessage("There is no machine that is in use for you to be reminded about")}
 
@@ -75,7 +74,7 @@ class LaundryReminderAdd(
             timeUnit = TimeUnit.MINUTES,
             duration = timeLeft.toLong(),
             block =  {
-                val message = "${option.type} - ${option.applianceID} at ${option.location} is now ready"
+                val message = "The ${if (option.type.lowercase().contains("d")) "Dryer" else "Washer"} at ${option.location} is now finished."
                 event.user.openPrivateChannel()
                     .queue { pc ->
                         pc.sendMessage(message).queue(null, ErrorHandler().handle(ErrorResponse.CANNOT_SEND_TO_USER) {
