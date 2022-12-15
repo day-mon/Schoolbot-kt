@@ -37,7 +37,8 @@ class ConfigHandler
                 Config(
                     token = "token",
                     developerIds = listOf("-1".repeat(3)),
-                    logLevel = "INFO"
+                    logLevel = "INFO",
+                    pittFindToken = ""
                 )
             )
             configFile.writeText(defaultValues)
@@ -82,7 +83,8 @@ class ConfigHandler
     data class Config(
         val developerIds: List<String>,
         val token: String,
-        var logLevel: String
+        var logLevel: String,
+        val pittFindToken: String
     )
 
 

@@ -2,5 +2,7 @@
     "developerIds": [
         "-1-1-1"
     ],
-    "token": "token"
+    "token": "token",
+    "logLevel": "INFO",
+    "pittFindToken": "token"
 }
