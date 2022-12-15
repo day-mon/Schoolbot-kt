@@ -21,6 +21,7 @@ class Find(
 ) : Command(
     name = "Find",
     description = "Finds a person within the University of Pittsburgh system",
+    deferredEnabled = true,
     options = listOf(
         CommandOptionData<String>(
             optionType = OptionType.STRING,
@@ -29,7 +30,6 @@ class Find(
             isRequired = true
         )
     ),
-
     category = CommandCategory.SCHOOL
 )
 {
@@ -66,11 +66,12 @@ class Find(
                 return event.replyErrorEmbed("Something went wrong while trying to find that person.")
 
             val parsedHtml = Jsoup.parse(body)
+            val error = parsedHtml.body().text().contains("Too many people matched your criteria. Please try searching by username, phone, email, or by enclosing your search in quotation marks.")
 
-            if (parsedHtml.hasClass("alert-danger content-alert")) {
-               return event.replyErrorEmbed(parsedHtml.getElementsByClass("alert-danger content-alert").text());
+
+            if (error) {
+               return event.replyErrorEmbed("Too many people matched your criteria. Please try searching by username, phone, email, or by enclosing your search in quotation marks.");
             }
-            logger.info("oof")
 
             val persons = parsedHtml.getElementsByClass("row scale-in-center")
 
@@ -78,9 +79,9 @@ class Find(
                 return event.replyErrorEmbed("No results found for that name.")
 
             val embeds = persons.map { person ->
-                val name = person.getElementsByClass("title").text()
+                val personsName = person.getElementsByClass("title").text()
                 Embed {
-                    this.title = name ?: "Unknown"
+                    this.title = personsName ?: "Unknown"
                     person.getElementsByClass("row-label").forEach {
                         field(it.text(), it.nextElementSibling()?.text() ?: "Unknown", false)
                     }
