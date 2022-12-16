@@ -32,10 +32,11 @@ Schoolbot-kt is a Kotlin rewrite of [Schoolbot](https://github.com/day-mon/Schoo
 {
     "token" : "YOUR_TOKEN_HERE",
     "developerIds" : [ "" ],
-    "logLevel": "INFO"
+    "logLevel": "INFO",
+    "pittToken": ""
 }
 ```
-3. Create a file called `application.yml` in the root directory. Example below:
+3. Create a file called `application.properties` in the root directory. (You can also find an example in the resources folder of this repo) Example below:
 ```properties
 spring.datasource.hikari.pool-name=Schoolbot Connection Pool
 spring.datasource.hikari.connection-timeout=
@@ -61,10 +62,11 @@ spring.jpa.properties.hibernate.order_updates=true
 {
     "token" : "YOUR_TOKEN_HERE",
     "developerIds" : [ "" ],
-    "logLevel": "INFO"
+    "logLevel": "INFO",
+    "pittToken": ""
 }
 ```
-3. Create a file called `application.yml` in the root directory. Example below:
+3. Create a file called `application.properties` in the root directory. (You can also find an example in the resources folder of this repo) Example below:
 ```properties
 spring.datasource.hikari.pool-name=Schoolbot Connection Pool
 spring.datasource.hikari.connection-timeout=
