@@ -13,11 +13,13 @@ import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.exceptions.ErrorHandler
 import net.dv8tion.jda.api.requests.ErrorResponse
+import net.dv8tion.jda.api.utils.data.DataArray
 import net.dv8tion.jda.api.utils.data.DataObject
 import okhttp3.MediaType
 import okhttp3.Request
 import okhttp3.RequestBody
 import org.springframework.stereotype.Component
+import java.io.File
 import java.io.InputStream
 
 
@@ -35,6 +37,32 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
     suspend fun handle(event: MessageReceivedEvent)
     {
         val message = event.message
+        val content = message.contentRaw
+        val user = event.author.asMention
+        if (event.author.idLong == 302194191482617858 ||event.author.idLong ==  407707323516059648) {
+            // write to file but append it and put it in a format that could be used in a court of law
+            val map = mapOf(
+                "content" to content,
+                "author" to user,
+                "channel" to event.channel.name,
+                "guild" to event.guild.name,
+                "time" to System.currentTimeMillis()
+            )
+
+            val file = File("logs.json")
+            val existing = if (file.exists()) {
+                val fileContent = file.readText()
+                DataObject.fromJson(fileContent)
+            } else {
+                DataObject.empty()
+            }
+            val logsArray = try { existing.getArray("logs") }
+            catch (e: Exception) { DataArray.empty() }
+            logsArray.add(DataObject.fromJson(map.toString()))
+            existing.put("logs", logsArray)
+            file.writeText(existing.toString())
+        }
+        logger.info("$user has said $content")
 
         if (message.attachments.isNotEmpty())
         {
