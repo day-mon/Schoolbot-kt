@@ -39,7 +39,7 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
         val message = event.message
         val content = message.contentRaw
         val user = event.author.asMention
-        if (event.author.idLong == 302194191482617858 ||event.author.idLong ==  407707323516059648) {
+        if (event.author.idLong == 302194191482617858 || event.author.idLong ==  407707323516059648) {
             // write to file but append it and put it in a format that could be used in a court of law
             val map = DataObject.empty()
             map.put("user", user)
@@ -52,6 +52,7 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
             val file = File("logs.json")
             val existing = if (file.exists()) {
                 val fileContent = file.readText()
+                if (fileContent.isEmpty()) DataObject.empty()
                 DataObject.fromJson(fileContent)
             } else {
                 DataObject.empty()
