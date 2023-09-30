@@ -45,13 +45,13 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
         val content = message.contentRaw
         val user = event.author.asMention
         if (event.author.idLong in writeList) {
+            // write to file but append it and put it in a format that could be used in a court of law
             val map = DataObject.empty()
             map.put("user", user)
             map.put("content", content)
             map.put("time", System.currentTimeMillis())
             map.put("guild", event.guild.name)
             map.put("author", event.author.name)
-            map.put("channel", event.channel.name)
 
             val file = File("logs.json")
             val existing = if (file.exists()) {
