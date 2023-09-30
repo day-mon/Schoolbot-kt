@@ -2,7 +2,7 @@ name: Docker Build
 
 on:
   push:
-    branches: [ master, workflow-test ]
+    branches: [ master, workflow-test, feature/operation-orangutan_jones ]
 
 env:
   BOT_IMAGE_NAME: bot
