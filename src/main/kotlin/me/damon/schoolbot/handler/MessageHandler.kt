@@ -33,58 +33,77 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
         "php", "r", "py", "go", "python", "ts", "html", "css",
         "scss", "kt", "c", "h", "cs", "json", "yaml", "yml", "md",
 
-    )
+        )
     private val logger by SLF4J
 
     suspend fun handle(event: MessageReceivedEvent)
     {
         val writeList = listOf(
-            105141507996061696, 407707323516059648, 302194191482617858
+            302194191482617858
         )
+
         val message = event.message
         val content = message.contentRaw
         val user = event.author.asMention
-        if (event.author.idLong in writeList) {
-            // write to file but append it and put it in a format that could be used in a court of law
-            val map = DataObject.empty()
-            map.put("user", user)
-            map.put("content", content)
-            map.put("time", System.currentTimeMillis())
-            map.put("guild", event.guild.name)
-            map.put("author", event.author.name)
 
-            val file = File("logs.json")
-            val existing = if (file.exists()) {
-                val fileContent = file.readText()
-                if (fileContent.isEmpty()) DataObject.empty()
-                DataObject.fromJson(fileContent)
-            } else {
-                DataObject.empty()
-            }
+        if (event.author.idLong in writeList)
+            withContext(Dispatchers.IO) { handleDiskLog(event) }
 
-            val logsArray = try { existing.getArray("logs") }
-            catch (e: Exception) { DataArray.empty() }
-
-            if (!file.exists()) {
-                withContext(Dispatchers.IO) {
-                    file.createNewFile()
-                    logsArray.add(map)
-                    existing.put("logs", logsArray)
-                    file.writeText(existing.toString())
-                }
-            }
-
-        }
         logger.info("$user has said $content")
 
         if (message.attachments.isNotEmpty())
         {
-            val autoUpload = guildService.getGuildSettings(event.guild.idLong).longMessageUploading
-
-            if (autoUpload)
-                handleFile(event)
+            val autoUpload = guildService.getGuildSettings(event.guild.idLong)
+                .longMessageUploading
+            if (autoUpload) handleFile(event)
         }
 
+    }
+
+    private suspend fun handleDiskLog(event: MessageReceivedEvent)
+    {
+        val message = event.message
+        val content = message.contentRaw
+        val user = event.author.asMention
+
+        val map = DataObject.empty()
+        map.put("user", user)
+        map.put("content", content)
+        map.put("time", System.currentTimeMillis())
+        map.put("guild", event.guild.name)
+        map.put("author", event.author.name)
+
+        val file = File("logs.json")
+        val existing = if (file.exists())
+        {
+            val fileContent = file.readText()
+            if (fileContent.isEmpty())
+            {
+                DataObject.empty()
+            }
+            DataObject.fromJson(fileContent)
+        }
+        else
+        {
+            DataObject.empty()
+        }
+
+        val logsArray = try
+        {
+            existing.getArray("logs")
+        } catch (e: Exception)
+        {
+            DataArray.empty()
+        }
+
+        if (!file.exists())
+        {
+            file.createNewFile()
+        }
+
+        logsArray.add(map)
+        existing.put("logs", logsArray)
+        file.writeText(existing.toString())
     }
 
     private suspend fun handleFile(event: MessageReceivedEvent)
@@ -92,26 +111,23 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
         val message = event.message
         val attachments = message.attachments
 
-        attachments
-            .filter { it.fileExtension in fileExtensions }
-            .map {
+        attachments.filter { it.fileExtension in fileExtensions }.map {
                 try
                 {
                     val sendingMessage = event.channel.sendMessage("Uploading to pastecord...").await()
                     val inputStream = it.proxy.download().await()
                     return@map sendingMessage to inputStream
-                }
-                catch (e: Exception)
+                } catch (e: Exception)
                 {
-                    event.channel.sendMessage("Error occurred while trying to retrieve file or sending original message").queue()
+                    event.channel
+                        .sendMessage("Error occurred while trying to retrieve file or sending original message").queue()
                     return logger.error("An error has occurred while attempting to send the message", e)
                 }
-        }.forEach { doUpload(it, event) }
+            }.forEach { doUpload(it, event) }
     }
 
     private suspend fun doUpload(
-        pair: Pair<Message, InputStream>,
-        event: MessageReceivedEvent
+        pair: Pair<Message, InputStream>, event: MessageReceivedEvent
     )
     {
         val client = event.jda.httpClient
@@ -121,11 +137,9 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
         val payload = stream.string()
 
         val request = Request.Builder().url("https://pastecord.com/documents")
-            .addHeader("User-Agent", "School bot (https://github.com/day-mon/School-Bot-kt)")
-            .post(
+            .addHeader("User-Agent", "School bot (https://github.com/day-mon/School-Bot-kt)").post(
                 RequestBody.create(
-                    MediaType.parse("application/json"),
-                    payload
+                    MediaType.parse("application/json"), payload
                 )
             ).build()
 
@@ -156,7 +170,10 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
 
                 if (!responseJson.hasKey("key"))
                 {
-                    logger.error("Body is either malformed or body responded with an unexpected response \nBody: {}", body)
+                    logger.error(
+                        "Body is either malformed or body responded with an unexpected response \nBody: {}",
+                        body
+                    )
                     return message.editMessage("Body returned unexpected response").queue()
                 }
 
@@ -167,8 +184,7 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
                 message.editMessage("Successfully uploaded ${event.author.asMention}'s message [$urlToSend]").queue()
                 event.message.delete().queue(null, ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE))
             }
-        }
-        catch (e: Exception)
+        } catch (e: Exception)
         {
             message.editMessage("Error has occurred while trying to upload this to pastecord").queue()
             logger.error("Error has occurred", e)
@@ -176,8 +192,10 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
     }
 
 
-    override suspend fun onEvent(event: GenericEvent) {
-        when (event) {
+    override suspend fun onEvent(event: GenericEvent)
+    {
+        when (event)
+        {
             is MessageReceivedEvent -> handle(event)
         }
     }
