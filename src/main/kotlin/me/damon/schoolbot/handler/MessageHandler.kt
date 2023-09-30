@@ -3,6 +3,8 @@ package me.damon.schoolbot.handler
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.events.CoroutineEventListener
 import dev.minn.jda.ktx.util.SLF4J
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import me.damon.schoolbot.ext.asException
 import me.damon.schoolbot.ext.await
 import me.damon.schoolbot.ext.bodyAsString
@@ -36,11 +38,13 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
 
     suspend fun handle(event: MessageReceivedEvent)
     {
+        val writeList = listOf(
+            105141507996061696, 407707323516059648, 302194191482617858
+        )
         val message = event.message
         val content = message.contentRaw
         val user = event.author.asMention
-        if (event.author.idLong == 302194191482617858 || event.author.idLong ==  407707323516059648) {
-            // write to file but append it and put it in a format that could be used in a court of law
+        if (event.author.idLong in writeList) {
             val map = DataObject.empty()
             map.put("user", user)
             map.put("content", content)
@@ -61,9 +65,15 @@ class MessageHandler(val guildService: GuildService) : CoroutineEventListener
             val logsArray = try { existing.getArray("logs") }
             catch (e: Exception) { DataArray.empty() }
 
-            logsArray.add(map)
-            existing.put("logs", logsArray)
-            file.writeText(existing.toString())
+            if (!file.exists()) {
+                withContext(Dispatchers.IO) {
+                    file.createNewFile()
+                    logsArray.add(map)
+                    existing.put("logs", logsArray)
+                    file.writeText(existing.toString())
+                }
+            }
+
         }
         logger.info("$user has said $content")
 
